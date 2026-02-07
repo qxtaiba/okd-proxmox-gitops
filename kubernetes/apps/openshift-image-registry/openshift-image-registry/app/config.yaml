@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/imageregistry.operator.openshift.io/config_v1.json
+---
+apiVersion: imageregistry.operator.openshift.io/v1
+kind: Config
+metadata:
+  name: cluster
+spec:
+  managementState: Managed
+  storage:
+    pvc:
+      claim: image-registry-storage
+  rolloutStrategy: RollingUpdate
+  replicas: 2

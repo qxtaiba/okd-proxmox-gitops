@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: flux-instance-rules
+spec:
+  groups:
+    - name: flux-instance.rules
+      rules:
+        - alert: FluxReconciliationFailure
+          expr: |-
+            max(gotk_reconcile_condition{status="False",type="Ready"}) by (namespace, name, kind) == 1
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.kind }} {{ $labels.namespace }}/{{ $labels.name }} reconciliation has been failing
+          labels:
+            severity: warning
+        - alert: FluxHelmReleaseNotReady
+          expr: |-
+            gotk_reconcile_condition{kind="HelmRelease",status="False",type="Ready"} == 1
+          for: 10m
+          annotations:
+            summary: >-
+              HelmRelease {{ $labels.namespace }}/{{ $labels.name }} is not ready
+          labels:
+            severity: critical
+        - alert: FluxKustomizationNotReady
+          expr: |-
+            gotk_reconcile_condition{kind="Kustomization",status="False",type="Ready"} == 1
+          for: 10m
+          annotations:
+            summary: >-
+              Kustomization {{ $labels.namespace }}/{{ $labels.name }} is not ready
+          labels:
+            severity: critical

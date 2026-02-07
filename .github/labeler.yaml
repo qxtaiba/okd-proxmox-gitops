@@ -1,0 +1,9 @@
+---
+area/flux:
+  - changed-files:
+      - any-glob-to-any-file:
+          - kubernetes/**/*
+area/ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/**/*

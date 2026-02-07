@@ -1,0 +1,19 @@
+---
+- search:
+    provider: duckduckgo
+    focus: true
+    showSearchSuggestions: true
+    target: _blank
+- openmeteo:
+    label: Dubai
+    latitude: 25.2048
+    longitude: 55.2708
+    timezone: Asia/Dubai
+    units: metric
+    cache: 5
+- datetime:
+    text_size: l
+    format:
+      dateStyle: long
+      timeStyle: short
+      hour12: false

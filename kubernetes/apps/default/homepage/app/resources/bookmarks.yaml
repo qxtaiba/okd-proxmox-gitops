@@ -1,0 +1,15 @@
+---
+- Developer:
+    - GitHub:
+        - icon: github.png
+          href: https://github.com/qxtaiba/okd-proxmox-gitops-cli
+    - Flux CD:
+        - icon: flux-cd.png
+          href: https://fluxcd.io/flux/
+- Documentation:
+    - OKD Docs:
+        - icon: openshift.png
+          href: https://docs.okd.io/latest/welcome/index.html
+    - Kubernetes:
+        - icon: kubernetes.png
+          href: https://kubernetes.io/docs/

@@ -1,0 +1,110 @@
+---
+- Media:
+    - Plex:
+        icon: plex.png
+        href: https://plex.grappleberry.xyz
+        description: Media Server
+        siteMonitor: http://plex.default.svc:32400/identity
+        widget:
+          type: plex
+          url: http://plex.default.svc:32400
+          key: "{{HOMEPAGE_VAR_PLEX_TOKEN}}"
+          fields: ["movies", "tv"]
+- Downloads:
+    - SABnzbd:
+        icon: sabnzbd.png
+        href: https://sabnzbd.grappleberry.xyz
+        description: Usenet Downloads
+        siteMonitor: http://sabnzbd.default.svc:8080
+        widget:
+          type: sabnzbd
+          url: http://sabnzbd.default.svc:8080
+          key: "{{HOMEPAGE_VAR_SABNZBD_API_KEY}}"
+          fields: ["rate", "queue", "timeleft"]
+    - qBittorrent:
+        icon: qbittorrent.png
+        href: https://qbittorrent.grappleberry.xyz
+        description: Torrent Downloads
+        siteMonitor: https://qbittorrent.grappleberry.xyz
+        widget:
+          type: qbittorrent
+          url: https://qbittorrent.grappleberry.xyz
+          username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
+          fields: ["download", "upload", "seed"]
+- TV & Movies:
+    - Sonarr:
+        icon: sonarr.png
+        href: https://sonarr.grappleberry.xyz
+        description: TV Shows
+        siteMonitor: http://sonarr.default.svc:8989/ping
+        widget:
+          type: sonarr
+          url: http://sonarr.default.svc:8989
+          key: "{{HOMEPAGE_VAR_SONARR_API_KEY}}"
+          fields: ["wanted", "queued", "series"]
+    - Radarr:
+        icon: radarr.png
+        href: https://radarr.grappleberry.xyz
+        description: Movies
+        siteMonitor: http://radarr.default.svc:7878/ping
+        widget:
+          type: radarr
+          url: http://radarr.default.svc:7878
+          key: "{{HOMEPAGE_VAR_RADARR_API_KEY}}"
+          fields: ["wanted", "queued", "movies"]
+- Indexers:
+    - Prowlarr:
+        icon: prowlarr.png
+        href: https://prowlarr.grappleberry.xyz
+        description: Indexer Manager
+        siteMonitor: http://prowlarr.default.svc:9696/ping
+        widget:
+          type: prowlarr
+          url: http://prowlarr.default.svc:9696
+          key: "{{HOMEPAGE_VAR_PROWLARR_API_KEY}}"
+          fields: ["enableIndexers", "numberOfGrabs", "numberOfQueries"]
+- Requests:
+    - Overseerr:
+        icon: overseerr.png
+        href: https://overseerr.grappleberry.xyz
+        description: Media Requests
+        siteMonitor: http://overseerr.default.svc:5055/api/v1/status
+        widget:
+          type: overseerr
+          url: http://overseerr.default.svc:5055
+          key: "{{HOMEPAGE_VAR_OVERSEERR_API_KEY}}"
+          fields: ["pending", "approved", "available"]
+- Infrastructure:
+    - Proxmox:
+        icon: proxmox.png
+        href: https://proxmox.grappleberry.xyz:8006
+        description: Hypervisor
+        widget:
+          type: proxmox
+          url: https://proxmox.grappleberry.xyz:8006
+          username: "{{HOMEPAGE_VAR_PROXMOX_TOKEN_ID}}"
+          password: "{{HOMEPAGE_VAR_PROXMOX_TOKEN_SECRET}}"
+          fields: ["vms", "resources.cpu", "resources.mem"]
+    - Synology NAS:
+        icon: synology.png
+        href: https://nas.grappleberry.xyz:5001
+        description: Network Storage
+        widget:
+          type: diskstation
+          url: https://nas.grappleberry.xyz:5001
+          username: "{{HOMEPAGE_VAR_SYNOLOGY_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_SYNOLOGY_PASSWORD}}"
+          fields: ["uptime", "volumeAvailable", "resources.cpu", "resources.mem"]
+    - Grafana:
+        icon: grafana.png
+        href: https://grafana.grappleberry.xyz
+        description: Monitoring & Dashboards
+        siteMonitor: https://grafana.grappleberry.xyz/api/health
+        widget:
+          type: grafana
+          url: https://grafana.grappleberry.xyz
+          username: "{{HOMEPAGE_VAR_GRAFANA_USERNAME}}"
+          password: "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}"
+          version: 2
+          fields: ["dashboards"]

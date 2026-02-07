@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./priority-classes
+  - ./cert-manager
+  - ./cluster-secrets
+  - ./cloudflared
+  - ./external-dns
+  - ./external-secrets
+  - ./onepassword-connect
+  - ./grafana
+  - ./metallb
+  - ./rook-ceph

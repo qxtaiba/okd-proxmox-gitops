@@ -1,0 +1,59 @@
+# butane source file for kube-vip bootstrap systemd unit
+# regenerate machineconfig.yaml with: make generate-kube-vip-bootstrap
+#
+# adds vip to interface before kubelet starts, ensuring kube-vip daemonset
+# can start even if api server was previously unreachable
+variant: openshift
+version: 4.18.0
+metadata:
+  name: 99-master-kube-vip-bootstrap
+  labels:
+    machineconfiguration.openshift.io/role: master
+storage:
+  files:
+    - path: /usr/local/bin/kube-vip-bootstrap.sh
+      mode: 0755
+      overwrite: true
+      contents:
+        inline: |
+          #!/bin/bash
+          # kube-vip bootstrap script
+          # adds vip to interface if not already present
+
+          VIP="192.168.227.10"
+          INTERFACE="ens18"
+
+          # check if vip already exists on any interface
+          if ip addr show | grep -q "${VIP}/"; then
+            echo "vip ${VIP} already configured"
+            exit 0
+          fi
+
+          # add vip to interface
+          echo "adding vip ${VIP} to ${INTERFACE}"
+          ip addr add ${VIP}/32 dev ${INTERFACE}
+
+          # send gratuitous arp
+          if command -v arping &> /dev/null; then
+            arping -c 3 -A -I ${INTERFACE} ${VIP} || true
+          fi
+
+          echo "vip bootstrap complete"
+systemd:
+  units:
+    - name: kube-vip-bootstrap.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=kube-vip VIP bootstrap
+        Before=kubelet.service
+        After=network-online.target
+        Wants=network-online.target
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/local/bin/kube-vip-bootstrap.sh
+        RemainAfterExit=yes
+
+        [Install]
+        WantedBy=multi-user.target

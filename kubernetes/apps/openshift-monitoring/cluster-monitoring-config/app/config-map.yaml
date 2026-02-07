@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/configmap.json
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+data:
+  config.yaml: |-
+    enableUserWorkload: true

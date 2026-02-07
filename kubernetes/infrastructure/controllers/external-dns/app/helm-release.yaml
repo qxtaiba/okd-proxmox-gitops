@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-dns
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: external-dns
+  interval: 1h
+  values:
+    fullnameOverride: external-dns
+    provider:
+      name: cloudflare
+    env:
+      - name: CF_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: external-dns-secret
+            key: CF_API_TOKEN
+      - name: CF_ZONE_ID
+        valueFrom:
+          secretKeyRef:
+            name: external-dns-secret
+            key: CF_ZONE_ID
+    extraArgs:
+      - --cloudflare-dns-records-per-page=1000
+      - --cloudflare-proxied
+      - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
+      - --crd-source-kind=DNSEndpoint
+      - --zone-id-filter=$(CF_ZONE_ID)
+      - --annotation-filter=external-dns.alpha.kubernetes.io/target
+    triggerLoopOnEvent: true
+    policy: sync
+    sources:
+      - crd
+      - openshift-route
+    txtOwnerId: default
+    txtPrefix: k8s.
+    domainFilters:
+      - grappleberry.xyz
+    serviceMonitor:
+      enabled: true
+    podAnnotations:
+      secret.reloader.stakater.com/reload: external-dns-secret
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    podSecurityContext:
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault

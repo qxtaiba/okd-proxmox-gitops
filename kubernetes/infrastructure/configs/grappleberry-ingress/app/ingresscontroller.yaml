@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/operator.openshift.io/ingresscontroller_v1.json
+---
+apiVersion: operator.openshift.io/v1
+kind: IngressController
+metadata:
+  name: grappleberry
+  namespace: openshift-ingress-operator
+spec:
+  domain: grappleberry.xyz
+  replicas: 2
+  defaultCertificate:
+    name: grappleberry-xyz-tls
+  routeSelector:
+    matchLabels:
+      ingress: grappleberry
+  routeAdmission:
+    namespaceOwnership: InterNamespaceAllowed
+  endpointPublishingStrategy:
+    type: LoadBalancerService
+    loadBalancer:
+      scope: External
+      dnsManagementPolicy: Unmanaged

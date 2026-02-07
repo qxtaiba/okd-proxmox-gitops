@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/route.openshift.io/route_v1.json
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: overseerr
+  labels:
+    ingress: grappleberry
+  annotations:
+    external-dns.alpha.kubernetes.io/target: external.grappleberry.xyz
+spec:
+  host: overseerr.grappleberry.xyz
+  port:
+    targetPort: 5055
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: overseerr
+    weight: 100
+  wildcardPolicy: None
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: requests
+  labels:
+    ingress: grappleberry
+  annotations:
+    external-dns.alpha.kubernetes.io/target: external.grappleberry.xyz
+spec:
+  host: requests.grappleberry.xyz
+  port:
+    targetPort: 5055
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: overseerr
+    weight: 100
+  wildcardPolicy: None

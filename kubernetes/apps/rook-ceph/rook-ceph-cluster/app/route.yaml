@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/route.openshift.io/route_v1.json
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: rook-ceph-dashboard
+  labels:
+    ingress: grappleberry
+spec:
+  host: rook.grappleberry.xyz
+  port:
+    targetPort: 7000
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: rook-ceph-mgr-dashboard
+    weight: 100
+  wildcardPolicy: None

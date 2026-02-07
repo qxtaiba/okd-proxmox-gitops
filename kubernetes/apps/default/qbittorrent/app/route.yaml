@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/route.openshift.io/route_v1.json
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: qbittorrent
+  labels:
+    ingress: grappleberry
+spec:
+  host: qbittorrent.grappleberry.xyz
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: qbittorrent-app
+    weight: 100
+  wildcardPolicy: None

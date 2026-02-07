@@ -1,0 +1,31 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Secrets (safety net)
+*.pem
+*.key
+*.kubeconfig
+kubeadmin-password
+pull-secret.txt
+pull-secret.json
+
+# Terraform state (accidental leftover)
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Local AI context
+CLAUDE.md

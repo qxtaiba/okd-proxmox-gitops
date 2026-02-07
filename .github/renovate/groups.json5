@@ -1,0 +1,9 @@
+{
+  "packageRules": [
+    {
+      "description": "group flux helmrelease updates",
+      "matchManagers": ["flux"],
+      "groupName": "helm charts"
+    }
+  ]
+}

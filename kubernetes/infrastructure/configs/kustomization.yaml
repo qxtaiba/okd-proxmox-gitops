@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./metallb-config
+  - ./cluster-issuers-config
+  - ./certificates-import-config
+  - ./certificates-export-config
+  - ./grappleberry-ingress
+  - ./grafana-config

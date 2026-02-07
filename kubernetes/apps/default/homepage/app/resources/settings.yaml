@@ -1,0 +1,48 @@
+---
+title: Grappleberry Home
+favicon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/homer.png
+theme: dark
+color: slate
+headerStyle: boxedWidgets
+cardBlur: md
+statusStyle: dot
+iconStyle: theme
+useEqualHeights: true
+hideVersion: true
+background:
+  opacity: 20
+layout:
+  Media:
+    style: row
+    columns: 1
+    header: true
+  Downloads:
+    style: row
+    columns: 2
+    header: true
+  TV & Movies:
+    style: row
+    columns: 2
+    header: true
+  Indexers:
+    style: row
+    columns: 1
+    header: true
+  Requests:
+    style: row
+    columns: 1
+    header: true
+  Infrastructure:
+    style: row
+    columns: 3
+    header: true
+  Bookmarks:
+    style: row
+    columns: 4
+    header: true
+quicklaunch:
+  searchDescriptions: true
+  hideInternetSearch: false
+  showSearchSuggestions: true
+  hideVisitURL: false
+  provider: duckduckgo
