@@ -24,7 +24,7 @@ spec:
         - notification-controller
       sync:
         kind: GitRepository
-        url: ssh://git@github.com/qxtaiba/okd-proxmox-gitops-cli.git
+        url: ssh://git@github.com/qxtaiba/okd-proxmox-gitops.git
         ref: refs/heads/develop
         path: kubernetes/clusters/production
         interval: 10m

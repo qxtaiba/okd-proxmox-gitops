@@ -2,7 +2,7 @@
 - Developer:
     - GitHub:
         - icon: github.png
-          href: https://github.com/qxtaiba/okd-proxmox-gitops-cli
+          href: https://github.com/qxtaiba/okd-proxmox-gitops
     - Flux CD:
         - icon: flux-cd.png
           href: https://fluxcd.io/flux/
