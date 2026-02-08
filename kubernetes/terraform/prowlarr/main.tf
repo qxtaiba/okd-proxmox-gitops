@@ -7,6 +7,7 @@ resource "prowlarr_indexer" "nzbgeek" {
   protocol        = "usenet"
   app_profile_id  = 1
   priority        = 10
+  redirect        = true
 
   fields = [
     {

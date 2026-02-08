@@ -22,7 +22,7 @@ resource "sonarr_download_client_qbittorrent" "qbittorrent" {
   enable   = true
   priority = 2
   name     = "qBittorrent"
-  host     = "qbittorrent.default.svc.cluster.local"
+  host     = "qbittorrent-app.default.svc.cluster.local"
   port     = 8080
   username = var.qbittorrent_username
   password = var.qbittorrent_password
