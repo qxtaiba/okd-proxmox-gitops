@@ -24,7 +24,7 @@ jobs:
         module: [prowlarr, sonarr, radarr]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: opentofu/setup-opentofu@592200f414f725c590d4149efd28e296413e955c # v1
+      - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1
         with:
           tofu_wrapper: false
       - run: tofu fmt -check -diff
