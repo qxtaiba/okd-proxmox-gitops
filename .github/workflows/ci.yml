@@ -17,6 +17,22 @@ jobs:
           go-version: stable
       - run: go install github.com/google/yamlfmt/cmd/yamlfmt@latest
       - run: yamlfmt -lint .
+  validate-terraform:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [prowlarr, sonarr, radarr]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: opentofu/setup-opentofu@592200f414f725c590d4149efd28e296413e955c # v1
+        with:
+          tofu_wrapper: false
+      - run: tofu fmt -check -diff
+        working-directory: kubernetes/terraform/${{ matrix.module }}
+      - run: tofu init -backend=false
+        working-directory: kubernetes/terraform/${{ matrix.module }}
+      - run: tofu validate
+        working-directory: kubernetes/terraform/${{ matrix.module }}
   validate-flux:
     runs-on: ubuntu-latest
     steps:

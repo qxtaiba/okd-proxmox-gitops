@@ -13,3 +13,4 @@ resources:
   - ./grafana
   - ./metallb
   - ./rook-ceph
+  - ./tofu-controller
