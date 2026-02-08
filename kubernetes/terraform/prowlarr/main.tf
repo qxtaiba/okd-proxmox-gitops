@@ -19,8 +19,8 @@ resource "prowlarr_indexer" "nzbgeek" {
       text_value = "/api"
     },
     {
-      name            = "apiKey"
-      sensitive_value = var.nzbgeek_api_key
+      name       = "apiKey"
+      text_value = var.nzbgeek_api_key
     },
     {
       name      = "categories"
