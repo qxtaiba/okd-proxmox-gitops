@@ -23,6 +23,7 @@ spec:
     connect:
       serviceType: ClusterIP
       api:
+        imageRepository: docker.io/1password/connect-api
         resources:
           requests:
             cpu: 10m
@@ -30,6 +31,7 @@ spec:
           limits:
             memory: 128Mi
       sync:
+        imageRepository: docker.io/1password/connect-sync
         resources:
           requests:
             cpu: 10m
