@@ -20,6 +20,8 @@ spec:
               repository: ghcr.io/home-operations/sonarr
               tag: 4.0.16.2946
             env:
+              SONARR__AUTH__METHOD: Forms
+              SONARR__AUTH__REQUIRED: DisabledForLocalAddresses
               SONARR__SERVER__PORT: "8989"
               TZ: Asia/Dubai
             envFrom:
