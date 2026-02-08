@@ -17,7 +17,7 @@ spec:
         initContainers:
           init-dirs:
             image:
-              repository: busybox
+              repository: docker.io/library/busybox
               tag: 1.37.0
             command:
               - sh

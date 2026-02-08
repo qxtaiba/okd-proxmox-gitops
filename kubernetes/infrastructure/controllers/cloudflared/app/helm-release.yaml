@@ -19,7 +19,7 @@ spec:
         containers:
           app:
             image:
-              repository: cloudflare/cloudflared
+              repository: docker.io/cloudflare/cloudflared
               tag: 2026.2.0
             env:
               TZ: Asia/Dubai
