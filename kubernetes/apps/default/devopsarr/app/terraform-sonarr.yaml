@@ -1,0 +1,19 @@
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: devopsarr-sonarr
+spec:
+  path: ./kubernetes/terraform/sonarr
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  interval: 30m
+  retryInterval: 5m
+  approvePlan: auto
+  storeReadablePlan: human
+  varsFrom:
+    - kind: Secret
+      name: devopsarr-secrets
+  destroyResourcesOnDeletion: true
