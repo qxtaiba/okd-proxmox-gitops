@@ -12,6 +12,12 @@ subjects:
   - kind: ServiceAccount
     name: tofu-controller
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tf-runner
+  namespace: default
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
