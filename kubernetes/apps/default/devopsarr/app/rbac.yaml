@@ -1,13 +1,17 @@
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/rbac.authorization.k8s.io/rolebinding_v1.json
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tf-runner
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: tofu-controller-scc
+  name: tf-runner-scc
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: system:openshift:scc:nonroot-v2
 subjects:
   - kind: ServiceAccount
-    name: tofu-controller
+    name: tf-runner
