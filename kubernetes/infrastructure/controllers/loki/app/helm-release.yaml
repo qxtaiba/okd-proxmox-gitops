@@ -43,6 +43,7 @@ spec:
         retention_period: 336h
       compactor:
         retention_enabled: true
+        delete_request_store: s3
     backend:
       replicas: 2
       extraEnvFrom:
