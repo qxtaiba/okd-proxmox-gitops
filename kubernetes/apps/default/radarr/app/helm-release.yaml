@@ -21,7 +21,7 @@ spec:
               tag: 6.1.1.10317
             env:
               RADARR__AUTH__METHOD: Forms
-              RADARR__AUTH__REQUIRED: DisabledForLocalAddresses
+              RADARR__AUTH__REQUIRED: Enabled
               RADARR__SERVER__PORT: "7878"
               TZ: Asia/Dubai
             envFrom:
