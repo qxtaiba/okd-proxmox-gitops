@@ -61,9 +61,39 @@ spec:
             forward_to = [loki.process.pods.receiver]
           }
 
-          // Process logs: parse CRI format and add cluster label
+          // Process logs: parse CRI format, extract level, add cluster label
           loki.process "pods" {
             stage.cri {}
+
+            // *arr apps (sonarr, radarr, prowlarr, etc.): [Info] Component: message
+            stage.regex {
+              expression = "^\\[(?P<level>\\w+)\\]"
+            }
+
+            // JSON logs: {"level":"info", ...}
+            stage.json {
+              expressions = {
+                json_level = "level",
+              }
+            }
+
+            // Normalize to a single "level" label, preferring regex match then JSON
+            stage.template {
+              source   = "level"
+              template = "{{ if .level }}{{ .level }}{{ else if .json_level }}{{ .json_level }}{{ else }}unknown{{ end }}"
+            }
+
+            // Lowercase for consistency (Info -> info, ERROR -> error)
+            stage.template {
+              source   = "level"
+              template = "{{ ToLower .Value }}"
+            }
+
+            stage.labels {
+              values = {
+                level = "",
+              }
+            }
 
             stage.static_labels {
               values = {
