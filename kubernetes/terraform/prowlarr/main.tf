@@ -19,12 +19,24 @@ resource "prowlarr_indexer" "nzbgeek" {
       text_value = "/api"
     },
     {
-      name            = "apiKey"
-      sensitive_value = var.nzbgeek_api_key
+      name       = "apiKey"
+      text_value = var.nzbgeek_api_key
+    },
+    {
+      name       = "additionalParameters"
+      text_value = ""
     },
     {
       name       = "vipExpiration"
       text_value = ""
+    },
+    {
+      name         = "baseSettings.queryLimit"
+      number_value = 0
+    },
+    {
+      name         = "baseSettings.grabLimit"
+      number_value = 0
     },
     {
       name         = "baseSettings.limitsUnit"
