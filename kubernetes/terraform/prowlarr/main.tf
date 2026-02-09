@@ -9,10 +9,6 @@ resource "prowlarr_indexer" "nzbgeek" {
   priority        = 10
   redirect        = true
 
-  # workaround: provider bug returns sensitive_value as unknown after apply
-  # (devopsarr/terraform-provider-prowlarr#197)
-  lifecycle { ignore_changes = [fields] }
-
   fields = [
     {
       name       = "baseUrl"
