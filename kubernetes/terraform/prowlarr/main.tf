@@ -36,10 +36,6 @@ resource "prowlarr_indexer" "nzbgeek" {
       name         = "baseSettings.limitsUnit"
       number_value = 0
     },
-    {
-      name      = "categories"
-      set_value = [2000, 2010, 2020, 2030, 2040, 2045, 2050, 2060, 5000, 5010, 5020, 5030, 5040, 5045, 5050, 5070]
-    },
   ]
 }
 
