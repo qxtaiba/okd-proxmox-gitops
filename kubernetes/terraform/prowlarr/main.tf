@@ -9,9 +9,7 @@ resource "prowlarr_indexer" "nzbgeek" {
   priority        = 10
   redirect        = true
 
-  # provider bug: saves field values as null in state after apply,
-  # causing infinite plan/apply loop (devopsarr/terraform-provider-prowlarr#197)
-  lifecycle { ignore_changes = [fields] }
+  tags = []
 
   fields = [
     {
@@ -23,8 +21,8 @@ resource "prowlarr_indexer" "nzbgeek" {
       text_value = "/api"
     },
     {
-      name       = "apiKey"
-      text_value = var.nzbgeek_api_key
+      name            = "apiKey"
+      sensitive_value = var.nzbgeek_api_key
     },
     {
       name       = "additionalParameters"
