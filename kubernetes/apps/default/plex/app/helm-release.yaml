@@ -77,6 +77,8 @@ spec:
         controller: plex
         type: LoadBalancer
         externalTrafficPolicy: Local
+        annotations:
+          tailscale.com/expose: "true"
         ports:
           http:
             port: 32400

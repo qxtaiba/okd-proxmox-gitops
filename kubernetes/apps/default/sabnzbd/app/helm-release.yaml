@@ -39,7 +39,7 @@ spec:
             env:
               SABNZBD__PORT: "8080"
               SABNZBD__HOST_WHITELIST_ENTRIES: >-
-                sabnzbd, sabnzbd.default, sabnzbd.default.svc, sabnzbd.default.svc.cluster, sabnzbd.default.svc.cluster.local, sabnzbd.grappleberry.xyz
+                sabnzbd, sabnzbd.default, sabnzbd.default.svc, sabnzbd.default.svc.cluster, sabnzbd.default.svc.cluster.local, sabnzbd.grappleberry.xyz, default-sabnzbd-app
               TZ: Asia/Dubai
             envFrom:
               - secretRef:
@@ -91,6 +91,8 @@ spec:
     service:
       app:
         controller: sabnzbd
+        annotations:
+          tailscale.com/expose: "true"
         ports:
           http:
             port: 8080
