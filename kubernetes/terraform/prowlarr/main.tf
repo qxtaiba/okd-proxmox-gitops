@@ -31,14 +31,6 @@ resource "prowlarr_indexer" "nzbgeek" {
       text_value = ""
     },
     {
-      name         = "baseSettings.queryLimit"
-      number_value = 0
-    },
-    {
-      name         = "baseSettings.grabLimit"
-      number_value = 0
-    },
-    {
       name         = "baseSettings.limitsUnit"
       number_value = 0
     },
