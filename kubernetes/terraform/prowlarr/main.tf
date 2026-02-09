@@ -9,6 +9,10 @@ resource "prowlarr_indexer" "nzbgeek" {
   priority        = 10
   redirect        = true
 
+  # provider bug: saves field values as null in state after apply,
+  # causing infinite plan/apply loop (devopsarr/terraform-provider-prowlarr#197)
+  lifecycle { ignore_changes = [fields] }
+
   fields = [
     {
       name       = "baseUrl"
