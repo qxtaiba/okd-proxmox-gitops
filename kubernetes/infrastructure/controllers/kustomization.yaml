@@ -17,6 +17,4 @@ resources:
   - ./tofu-controller
   - ./loki
   - ./alloy
-  - ./vpa
-  - ./goldilocks
   - ./tailscale-operator
