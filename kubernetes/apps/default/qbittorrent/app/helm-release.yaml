@@ -89,7 +89,7 @@ spec:
               allowPrivilegeEscalation: true
               readOnlyRootFilesystem: false
               capabilities:
-                add: ["NET_ADMIN", "NET_RAW"]
+                add: ["NET_ADMIN", "NET_RAW", "CHOWN"]
                 drop: ["ALL"]
             resources:
               requests:

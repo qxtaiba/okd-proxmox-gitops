@@ -10,6 +10,7 @@ allowPrivilegedContainer: false
 allowedCapabilities:
   - NET_ADMIN
   - NET_RAW
+  - CHOWN
 runAsUser:
   type: RunAsAny
 seLinuxContext:
