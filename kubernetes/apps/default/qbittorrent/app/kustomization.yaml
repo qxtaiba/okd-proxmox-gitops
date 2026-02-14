@@ -9,3 +9,4 @@ resources:
   - ./route.yaml
   - ./external-secret.yaml
   - ./rbac.yaml
+  - ./scc.yaml

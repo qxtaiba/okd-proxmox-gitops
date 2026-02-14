@@ -45,11 +45,14 @@ spec:
               VPN_TYPE: wireguard
               SERVER_COUNTRIES: Netherlands
               PORT_FORWARD_ONLY: "on"
+              WIREGUARD_MTU: "1320"
               FIREWALL_VPN_INPUT_PORTS: "6881"
               FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
               DNS_KEEP_NAMESERVER: "on"
               VPN_PORT_FORWARDING: "on"
-              VPN_PORT_FORWARDING_STATUS_FILE: /tmp/forwarded_port
+              VPN_PORT_FORWARDING_UP_COMMAND: '/bin/sh -c "wget -qO- --post-data \"json={\\\"listen_port\\\":{{ `{{PORTS}}` }}}\" http://localhost:8080/api/v2/app/setPreferences"'
+              PUBLICIP_ENABLED: "false"
+              UPDATER_PERIOD: "24h"
               HEALTH_SERVER_ADDRESS: "0.0.0.0:9999"
             envFrom:
               - secretRef:
@@ -59,9 +62,10 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /
-                    port: 9999
+                  exec:
+                    command:
+                      - /gluetun-entrypoint
+                      - healthcheck
                   periodSeconds: 30
                   timeoutSeconds: 5
                   failureThreshold: 3
@@ -69,9 +73,10 @@ spec:
                 enabled: true
                 custom: true
                 spec:
-                  httpGet:
-                    path: /
-                    port: 9999
+                  exec:
+                    command:
+                      - /gluetun-entrypoint
+                      - healthcheck
                   periodSeconds: 10
                   failureThreshold: 30
             securityContext:
@@ -81,14 +86,14 @@ spec:
               allowPrivilegeEscalation: true
               readOnlyRootFilesystem: false
               capabilities:
-                add: ["NET_ADMIN", "CHOWN"]
+                add: ["NET_ADMIN", "NET_RAW"]
                 drop: ["ALL"]
             resources:
               requests:
                 cpu: 50m
                 memory: 128Mi
               limits:
-                memory: 256Mi
+                memory: 384Mi
                 squat.ai/tun: "1"
         containers:
           app:
@@ -137,28 +142,7 @@ spec:
                 cpu: 100m
                 memory: 256Mi
               limits:
-                cpu: 1000m
                 memory: 4Gi
-          port-forward:
-            image:
-              repository: ghcr.io/bjw-s-labs/gluetun-qb-port-sync
-              tag: 0.0.4
-            env:
-              GLUETUN_CONTROL_SERVER_HOST: localhost
-              GLUETUN_CONTROL_SERVER_PORT: "8000"
-              QBITTORRENT_HOST: localhost
-              QBITTORRENT_WEBUI_PORT: "8080"
-              CRON_ENABLED: "true"
-              CRON_SCHEDULE: "*/5 * * * *"
-              LOG_TIMESTAMP: "false"
-            securityContext:
-              runAsUser: 2000
-              runAsGroup: 2000
-              runAsNonRoot: true
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities:
-                drop: ["ALL"]
     defaultPodOptions:
       securityContext:
         runAsNonRoot: false
@@ -205,9 +189,3 @@ spec:
           qbittorrent:
             app:
               - path: /tmp
-      port-forward-config:
-        type: emptyDir
-        advancedMounts:
-          qbittorrent:
-            port-forward:
-              - path: /config
