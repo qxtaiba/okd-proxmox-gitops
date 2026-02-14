@@ -38,12 +38,12 @@ spec:
             restartPolicy: Always
             image:
               repository: ghcr.io/qdm12/gluetun
-              tag: v3.39.1
+              tag: v3.41.1
             env:
               TZ: Asia/Dubai
               VPN_SERVICE_PROVIDER: protonvpn
               VPN_TYPE: wireguard
-              SERVER_COUNTRIES: Netherlands
+              SERVER_COUNTRIES: Switzerland
               PORT_FORWARD_ONLY: "on"
               WIREGUARD_MTU: "1320"
               FIREWALL_VPN_INPUT_PORTS: "6881"
