@@ -44,6 +44,7 @@ spec:
               VPN_SERVICE_PROVIDER: protonvpn
               VPN_TYPE: wireguard
               SERVER_COUNTRIES: Netherlands
+              PORT_FORWARD_ONLY: "on"
               FIREWALL_VPN_INPUT_PORTS: "6881"
               FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
               DNS_KEEP_NAMESERVER: "on"
