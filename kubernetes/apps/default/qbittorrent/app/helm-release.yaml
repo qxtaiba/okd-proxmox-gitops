@@ -211,9 +211,3 @@ spec:
           qbittorrent:
             port-forward:
               - path: /config
-      gluetun-data:
-        type: emptyDir
-        advancedMounts:
-          qbittorrent:
-            gluetun:
-              - path: /tmp
