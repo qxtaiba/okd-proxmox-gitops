@@ -48,6 +48,7 @@ spec:
               WIREGUARD_MTU: "1320"
               FIREWALL_VPN_INPUT_PORTS: "6881"
               FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
+              FIREWALL_IPV6: "off"
               DNS_KEEP_NAMESERVER: "on"
               VPN_PORT_FORWARDING: "on"
               VPN_PORT_FORWARDING_UP_COMMAND: >-
