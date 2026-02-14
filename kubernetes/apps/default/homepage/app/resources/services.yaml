@@ -25,10 +25,10 @@
         icon: qbittorrent.png
         href: https://qbittorrent.grappleberry.xyz
         description: Torrent Downloads
-        siteMonitor: https://qbittorrent.grappleberry.xyz
+        siteMonitor: http://qbittorrent.default.svc:8080
         widget:
           type: qbittorrent
-          url: https://qbittorrent.grappleberry.xyz
+          url: http://qbittorrent.default.svc:8080
           username: "{{HOMEPAGE_VAR_QBITTORRENT_USERNAME}}"
           password: "{{HOMEPAGE_VAR_QBITTORRENT_PASSWORD}}"
           fields: ["download", "upload", "seed"]
