@@ -192,3 +192,9 @@ spec:
           qbittorrent:
             app:
               - path: /tmp
+      gluetun-data:
+        type: emptyDir
+        advancedMounts:
+          qbittorrent:
+            gluetun:
+              - path: /tmp/gluetun
