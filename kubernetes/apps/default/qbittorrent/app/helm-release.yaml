@@ -41,18 +41,20 @@ spec:
               tag: v3.41.1
             env:
               TZ: Asia/Dubai
+              DOT: "off"
               VPN_SERVICE_PROVIDER: protonvpn
               VPN_TYPE: wireguard
+              VPN_INTERFACE: wg0
               SERVER_COUNTRIES: Switzerland
               PORT_FORWARD_ONLY: "on"
               WIREGUARD_MTU: "1320"
+              FIREWALL_INPUT_PORTS: "8080"
               FIREWALL_VPN_INPUT_PORTS: "6881"
               FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
               FIREWALL_IPV6: "off"
               DNS_KEEP_NAMESERVER: "on"
               VPN_PORT_FORWARDING: "on"
-              PUBLICIP_ENABLED: "true"
-              UPDATER_PERIOD: "24h"
+              VPN_PORT_FORWARDING_PROVIDER: protonvpn
             envFrom:
               - secretRef:
                   name: gluetun-secret
