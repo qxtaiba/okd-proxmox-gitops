@@ -51,7 +51,7 @@ spec:
               FIREWALL_IPV6: "off"
               DNS_KEEP_NAMESERVER: "on"
               VPN_PORT_FORWARDING: "on"
-              PUBLICIP_ENABLED: "false"
+              PUBLICIP_ENABLED: "true"
               UPDATER_PERIOD: "24h"
             envFrom:
               - secretRef:
