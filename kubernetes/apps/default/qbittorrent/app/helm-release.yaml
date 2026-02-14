@@ -14,6 +14,8 @@ spec:
       qbittorrent:
         annotations:
           reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: qbittorrent
         initContainers:
           init-dirs:
             image:
@@ -80,9 +82,61 @@ spec:
               limits:
                 cpu: 1000m
                 memory: 4Gi
+          gluetun:
+            dependsOn: app
+            image:
+              repository: ghcr.io/qdm12/gluetun
+              tag: v3.41.1
+            env:
+              TZ: Asia/Dubai
+              VPN_SERVICE_PROVIDER: protonvpn
+              VPN_TYPE: wireguard
+              SERVER_COUNTRIES: Netherlands
+              FIREWALL_VPN_INPUT_PORTS: "6881"
+              FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
+              DNS_KEEP_NAMESERVER: "on"
+              VPN_PORT_FORWARDING: "on"
+              VPN_PORT_FORWARDING_UP_COMMAND: >-
+                /bin/sh -c 'wget -qO- --post-data="json={\"listen_port\":{{PORTS}}}"
+                http://127.0.0.1:8080/api/v2/app/setPreferences'
+            envFrom:
+              - secretRef:
+                  name: gluetun-secret
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 9999
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 9999
+                  periodSeconds: 10
+                  failureThreshold: 30
+            securityContext:
+              allowPrivilegeEscalation: true
+              readOnlyRootFilesystem: false
+              capabilities:
+                add: ["NET_ADMIN"]
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 256Mi
     defaultPodOptions:
       securityContext:
-        runAsNonRoot: true
+        runAsNonRoot: false
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
@@ -97,28 +151,38 @@ spec:
         ports:
           http:
             port: 8080
-      bittorrent:
-        controller: qbittorrent
-        type: LoadBalancer
-        ports:
-          bittorrent-tcp:
-            port: 6881
-            protocol: TCP
-          bittorrent-udp:
-            port: 6881
-            protocol: UDP
     persistence:
       config:
         existingClaim: qbittorrent-config
+        advancedMounts:
+          qbittorrent:
+            init-dirs: &config-mount
+              - path: /config
+            app: *config-mount
       downloads:
         existingClaim: downloads
-        globalMounts:
-          - path: /downloads
+        advancedMounts:
+          qbittorrent:
+            init-dirs: &downloads-mount
+              - path: /downloads
+            app: *downloads-mount
       media:
         type: nfs
         server: nas.grappleberry.xyz
         path: /volume1/media
-        globalMounts:
-          - path: /media
+        advancedMounts:
+          qbittorrent:
+            app:
+              - path: /media
       tmp:
         type: emptyDir
+        advancedMounts:
+          qbittorrent:
+            app:
+              - path: /tmp
+      gluetun-data:
+        type: emptyDir
+        advancedMounts:
+          qbittorrent:
+            gluetun:
+              - path: /tmp/gluetun

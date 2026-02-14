@@ -7,3 +7,5 @@ resources:
   - ./pvc.yaml
   - ./helm-release.yaml
   - ./route.yaml
+  - ./external-secret.yaml
+  - ./rbac.yaml
