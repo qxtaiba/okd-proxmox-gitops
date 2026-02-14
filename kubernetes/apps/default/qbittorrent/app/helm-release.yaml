@@ -202,6 +202,14 @@ spec:
           qbittorrent:
             app:
               - path: /tmp
+      tun-device:
+        type: hostPath
+        hostPath: /dev/net/tun
+        hostPathType: CharDevice
+        advancedMounts:
+          qbittorrent:
+            gluetun:
+              - path: /dev/net/tun
       gluetun-data:
         type: emptyDir
         advancedMounts:
