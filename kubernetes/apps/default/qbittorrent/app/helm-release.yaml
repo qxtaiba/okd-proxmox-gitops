@@ -48,7 +48,7 @@ spec:
               FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
               DNS_KEEP_NAMESERVER: "on"
               VPN_PORT_FORWARDING: "on"
-              VPN_PORT_FORWARDING_STATUS_FILE: /tmp/gluetun/forwarded_port
+              VPN_PORT_FORWARDING_STATUS_FILE: /tmp/forwarded_port
               HEALTH_SERVER_ADDRESS: "0.0.0.0:9999"
             envFrom:
               - secretRef:
@@ -215,4 +215,4 @@ spec:
         advancedMounts:
           qbittorrent:
             gluetun:
-              - path: /tmp/gluetun
+              - path: /tmp
