@@ -49,6 +49,7 @@ spec:
               DNS_KEEP_NAMESERVER: "on"
               VPN_PORT_FORWARDING: "on"
               VPN_PORT_FORWARDING_STATUS_FILE: /tmp/gluetun/forwarded_port
+              HEALTH_SERVER_ADDRESS: "0.0.0.0:9999"
             envFrom:
               - secretRef:
                   name: gluetun-secret
@@ -79,7 +80,7 @@ spec:
               allowPrivilegeEscalation: true
               readOnlyRootFilesystem: false
               capabilities:
-                add: ["NET_ADMIN"]
+                add: ["NET_ADMIN", "CHOWN"]
                 drop: ["ALL"]
             resources:
               requests:
