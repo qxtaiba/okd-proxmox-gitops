@@ -44,7 +44,7 @@ spec:
               VPN_SERVICE_PROVIDER: protonvpn
               VPN_TYPE: wireguard
               VPN_INTERFACE: wg0
-              SERVER_COUNTRIES: Switzerland
+              SERVER_COUNTRIES: Netherlands
               PORT_FORWARD_ONLY: "on"
               WIREGUARD_MTU: "1320"
               FIREWALL_INPUT_PORTS: "8080"
