@@ -15,6 +15,6 @@ spec:
     insecureEdgeTerminationPolicy: Redirect
   to:
     kind: Service
-    name: qbittorrent-app
+    name: qbittorrent
     weight: 100
   wildcardPolicy: None
