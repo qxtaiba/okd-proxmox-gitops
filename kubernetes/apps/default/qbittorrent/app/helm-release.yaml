@@ -87,6 +87,7 @@ spec:
                 memory: 128Mi
               limits:
                 memory: 256Mi
+                squat.ai/tun: "1"
         containers:
           app:
             image:
@@ -202,14 +203,6 @@ spec:
           qbittorrent:
             app:
               - path: /tmp
-      tun-device:
-        type: hostPath
-        hostPath: /dev/net/tun
-        hostPathType: CharDevice
-        advancedMounts:
-          qbittorrent:
-            gluetun:
-              - path: /dev/net/tun
       gluetun-data:
         type: emptyDir
         advancedMounts:

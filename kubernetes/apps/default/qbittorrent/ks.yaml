@@ -19,6 +19,8 @@ spec:
       namespace: flux-system
     - name: cluster-secrets
       namespace: flux-system
+    - name: generic-device-plugin
+      namespace: flux-system
   interval: 1h
   timeout: 5m
   retryInterval: 2m
