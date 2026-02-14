@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/operator.openshift.io/dns_v1.json
+---
+apiVersion: operator.openshift.io/v1
+kind: DNS
+metadata:
+  name: default
+spec:
+  cache:
+    positiveTTL: 5m
+    negativeTTL: 30s

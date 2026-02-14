@@ -9,3 +9,4 @@ resources:
   - ./certificates-export-config
   - ./grappleberry-ingress
   - ./grafana-config
+  - ./dns-config
