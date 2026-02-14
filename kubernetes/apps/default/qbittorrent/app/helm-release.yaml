@@ -51,6 +51,7 @@ spec:
               FIREWALL_VPN_INPUT_PORTS: "6881"
               FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
               FIREWALL_IPV6: "off"
+              DNS_KEEP_NAMESERVER: "on"
               VPN_PORT_FORWARDING: "on"
             envFrom:
               - secretRef:
@@ -83,6 +84,8 @@ spec:
               runAsNonRoot: false
               allowPrivilegeEscalation: true
               readOnlyRootFilesystem: false
+              seLinuxOptions:
+                level: "s0"
               capabilities:
                 add: ["NET_ADMIN", "NET_RAW", "CHOWN"]
                 drop: ["ALL"]
