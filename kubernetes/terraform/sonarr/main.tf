@@ -1,6 +1,10 @@
-# --- Root Folder ---
-resource "sonarr_root_folder" "tv" {
-  path = "/media/tv"
+# --- Root Folders ---
+resource "sonarr_root_folder" "main_tv" {
+  path = "/media/main/tv"
+}
+
+resource "sonarr_root_folder" "kids_tv" {
+  path = "/media/kids/tv"
 }
 
 # --- Download Clients ---

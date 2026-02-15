@@ -1,6 +1,10 @@
-# --- Root Folder ---
-resource "radarr_root_folder" "movies" {
-  path = "/media/movies"
+# --- Root Folders ---
+resource "radarr_root_folder" "main_movies" {
+  path = "/media/main/movies"
+}
+
+resource "radarr_root_folder" "kids_movies" {
+  path = "/media/kids/movies"
 }
 
 # --- Download Clients ---
