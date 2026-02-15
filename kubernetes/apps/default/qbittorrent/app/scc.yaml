@@ -11,6 +11,8 @@ allowedCapabilities:
   - NET_ADMIN
   - NET_RAW
   - CHOWN
+  - NET_BIND_SERVICE
+  - DAC_OVERRIDE
 runAsUser:
   type: RunAsAny
 seLinuxContext:
