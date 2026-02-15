@@ -1,3 +1,39 @@
+# --- Imports (one-time state recovery) ---
+import {
+  to = sonarr_root_folder.main_tv
+  id = "2"
+}
+
+import {
+  to = sonarr_root_folder.kids_tv
+  id = "3"
+}
+
+import {
+  to = sonarr_download_client_sabnzbd.sabnzbd
+  id = "2"
+}
+
+import {
+  to = sonarr_download_client_qbittorrent.qbittorrent
+  id = "1"
+}
+
+import {
+  to = sonarr_notification_plex.plex
+  id = "1"
+}
+
+import {
+  to = sonarr_naming.naming
+  id = "1"
+}
+
+import {
+  to = sonarr_media_management.media_management
+  id = "1"
+}
+
 # --- Root Folders ---
 resource "sonarr_root_folder" "main_tv" {
   path = "/media/main/tv"

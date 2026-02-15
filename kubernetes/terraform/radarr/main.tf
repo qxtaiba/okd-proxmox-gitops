@@ -1,3 +1,39 @@
+# --- Imports (one-time state recovery) ---
+import {
+  to = radarr_root_folder.main_movies
+  id = "2"
+}
+
+import {
+  to = radarr_root_folder.kids_movies
+  id = "3"
+}
+
+import {
+  to = radarr_download_client_sabnzbd.sabnzbd
+  id = "2"
+}
+
+import {
+  to = radarr_download_client_qbittorrent.qbittorrent
+  id = "1"
+}
+
+import {
+  to = radarr_notification_plex.plex
+  id = "1"
+}
+
+import {
+  to = radarr_naming.naming
+  id = "1"
+}
+
+import {
+  to = radarr_media_management.media_management
+  id = "1"
+}
+
 # --- Root Folders ---
 resource "radarr_root_folder" "main_movies" {
   path = "/media/main/movies"
