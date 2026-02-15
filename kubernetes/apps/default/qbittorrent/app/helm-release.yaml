@@ -55,7 +55,7 @@ spec:
               VPN_PORT_FORWARDING: "on"
               VPN_PORT_FORWARDING_UP_COMMAND: >-
                 /bin/sh -c 'wget -qO- --retry-connrefused --waitretry=5 --tries=10
-                --post-data "json={\"listen_port\":{{PORTS}}}"
+                --post-data "json={\"listen_port\":{{ "{{" }}PORTS{{ "}}" }}}"
                 http://127.0.0.1:8080/api/v2/app/setPreferences 2>&1'
             lifecycle:
               postStart:
