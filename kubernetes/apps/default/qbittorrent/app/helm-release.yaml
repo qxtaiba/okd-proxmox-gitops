@@ -47,7 +47,7 @@ spec:
               SERVER_COUNTRIES: Netherlands
               SERVER_CITIES: Amsterdam
               PORT_FORWARD_ONLY: "on"
-              WIREGUARD_MTU: "1320"
+              WIREGUARD_MTU: "1340"
               FIREWALL_INPUT_PORTS: "8080"
               FIREWALL_VPN_INPUT_PORTS: "6881"
               FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
