@@ -45,6 +45,7 @@ spec:
               VPN_TYPE: wireguard
               VPN_INTERFACE: wg0
               SERVER_COUNTRIES: Netherlands
+              SERVER_CITIES: Amsterdam
               PORT_FORWARD_ONLY: "on"
               WIREGUARD_MTU: "1320"
               FIREWALL_INPUT_PORTS: "8080"
@@ -52,10 +53,16 @@ spec:
               FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
               FIREWALL_IPV6: "off"
               DNS_KEEP_NAMESERVER: "on"
+              UPDATER_PERIOD: 24h
+              UPDATER_VPN_SERVICE_PROVIDERS: protonvpn
               VPN_PORT_FORWARDING: "on"
               VPN_PORT_FORWARDING_UP_COMMAND: >-
                 /bin/sh -c 'wget -qO- --retry-connrefused --waitretry=5 --tries=10
                 --post-data "json={\"listen_port\":{{ "{{" }}PORTS{{ "}}" }}}"
+                http://127.0.0.1:8080/api/v2/app/setPreferences 2>&1'
+              VPN_PORT_FORWARDING_DOWN_COMMAND: >-
+                /bin/sh -c 'wget -qO- --retry-connrefused
+                --post-data "json={\"listen_port\":0}"
                 http://127.0.0.1:8080/api/v2/app/setPreferences 2>&1'
             lifecycle:
               postStart:
