@@ -163,6 +163,10 @@ spec:
               limits:
                 memory: 4Gi
     defaultPodOptions:
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "2"
       securityContext:
         runAsNonRoot: false
         runAsUser: 1000
