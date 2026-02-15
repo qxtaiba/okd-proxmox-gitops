@@ -52,7 +52,6 @@ spec:
               FIREWALL_VPN_INPUT_PORTS: "6881"
               FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
               FIREWALL_IPV6: "off"
-              DNS_KEEP_NAMESERVER: "on"
               UPDATER_PERIOD: 24h
               UPDATER_VPN_SERVICE_PROVIDERS: protonvpn
               VPN_PORT_FORWARDING: "on"
@@ -163,10 +162,6 @@ spec:
               limits:
                 memory: 4Gi
     defaultPodOptions:
-      dnsConfig:
-        options:
-          - name: ndots
-            value: "2"
       securityContext:
         runAsNonRoot: false
         runAsUser: 1000
