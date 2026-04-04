@@ -13,6 +13,8 @@ spec:
       namespace: flux-system
     - name: cluster-secrets
       namespace: flux-system
+    - name: volsync
+      namespace: flux-system
   targetNamespace: observability
   path: ./kubernetes/apps/observability/grafana-instance/app
   sourceRef:

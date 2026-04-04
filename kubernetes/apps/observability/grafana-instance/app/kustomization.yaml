@@ -9,3 +9,5 @@ resources:
   - ./rbac.yaml
   - ./route.yaml
   - ./service-monitor.yaml
+  - ./volsync-external-secret.yaml
+  - ./volsync.yaml

@@ -18,3 +18,4 @@ resources:
   - ./loki
   - ./alloy
   - ./tailscale-operator
+  - ./volsync

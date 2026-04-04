@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/volsync.backube/replicationsource_v1alpha1.json
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: plex-config-backup
+spec:
+  sourcePVC: plex-config
+  trigger:
+    schedule: "0 3 * * *"
+  restic:
+    copyMethod: Snapshot
+    volumeSnapshotClassName: csi-ceph-blockpool
+    repository: volsync-restic-plex
+    moverSecurityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    pruneIntervalDays: 7
+    cacheCapacity: 2Gi
+    cacheStorageClassName: ceph-block
+    cacheAccessModes:
+      - ReadWriteOnce
+    retain:
+      daily: 7
+      weekly: 4
+      monthly: 2
+    moverVolumes:
+      - mountPath: restic-repo
+        volumeSource:
+          nfs:
+            server: nas.grappleberry.xyz
+            path: /volume1/backups/volsync

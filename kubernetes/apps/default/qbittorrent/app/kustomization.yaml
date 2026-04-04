@@ -10,3 +10,4 @@ resources:
   - ./external-secret.yaml
   - ./rbac.yaml
   - ./scc.yaml
+  - ./volsync.yaml

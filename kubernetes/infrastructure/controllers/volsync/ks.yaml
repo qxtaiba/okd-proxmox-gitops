@@ -3,19 +3,17 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: plex
+  name: volsync
   namespace: flux-system
 spec:
-  targetNamespace: default
-  path: ./kubernetes/apps/default/plex/app
+  targetNamespace: volsync-system
+  path: ./kubernetes/infrastructure/controllers/volsync/app
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
   dependsOn:
     - name: rook-ceph-cluster
-      namespace: flux-system
-    - name: volsync-config
       namespace: flux-system
   interval: 1h
   timeout: 5m

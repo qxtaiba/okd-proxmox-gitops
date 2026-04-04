@@ -10,3 +10,4 @@ resources:
   - ./grappleberry-ingress
   - ./grafana-config
   - ./dns-config
+  - ./volsync-config
