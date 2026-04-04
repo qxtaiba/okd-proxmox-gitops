@@ -9,9 +9,9 @@ spec:
   dependsOn:
     - name: infra-configs
   deletionPolicy: WaitForTermination
-  interval: 1h
+  interval: 10m
   timeout: 5m
-  retryInterval: 2m
+  retryInterval: 1m
   path: ./kubernetes/apps
   prune: true
   sourceRef:

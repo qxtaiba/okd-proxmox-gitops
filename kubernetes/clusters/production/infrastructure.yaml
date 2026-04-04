@@ -6,9 +6,9 @@ metadata:
   name: infra-controllers
   namespace: flux-system
 spec:
-  interval: 1h
+  interval: 10m
   timeout: 15m
-  retryInterval: 2m
+  retryInterval: 1m
   path: ./kubernetes/infrastructure/controllers
   prune: true
   sourceRef:
@@ -61,9 +61,9 @@ metadata:
 spec:
   dependsOn:
     - name: infra-controllers
-  interval: 1h
+  interval: 10m
   timeout: 5m
-  retryInterval: 2m
+  retryInterval: 1m
   path: ./kubernetes/infrastructure/configs
   prune: true
   sourceRef:

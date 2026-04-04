@@ -15,9 +15,9 @@ spec:
   dependsOn:
     - name: rook-ceph
       namespace: flux-system
-  interval: 1h
+  interval: 10m
   timeout: 15m
-  retryInterval: 2m
+  retryInterval: 1m
   prune: true
   wait: true
   healthChecks:

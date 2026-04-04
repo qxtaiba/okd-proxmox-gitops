@@ -22,8 +22,8 @@ spec:
       kind: ClusterIssuer
       name: letsencrypt-production
       namespace: cert-manager
-  interval: 1h
+  interval: 10m
   timeout: 5m
-  retryInterval: 2m
+  retryInterval: 1m
   prune: true
   wait: true
