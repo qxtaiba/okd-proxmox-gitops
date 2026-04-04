@@ -7,3 +7,18 @@ metadata:
 data:
   config.yaml: |-
     enableUserWorkload: true
+    prometheusK8s:
+      retention: 15d
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ceph-block
+          resources:
+            requests:
+              storage: 50Gi
+    alertmanagerMain:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ceph-block
+          resources:
+            requests:
+              storage: 10Gi
