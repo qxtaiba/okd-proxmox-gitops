@@ -14,7 +14,7 @@ spec:
       files:
         - contents:
             compression: gzip
-            source: data:;base64,H4sIAAAAAAAC/1yQwW7bMAyG73qKn3fpzfHSC9stQ4ugCNArhhFYrO2gsqhJdJqg6LtPdtxhvfqn+OknqXspG20KKWLLMqz7irJBWzTWRh+8cAjSa+dZBqFUQLoFC02k+EZQRjpmV3Qa/HoHJzGQiYyt6/Wclf9u8vL1bZ7nb/Pykef1j1/Lnz8WXx/mvFzvaP7CGcsg+x+7RFLUFxKbYAgBVkCYf56SqRAppZRH6O0dHNF5csh/gz8dVvXqVPADxC4YGpDsLHiinqsb3FrdqJNnJYp2OLLHVs3OmhuW7HISSmndoMeKGk/7u9WJsbuyRLmaslJCVnaQSz2CjELnRRi0b0aB8C65Sbt+AkYhr9O3VOcxFoWiLjGhMFzPDvdcogX5C/Li/+Y+8Y5HRD/R/8/u/ub+ttI6PYAicfYGAAD//6E2nHrnAQAA
+            source: data:;base64,H4sIAAAAAAAC/2SRX8vaMBjF7/MpzlLZXa2tsDmGAxkOejNkDO/T5GkbrEmXpJ2ifveR+e+V97bP4XfOr0k+ZJU2WSV8yxLshorSUfeorA0+ONHDS6f7wBIIpTziLVhoE8jVQhJ0DWMDROdIqCN6R55MYGxbbpY8/1JM80+LaVF8nuYzzsqfv9e/fqy+r5ecjM8XnLEEsiW5i5zIvnPooH3wsAbCHJ91TNeIKaUcfGv/4ozGUY/0D/jktC03l4x/RWjJMIBka8Ej9Xp6wKU1tW4GR4rH2EEHzFit2VXynSO7goRS2jR4wwsWk9PD6cLZfVqk3ObMCygaX3Kxx5NRaJwIgw528BCuj27S7vfCKKRj/BLrPn5DpmjMzNB1D7PbLZWYI10hLV/493nnM4Ib6L/Z8188X1bafd9RIM7+BQAA//8eHYlTBQIAAA==
           mode: 493
           overwrite: true
           path: /usr/local/bin/kube-vip-bootstrap.sh
