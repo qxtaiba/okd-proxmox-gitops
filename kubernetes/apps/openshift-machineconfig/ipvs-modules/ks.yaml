@@ -6,7 +6,7 @@ metadata:
   name: ipvs-modules
   namespace: flux-system
 spec:
-  interval: 1h
+  interval: 10m
   retryInterval: 2m
   timeout: 5m
   path: ./kubernetes/apps/openshift-machineconfig/ipvs-modules/app

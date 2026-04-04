@@ -15,7 +15,7 @@ spec:
   dependsOn:
     - name: cert-manager
       namespace: flux-system
-  interval: 1h
+  interval: 10m
   timeout: 5m
   retryInterval: 2m
   prune: true
