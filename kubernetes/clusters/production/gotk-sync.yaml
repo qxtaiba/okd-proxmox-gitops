@@ -21,7 +21,7 @@ metadata:
 spec:
   interval: 10m0s
   timeout: 5m
-  retryInterval: 2m
+  retryInterval: 1m
   path: ./kubernetes/clusters/production
   prune: true
   sourceRef:

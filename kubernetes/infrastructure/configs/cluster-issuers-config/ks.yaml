@@ -24,6 +24,6 @@ spec:
       namespace: cert-manager
   interval: 10m
   timeout: 5m
-  retryInterval: 2m
+  retryInterval: 1m
   prune: true
   wait: true
