@@ -20,7 +20,7 @@ spec:
           app:
             image:
               repository: ghcr.io/gethomepage/homepage
-              tag: v1.10.1
+              tag: v1.12.3
             env:
               TZ: Asia/Dubai
               HOMEPAGE_ALLOWED_HOSTS: "home.grappleberry.xyz,homepage.default.svc.cluster.local,default-homepage-app"
