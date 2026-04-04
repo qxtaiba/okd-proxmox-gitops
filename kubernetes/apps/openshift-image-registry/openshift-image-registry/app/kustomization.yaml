@@ -6,4 +6,5 @@ resources:
   - ./pvc.yaml
   - ./config.yaml
   - ./volsync-external-secret.yaml
+  - ./volsync-rbac.yaml
   - ./volsync.yaml

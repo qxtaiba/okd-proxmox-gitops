@@ -12,6 +12,7 @@ spec:
     copyMethod: Snapshot
     volumeSnapshotClassName: csi-ceph-filesystem
     repository: volsync-restic-image-registry
+    moverServiceAccount: volsync-mover
     moverSecurityContext:
       runAsUser: 1000
       runAsGroup: 1000

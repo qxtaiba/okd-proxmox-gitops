@@ -12,6 +12,7 @@ spec:
     copyMethod: Snapshot
     volumeSnapshotClassName: csi-ceph-blockpool
     repository: volsync-restic-qbittorrent
+    moverServiceAccount: volsync-mover
     moverSecurityContext:
       runAsUser: 1000
       runAsGroup: 1000
