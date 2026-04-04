@@ -12,7 +12,7 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  interval: 1h
+  interval: 10m
   timeout: 5m
   retryInterval: 2m
   prune: true

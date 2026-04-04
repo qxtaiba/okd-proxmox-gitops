@@ -5,7 +5,7 @@ kind: HelmRelease
 metadata:
   name: grafana-operator
 spec:
-  interval: 1h
+  interval: 10m
   chartRef:
     kind: OCIRepository
     name: grafana-operator

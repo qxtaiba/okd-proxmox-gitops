@@ -10,7 +10,7 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: generic-device-plugin
-  interval: 1h
+  interval: 10m
   retryInterval: 2m
   timeout: 5m
   path: ./kubernetes/apps/kube-system/generic-device-plugin/app
