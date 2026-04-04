@@ -27,7 +27,7 @@ spec:
       plugin_admin_enabled: "false"
     server:
       enable_gzip: "true"
-      root_url: https://grafana.apps.grappleberry.k8s.local
+      root_url: https://grafana.grappleberry.xyz
   deployment:
     spec:
       strategy:
