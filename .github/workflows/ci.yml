@@ -19,20 +19,17 @@ jobs:
       - run: yamlfmt -lint .
   validate-terraform:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        module: [prowlarr, sonarr, radarr]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1
         with:
           tofu_wrapper: false
-      - run: tofu fmt -check -diff
-        working-directory: kubernetes/terraform/${{ matrix.module }}
-      - run: tofu init -backend=false
-        working-directory: kubernetes/terraform/${{ matrix.module }}
-      - run: tofu validate
-        working-directory: kubernetes/terraform/${{ matrix.module }}
+      - run: |
+          for module in prowlarr sonarr radarr; do
+            tofu -chdir=kubernetes/terraform/$module fmt -check -diff
+            tofu -chdir=kubernetes/terraform/$module init -backend=false
+            tofu -chdir=kubernetes/terraform/$module validate
+          done
   validate-flux:
     runs-on: ubuntu-latest
     steps:
