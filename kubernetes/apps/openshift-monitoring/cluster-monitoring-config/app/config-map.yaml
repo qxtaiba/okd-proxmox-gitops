@@ -9,6 +9,8 @@ data:
     enableUserWorkload: true
     prometheusK8s:
       retention: 15d
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
       volumeClaimTemplate:
         spec:
           storageClassName: ceph-block
@@ -16,9 +18,32 @@ data:
             requests:
               storage: 50Gi
     alertmanagerMain:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
       volumeClaimTemplate:
         spec:
           storageClassName: ceph-block
           resources:
             requests:
               storage: 10Gi
+    prometheusOperator:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+    kubeStateMetrics:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+    openshiftStateMetrics:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+    telemeterClient:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+    thanosQuerier:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+    monitoringPlugin:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+    metricsServer:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
