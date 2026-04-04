@@ -115,8 +115,12 @@ spec:
           memory: 256Mi
       initialDelaySeconds: 30
       timeoutSeconds: 10
+    configReloader:
+      enabled: false
     controller:
       type: daemonset
+      podAnnotations:
+        reloader.stakater.com/auto: "true"
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
