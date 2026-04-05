@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/cronjob_v1.json
+---
+# etcd backup cronjob for OKD control plane disaster recovery.
+#
+# Runs once daily at 03:30 Asia/Dubai (matches the volsync window).
+# Lands on a master node, enters the host filesystem, and runs OKD's
+# shipped cluster-backup.sh which writes snapshot.db and the static
+# pod manifests tarball. Output is copied to the volsync NAS mount
+# so the backup survives cluster loss.
+#
+# suspend: true initially. After first successful manual test, flip
+# to false so the schedule activates.
+#
+# To test manually:
+#   oc -n etcd-backup create job etcd-backup-manual --from=cronjob/etcd-backup
+#   oc -n etcd-backup logs job/etcd-backup-manual
+#
+# To restore from a snapshot: see OKD docs
+#   https://docs.okd.io/latest/backup_and_restore/control_plane_backup_and_restore/replacing-unhealthy-etcd-member.html
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: etcd-backup
+spec:
+  schedule: "30 3 * * *"
+  timeZone: Asia/Dubai
+  suspend: true  # flip to false after first successful manual test
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          serviceAccountName: etcd-backup
+          restartPolicy: Never
+          hostNetwork: true
+          hostPID: true
+          nodeSelector:
+            node-role.kubernetes.io/master: ""
+          tolerations:
+            - operator: Exists
+          containers:
+            - name: backup
+              image: registry.redhat.io/openshift4/ose-cli:latest
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -euo pipefail
+                  TS=$(date +%Y%m%d-%H%M%S)
+                  HOST_BACKUP_DIR=/host/var/home/core/etcd-backup-${TS}
+                  mkdir -p "${HOST_BACKUP_DIR}"
+                  echo "running cluster-backup.sh into ${HOST_BACKUP_DIR}"
+                  chroot /host /usr/local/bin/cluster-backup.sh "/var/home/core/etcd-backup-${TS}"
+                  echo "copying backup to nfs mount"
+                  mkdir -p "/backup/${TS}"
+                  cp -a "${HOST_BACKUP_DIR}"/* "/backup/${TS}/"
+                  rm -rf "${HOST_BACKUP_DIR}"
+                  echo "pruning backups older than 7 days"
+                  find /backup -maxdepth 1 -type d -mtime +7 -name '[0-9]*' -print -exec rm -rf {} +
+                  echo "etcd backup complete: ${TS}"
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - name: host
+                  mountPath: /host
+                - name: backup-nfs
+                  mountPath: /backup
+          volumes:
+            - name: host
+              hostPath:
+                path: /
+                type: Directory
+            - name: backup-nfs
+              nfs:
+                server: nas.grappleberry.xyz
+                path: /volume1/backups/etcd
