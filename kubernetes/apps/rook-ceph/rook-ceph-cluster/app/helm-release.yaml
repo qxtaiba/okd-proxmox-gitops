@@ -30,8 +30,8 @@ spec:
           bdev_enable_discard: "true"
           bdev_async_discard_threads: "1"
           osd_class_update_on_start: "false"
-          osd_pool_default_size: "2"
-          osd_pool_default_min_size: "1"
+          osd_pool_default_size: "3"
+          osd_pool_default_min_size: "2"
           device_failure_prediction_mode: local
       crashCollector:
         disable: false
@@ -88,7 +88,7 @@ spec:
         spec:
           failureDomain: host
           replicated:
-            size: 2
+            size: 3
         storageClass:
           enabled: true
           name: ceph-block
@@ -120,11 +120,11 @@ spec:
         spec:
           metadataPool:
             replicated:
-              size: 2
+              size: 3
           dataPools:
             - failureDomain: host
               replicated:
-                size: 2
+                size: 3
               name: data0
           preserveFilesystemOnDelete: true
           metadataServer:
@@ -170,10 +170,10 @@ spec:
         spec:
           metadataPool:
             replicated:
-              size: 2
+              size: 3
           dataPool:
             replicated:
-              size: 2
+              size: 3
           preservePoolsOnDelete: true
           gateway:
             port: 80
