@@ -101,7 +101,11 @@ spec:
           enabled: true
           name: ceph-block
           isDefault: true
-          reclaimPolicy: Retain
+          # reclaimPolicy: Retain is the desired target but the field is
+          # immutable on existing StorageClasses. To migrate, manually
+          # `oc delete sc ceph-block` during a maintenance window and let
+          # Flux recreate it with Retain. See docs/restore.md for context.
+          reclaimPolicy: Delete
           allowVolumeExpansion: true
           volumeBindingMode: Immediate
           mountOptions:
