@@ -97,6 +97,7 @@ spec:
           failureDomain: host
           replicated:
             size: 3
+            requireSafeReplicaSize: true
         storageClass:
           enabled: true
           name: ceph-block
@@ -130,10 +131,12 @@ spec:
             failureDomain: host
             replicated:
               size: 3
+              requireSafeReplicaSize: true
           dataPools:
             - failureDomain: host
               replicated:
                 size: 3
+                requireSafeReplicaSize: true
               name: data0
           preserveFilesystemOnDelete: true
           metadataServer:
@@ -181,10 +184,12 @@ spec:
             failureDomain: host
             replicated:
               size: 3
+              requireSafeReplicaSize: true
           dataPool:
             failureDomain: host
             replicated:
               size: 3
+              requireSafeReplicaSize: true
           preservePoolsOnDelete: true
           gateway:
             port: 80
