@@ -14,14 +14,13 @@ data:
         api_key: !env_var SONARR_API_KEY
         delete_old_custom_formats: true
         replace_existing_custom_formats: true
-        # Quality-definition templates were removed from upstream config-templates
-        # in favour of inlining definitions into the profile templates. Only the
-        # v4 web profile/custom-format templates remain.
+        # recyclarr 8.x config-templates restructure: templates were renamed
+        # and quality-profile + custom-formats bundled into a single template
+        # per profile. `web-2160p-v4` etc. now provides profile + CFs + quality
+        # definitions inline. See templates.json in recyclarr/config-templates.
         include:
-          - template: sonarr-v4-quality-profile-web-2160p
-          - template: sonarr-v4-custom-formats-web-2160p
-          - template: sonarr-v4-quality-profile-web-1080p
-          - template: sonarr-v4-custom-formats-web-1080p
+          - template: web-2160p-v4
+          - template: web-1080p-v4
         custom_formats:
           # Block DV without HDR10 fallback (causes green tint on non-DV devices)
           - trash_ids:
@@ -58,13 +57,13 @@ data:
         api_key: !env_var RADARR_API_KEY
         delete_old_custom_formats: true
         replace_existing_custom_formats: true
-        # Quality-definition template was removed from upstream config-templates
-        # in favour of inlining definitions into the profile templates.
+        # recyclarr 8.x config-templates restructure: templates were renamed
+        # and quality-profile + custom-formats bundled into a single template
+        # per profile. `uhd-bluray-web` etc. now provides profile + CFs + quality
+        # definitions inline. See templates.json in recyclarr/config-templates.
         include:
-          - template: radarr-quality-profile-uhd-bluray-web
-          - template: radarr-custom-formats-uhd-bluray-web
-          - template: radarr-quality-profile-hd-bluray-web
-          - template: radarr-custom-formats-hd-bluray-web
+          - template: uhd-bluray-web
+          - template: hd-bluray-web
         custom_formats:
           # Block DV without HDR10 fallback
           - trash_ids:
