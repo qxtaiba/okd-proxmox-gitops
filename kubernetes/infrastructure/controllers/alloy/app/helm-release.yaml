@@ -19,6 +19,14 @@ spec:
   upgrade:
     remediation:
       retries: 3
+  # Alloy role in this cluster: LOG COLLECTION ONLY.
+  # - No prometheus.remote_write: metrics scraping is handled by OKD's
+  #   built-in user-workload Prometheus (see openshift-monitoring/).
+  # - configReloader sidecar is disabled to save memory. Config changes
+  #   require a manual DaemonSet restart:
+  #     oc -n observability rollout restart ds/alloy
+  # - The reloader.stakater.com/auto annotation on the controller handles
+  #   secret/configmap rotation, but only restarts pods on hash changes.
   values:
     alloy:
       configMap:
