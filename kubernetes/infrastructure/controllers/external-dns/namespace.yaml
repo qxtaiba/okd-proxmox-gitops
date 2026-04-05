@@ -6,5 +6,4 @@ metadata:
   name: external-dns
   labels:
     kustomize.toolkit.fluxcd.io/prune: disabled
-    openshift.io/cluster-monitoring: "true"
     pod-security.kubernetes.io/enforce: restricted
