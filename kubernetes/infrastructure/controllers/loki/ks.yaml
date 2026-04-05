@@ -15,8 +15,6 @@ spec:
   dependsOn:
     - name: grafana
       namespace: flux-system
-    - name: rook-ceph-cluster
-      namespace: flux-system
   interval: 10m
   timeout: 5m
   retryInterval: 1m

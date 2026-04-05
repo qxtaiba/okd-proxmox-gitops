@@ -12,9 +12,6 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  dependsOn:
-    - name: rook-ceph-cluster
-      namespace: flux-system
   # 1h interval intentional: volsync reconciliation is expensive and
   # backup schedules (ReplicationSource.spec.trigger) are the authoritative
   # cadence, not Flux reconcile frequency.

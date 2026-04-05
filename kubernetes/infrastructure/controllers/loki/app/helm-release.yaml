@@ -9,12 +9,15 @@ spec:
   chartRef:
     kind: OCIRepository
     name: loki
+  # retries: -1 means retry indefinitely. Loki's PVCs bind to ceph-block
+  # which is provisioned by rook-ceph-cluster from a sibling Kustomization
+  # tree - Flux retries until the storage class exists instead of failing.
   install:
     remediation:
-      retries: 3
+      retries: -1
   upgrade:
     remediation:
-      retries: 3
+      retries: -1
   # Durable log storage lives in the Ceph RGW S3 bucket (loki-chunks).
   # The backend/read/write PVCs here are index/cache only and are NOT
   # covered by Volsync by design - on rebuild, the index is rebuilt from
