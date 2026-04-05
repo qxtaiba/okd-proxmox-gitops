@@ -24,6 +24,10 @@ spec:
       template:
         spec:
           restartPolicy: Never
+          # tf-runner SA is already bound to nonroot-v2 SCC (see rbac.yaml)
+          # which allows runAsUser: 1000. Without this, the pod would fall back
+          # to the namespace default SA and fail admission under restricted-v2.
+          serviceAccountName: tf-runner
           containers:
             - name: backup
               image: docker.io/minio/mc:RELEASE.2025-04-03T17-07-56Z
