@@ -198,9 +198,7 @@ spec:
               - path: /downloads
             app: *downloads-mount
       media:
-        type: nfs
-        server: nas.grappleberry.xyz
-        path: /volume1/media
+        existingClaim: qbittorrent-media
         advancedMounts:
           qbittorrent:
             app:

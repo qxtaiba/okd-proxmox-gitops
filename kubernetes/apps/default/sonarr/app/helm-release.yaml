@@ -93,9 +93,7 @@ spec:
         globalMounts:
           - path: /downloads
       media:
-        type: nfs
-        server: nas.grappleberry.xyz
-        path: /volume1/media
+        existingClaim: sonarr-media
         globalMounts:
           - path: /media
       tmp:
