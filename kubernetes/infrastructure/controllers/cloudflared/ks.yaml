@@ -19,6 +19,11 @@ spec:
       namespace: flux-system
     - name: external-dns
       namespace: flux-system
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: cloudflared
+      namespace: cloudflared
   interval: 10m
   timeout: 5m
   retryInterval: 1m

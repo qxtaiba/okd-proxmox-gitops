@@ -17,6 +17,11 @@ spec:
       namespace: flux-system
     - name: cluster-secrets
       namespace: flux-system
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: external-dns
+      namespace: external-dns
   interval: 10m
   timeout: 5m
   retryInterval: 1m
