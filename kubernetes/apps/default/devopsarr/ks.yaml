@@ -13,21 +13,11 @@ spec:
     name: flux-system
     namespace: flux-system
   dependsOn:
-    - name: tofu-controller
-      namespace: flux-system
-    - name: cluster-secrets
-      namespace: flux-system
     - name: prowlarr
       namespace: flux-system
     - name: sonarr
       namespace: flux-system
     - name: radarr
-      namespace: flux-system
-    - name: sabnzbd
-      namespace: flux-system
-    - name: plex
-      namespace: flux-system
-    - name: qbittorrent
       namespace: flux-system
   interval: 10m
   timeout: 5m
