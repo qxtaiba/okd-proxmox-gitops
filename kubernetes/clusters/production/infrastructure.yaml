@@ -39,7 +39,6 @@ spec:
                       retries: 3
                   rollback:
                     cleanupOnFail: true
-                    recreate: true
                   upgrade:
                     cleanupOnFail: true
                     crds: CreateReplace
