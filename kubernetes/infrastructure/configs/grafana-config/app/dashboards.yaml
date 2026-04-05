@@ -119,7 +119,7 @@ spec:
       grafana.internal/instance: grafana
   datasources:
     - datasourceName: Prometheus
-      inputName: DS_MIMIR
+      inputName: DS_PROMETHEUS
   url: https://grafana.com/api/dashboards/20162/revisions/1/download
 ---
 # Observability
