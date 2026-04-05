@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/cronjob_v1.json
+---
+# Nightly backup of tofu-controller's Terraform state from the Ceph RGW
+# bucket to the NAS. Without this, losing Ceph loses the state, and the
+# subsequent `tofu apply` collides with resources already present in the
+# *arr databases (restored from Volsync) with "resource already exists"
+# errors.
+#
+# Destination: /volume1/backups/tofu-state/<date>/ on the volsync NFS mount.
+# Retention handled inline (keep last 30 days).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tofu-state-backup
+spec:
+  schedule: "15 3 * * *"
+  timeZone: Asia/Dubai
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: backup
+              image: docker.io/minio/mc:RELEASE.2025-04-03T17-07-56Z
+              envFrom:
+                - secretRef:
+                    name: tofu-state-bucket
+                - configMapRef:
+                    name: tofu-state-bucket
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -euo pipefail
+                  TS=$(date +%Y%m%d-%H%M%S)
+                  DEST=/backup/tofu-state/${TS}
+                  mkdir -p "${DEST}"
+                  mc alias set ceph "http://${BUCKET_HOST}:${BUCKET_PORT}" \
+                    "${AWS_ACCESS_KEY_ID}" "${AWS_SECRET_ACCESS_KEY}"
+                  mc cp --recursive "ceph/${BUCKET_NAME}/" "${DEST}/"
+                  echo "pruning tofu-state backups older than 30 days"
+                  find /backup/tofu-state -maxdepth 1 -type d -mtime +30 \
+                    -name '[0-9]*' -print -exec rm -rf {} +
+                  echo "tofu-state backup complete: ${TS}"
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: false
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                capabilities:
+                  drop: ["ALL"]
+              volumeMounts:
+                - name: backup-nfs
+                  mountPath: /backup
+          volumes:
+            - name: backup-nfs
+              nfs:
+                server: nas.grappleberry.xyz
+                path: /volume1/backups
