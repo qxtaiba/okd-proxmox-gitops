@@ -18,6 +18,9 @@ spec:
   values:
     connect:
       serviceType: ClusterIP
+      serviceAccount:
+        create: true
+        name: onepassword-connect
       api:
         imageRepository: docker.io/1password/connect-api
         resources:
@@ -39,16 +42,3 @@ spec:
       name: onepassword-connect-credentials
       valuesKey: credentials_base64
       targetPath: connect.credentials_base64
-  # The upstream chart does not bind a dedicated SA; patch it in so the
-  # nonroot-v2 SCC is granted to this workload specifically instead of
-  # the namespace `default` SA.
-  postRenderers:
-    - kustomize:
-        patches:
-          - target:
-              kind: Deployment
-              name: onepassword-connect
-            patch: |
-              - op: add
-                path: /spec/template/spec/serviceAccountName
-                value: onepassword-connect
