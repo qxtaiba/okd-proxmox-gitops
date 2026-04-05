@@ -6,6 +6,7 @@ resources:
   - ./external-secret.yaml
   - ./grafana.yaml
   - ./grafana-datasource.yaml
+  - ./grafana-datasource-loki.yaml
   - ./rbac.yaml
   - ./route.yaml
   - ./service-monitor.yaml
