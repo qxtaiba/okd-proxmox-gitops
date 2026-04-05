@@ -14,4 +14,7 @@ metadata:
   name: cluster
 spec:
   encryption:
-    type: aescbc
+    # aesgcm is preferred over aescbc per upstream Kubernetes guidance:
+    # https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/
+    # OKD's apiserver operator rotates the aesgcm key automatically.
+    type: aesgcm
