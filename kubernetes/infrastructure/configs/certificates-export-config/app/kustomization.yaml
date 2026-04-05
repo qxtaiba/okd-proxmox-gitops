@@ -5,3 +5,4 @@ kind: Kustomization
 resources:
   - ./certificate.yaml
   - ./pushsecret.yaml
+  - ./pushsecret-letsencrypt-account.yaml
