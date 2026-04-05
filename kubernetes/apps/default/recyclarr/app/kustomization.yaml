@@ -6,4 +6,5 @@ resources:
   - ./external-secret.yaml
   - ./configmap.yaml
   - ./oci-repository.yaml
+  - ./rbac.yaml
   - ./helm-release.yaml

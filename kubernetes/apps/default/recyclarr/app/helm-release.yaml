@@ -20,6 +20,8 @@ spec:
       recyclarr:
         annotations:
           reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: recyclarr
         type: cronjob
         cronjob:
           schedule: 0 0 * * *

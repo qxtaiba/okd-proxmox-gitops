@@ -20,6 +20,8 @@ spec:
       sonarr:
         annotations:
           reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: sonarr
         containers:
           app:
             image:

@@ -6,6 +6,7 @@ resources:
   - ./oci-repository.yaml
   - ./pvc.yaml
   - ./external-secret.yaml
+  - ./rbac.yaml
   - ./helm-release.yaml
   - ./volsync.yaml
 components:

@@ -20,6 +20,8 @@ spec:
       plex:
         annotations:
           reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: plex
         containers:
           app:
             image:

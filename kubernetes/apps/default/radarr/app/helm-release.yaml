@@ -20,6 +20,8 @@ spec:
       radarr:
         annotations:
           reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: radarr
         containers:
           app:
             image:

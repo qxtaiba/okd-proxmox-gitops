@@ -20,6 +20,8 @@ spec:
       sabnzbd:
         annotations:
           reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: sabnzbd
         initContainers:
           init-dirs:
             image:

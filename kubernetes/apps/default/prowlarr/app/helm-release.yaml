@@ -20,6 +20,8 @@ spec:
       prowlarr:
         annotations:
           reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: prowlarr
         containers:
           app:
             image:

@@ -20,6 +20,8 @@ spec:
       overseerr:
         annotations:
           reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: overseerr
         containers:
           app:
             image:
