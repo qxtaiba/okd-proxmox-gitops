@@ -17,6 +17,8 @@ spec:
       namespace: flux-system
     - name: cluster-secrets
       namespace: flux-system
+  # 1h interval intentional: see volsync/ks.yaml. Backup schedules are
+  # the authoritative cadence; Flux only ensures the CRs exist.
   interval: 1h
   timeout: 5m
   retryInterval: 2m

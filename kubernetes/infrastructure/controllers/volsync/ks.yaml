@@ -15,6 +15,9 @@ spec:
   dependsOn:
     - name: rook-ceph-cluster
       namespace: flux-system
+  # 1h interval intentional: volsync reconciliation is expensive and
+  # backup schedules (ReplicationSource.spec.trigger) are the authoritative
+  # cadence, not Flux reconcile frequency.
   interval: 1h
   timeout: 5m
   retryInterval: 2m
