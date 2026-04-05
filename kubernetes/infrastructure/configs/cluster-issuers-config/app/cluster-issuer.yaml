@@ -11,6 +11,9 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-production
     solvers:
+      # Single-zone homelab: this solver only handles grappleberry.xyz.
+      # If adding a second domain in the future, either add another solver
+      # entry or remove the dnsZones selector to make it zone-agnostic.
       - dns01:
           cloudflare:
             apiTokenSecretRef:
