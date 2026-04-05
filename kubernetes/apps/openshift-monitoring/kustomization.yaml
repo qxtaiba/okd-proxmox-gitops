@@ -4,5 +4,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   # No namespace.yaml - openshift-monitoring is pre-created by OKD
-  - ./cluster-monitoring-config/ks.yaml
-  - ./user-workload-config/ks.yaml
+  - ./cluster-monitoring-config
+  - ./user-workload-config
