@@ -29,6 +29,9 @@ spec:
       enable_gzip: "true"
       root_url: https://grafana.grappleberry.xyz
   deployment:
+    metadata:
+      annotations:
+        reloader.stakater.com/auto: "true"
     spec:
       strategy:
         type: Recreate
