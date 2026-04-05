@@ -8,6 +8,7 @@ resources:
   - ./observability
   - ./default
   - ./etcd-backup
+  - ./openshift-apiserver
   - ./openshift-machineconfig
   - ./openshift-monitoring
   - ./openshift-image-registry

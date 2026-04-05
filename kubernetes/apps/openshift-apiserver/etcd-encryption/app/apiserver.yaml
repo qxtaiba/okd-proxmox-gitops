@@ -1,0 +1,17 @@
+---
+# Enables etcd encryption-at-rest for Secrets, ConfigMaps, Routes, OAuthAccessTokens,
+# and OAuthAuthorizeTokens. OKD's `cluster-backup.sh` tarballs snapshot.db from etcd;
+# without encryption, the snapshot contains every in-cluster Secret in plaintext.
+#
+# Applied via Flux SSA onto the pre-existing cluster-singleton `cluster` APIServer CR.
+# On reconcile, OKD's apiserver operator rolls the kube-apiserver pods one at a time
+# and rewrites all encrypted resources in place. No app downtime is expected.
+#
+# Reference: https://docs.okd.io/latest/security/encrypting-etcd.html
+apiVersion: config.openshift.io/v1
+kind: APIServer
+metadata:
+  name: cluster
+spec:
+  encryption:
+    type: aescbc
