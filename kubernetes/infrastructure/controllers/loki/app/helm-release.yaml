@@ -18,6 +18,22 @@ spec:
   upgrade:
     remediation:
       retries: -1
+  # The OBC `loki-bucket` uses generateBucketName, so the actual bucket name
+  # is suffixed with a UUID. Flux valuesFrom pulls the generated BUCKET_NAME
+  # out of the Rook-emitted ConfigMap and patches it into loki.storage.bucketNames.
+  valuesFrom:
+    - kind: ConfigMap
+      name: loki-bucket
+      valuesKey: BUCKET_NAME
+      targetPath: loki.storage.bucketNames.chunks
+    - kind: ConfigMap
+      name: loki-bucket
+      valuesKey: BUCKET_NAME
+      targetPath: loki.storage.bucketNames.ruler
+    - kind: ConfigMap
+      name: loki-bucket
+      valuesKey: BUCKET_NAME
+      targetPath: loki.storage.bucketNames.admin
   # Durable log storage lives in the Ceph RGW S3 bucket (loki-chunks).
   # The backend/read/write PVCs here are index/cache only and are NOT
   # covered by Volsync by design - on rebuild, the index is rebuilt from
@@ -37,6 +53,8 @@ spec:
           insecure: true
           s3ForcePathStyle: true
         bucketNames:
+          # Actual values are patched in from the loki-bucket ConfigMap via
+          # spec.valuesFrom above; these placeholders are overwritten at render.
           chunks: loki-chunks
           ruler: loki-chunks
           admin: loki-chunks
