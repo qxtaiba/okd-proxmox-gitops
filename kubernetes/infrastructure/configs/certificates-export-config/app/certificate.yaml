@@ -16,5 +16,5 @@ spec:
   # Explicit renewal policy matches cert-manager defaults for Let's Encrypt
   # (90d lifetime, renew 30d before expiry). Declared here so the renewal
   # cadence is obvious without having to know cert-manager defaults.
-  duration: 2160h  # 90d
-  renewBefore: 720h  # 30d
+  duration: 2160h # 90d
+  renewBefore: 720h # 30d
