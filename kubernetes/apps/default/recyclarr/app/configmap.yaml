@@ -14,13 +14,14 @@ data:
         api_key: !env_var SONARR_API_KEY
         delete_old_custom_formats: true
         replace_existing_custom_formats: true
-        # recyclarr 8.x config-templates restructure: templates were renamed
-        # and quality-profile + custom-formats bundled into a single template
-        # per profile. `web-2160p-v4` etc. now provides profile + CFs + quality
-        # definitions inline. See templates.json in recyclarr/config-templates.
-        include:
-          - template: web-2160p-v4
-          - template: web-1080p-v4
+        # NOTE: recyclarr 8.x restructured config-templates so templates are
+        # now complete instance definitions used via `recyclarr config create`,
+        # not `include:` targets. The old include: syntax was removed. We keep
+        # only the custom_formats block below (which references trash_ids
+        # directly, not templates). Quality profiles/definitions are assumed
+        # to already exist on the sonarr instance; they are no longer
+        # reconciled by recyclarr. To restore full template-based reconcile,
+        # replace this config entirely per the 8.x quickstart guide.
         custom_formats:
           # Block DV without HDR10 fallback (causes green tint on non-DV devices)
           - trash_ids:
@@ -57,13 +58,8 @@ data:
         api_key: !env_var RADARR_API_KEY
         delete_old_custom_formats: true
         replace_existing_custom_formats: true
-        # recyclarr 8.x config-templates restructure: templates were renamed
-        # and quality-profile + custom-formats bundled into a single template
-        # per profile. `uhd-bluray-web` etc. now provides profile + CFs + quality
-        # definitions inline. See templates.json in recyclarr/config-templates.
-        include:
-          - template: uhd-bluray-web
-          - template: hd-bluray-web
+        # NOTE: see sonarr block above re: recyclarr 8.x template restructure.
+        # The include: block was removed; only custom_formats remain.
         custom_formats:
           # Block DV without HDR10 fallback
           - trash_ids:
