@@ -9,26 +9,6 @@ spec:
   trigger:
     schedule: "0 3 * * *"
   restic:
-    copyMethod: Snapshot
-    volumeSnapshotClassName: csi-ceph-blockpool
     repository: volsync-restic-grafana
-    moverServiceAccount: volsync-mover
-    moverSecurityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
-      fsGroup: 1000
-    pruneIntervalDays: 7
+    volumeSnapshotClassName: csi-ceph-blockpool
     cacheCapacity: 1Gi
-    cacheStorageClassName: ceph-block
-    cacheAccessModes:
-      - ReadWriteOnce
-    retain:
-      daily: 7
-      weekly: 4
-      monthly: 2
-    moverVolumes:
-      - mountPath: restic-repo
-        volumeSource:
-          nfs:
-            server: nas.grappleberry.xyz
-            path: /volume1/backups/volsync

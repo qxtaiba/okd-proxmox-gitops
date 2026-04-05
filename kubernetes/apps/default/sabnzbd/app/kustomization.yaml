@@ -8,3 +8,5 @@ resources:
   - ./pvc.yaml
   - ./helm-release.yaml
   - ./volsync.yaml
+components:
+  - ../../../../components/volsync-restic-defaults

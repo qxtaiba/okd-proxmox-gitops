@@ -13,3 +13,5 @@ resources:
   - ./volsync-external-secret.yaml
   - ./volsync-rbac.yaml
   - ./volsync.yaml
+components:
+  - ../../../../components/volsync-restic-defaults

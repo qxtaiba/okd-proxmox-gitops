@@ -10,3 +10,5 @@ resources:
   - ./rbac.yaml
   - ./scc.yaml
   - ./volsync.yaml
+components:
+  - ../../../../components/volsync-restic-defaults
