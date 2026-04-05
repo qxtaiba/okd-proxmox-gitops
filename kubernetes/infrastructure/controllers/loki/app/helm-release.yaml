@@ -15,6 +15,10 @@ spec:
   upgrade:
     remediation:
       retries: 3
+  # Durable log storage lives in the Ceph RGW S3 bucket (loki-chunks).
+  # The backend/read/write PVCs here are index/cache only and are NOT
+  # covered by Volsync by design - on rebuild, the index is rebuilt from
+  # the chunks in S3. See loki storage.s3 config below for the bucket.
   values:
     global:
       dnsService: dns-default
