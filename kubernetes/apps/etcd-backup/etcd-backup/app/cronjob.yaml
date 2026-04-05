@@ -50,6 +50,17 @@ spec:
                 - -c
                 - |
                   set -euo pipefail
+                  # Abort if the elected control-plane node is mid-drain or mid-reboot:
+                  # cluster-backup.sh tarballs /etc/kubernetes/manifests from the local
+                  # node, so a stale node yields a stale or missing tarball.
+                  if ! chroot /host systemctl is-active --quiet kubelet; then
+                    echo "FATAL: kubelet is not active on this node, aborting backup"
+                    exit 1
+                  fi
+                  if [ ! -s /host/etc/kubernetes/manifests/kube-apiserver-pod.yaml ]; then
+                    echo "FATAL: kube-apiserver-pod.yaml missing or empty, aborting backup"
+                    exit 1
+                  fi
                   TS=$(date +%Y%m%d-%H%M%S)
                   HOST_BACKUP_DIR=/host/var/home/core/etcd-backup-${TS}
                   mkdir -p "${HOST_BACKUP_DIR}"
