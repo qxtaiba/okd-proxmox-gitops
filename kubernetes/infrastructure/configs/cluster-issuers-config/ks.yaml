@@ -17,11 +17,6 @@ spec:
       namespace: flux-system
     - name: cluster-secrets
       namespace: flux-system
-  healthChecks:
-    - apiVersion: cert-manager.io/v1
-      kind: ClusterIssuer
-      name: letsencrypt-production
-      namespace: cert-manager
   interval: 10m
   timeout: 5m
   retryInterval: 1m

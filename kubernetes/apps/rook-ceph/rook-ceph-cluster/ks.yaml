@@ -20,12 +20,3 @@ spec:
   retryInterval: 1m
   prune: true
   wait: true
-  healthChecks:
-    - apiVersion: v1
-      kind: Secret
-      name: rook-csi-rbd-provisioner
-      namespace: rook-ceph
-    - apiVersion: v1
-      kind: Secret
-      name: rook-csi-cephfs-provisioner
-      namespace: rook-ceph

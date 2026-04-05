@@ -21,11 +21,6 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  healthChecks:
-    - apiVersion: grafana.integreatly.org/v1beta1
-      kind: Grafana
-      name: grafana
-      namespace: observability
   interval: 10m
   timeout: 5m
   retryInterval: 1m
