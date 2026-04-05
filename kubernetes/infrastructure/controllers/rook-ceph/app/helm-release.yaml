@@ -18,7 +18,7 @@ spec:
     remediation:
       retries: 3
   values:
-    priorityClassName: storage-critical
+    priorityClassName: system-cluster-critical
     crds:
       enabled: true
     monitoring:
