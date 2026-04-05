@@ -19,4 +19,10 @@ spec:
   timeout: 5m
   retryInterval: 1m
   prune: true
-  wait: true
+  # wait: false so infra-controllers does not block on loki becoming Ready.
+  # Loki's HelmRelease valuesFrom depends on the loki-bucket ConfigMap emitted
+  # by the Rook OBC, which only exists after rook-ceph-cluster runs in the
+  # cluster-apps tree. Without this, infra-controllers -> infra-configs ->
+  # cluster-apps deadlocks on cold bootstrap. Loki itself retries indefinitely
+  # (install.remediation.retries: -1 in helm-release.yaml).
+  wait: false
