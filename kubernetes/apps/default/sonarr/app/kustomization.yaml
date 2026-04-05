@@ -5,8 +5,6 @@ kind: Kustomization
 resources:
   - ./oci-repository.yaml
   - ./pvc.yaml
-  - ./media-pv.yaml
-  - ./media-pvc.yaml
   - ./external-secret.yaml
   - ./helm-release.yaml
   - ./volsync.yaml

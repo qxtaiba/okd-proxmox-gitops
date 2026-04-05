@@ -198,7 +198,7 @@ spec:
               - path: /downloads
             app: *downloads-mount
       media:
-        existingClaim: qbittorrent-media
+        existingClaim: media
         advancedMounts:
           qbittorrent:
             app:

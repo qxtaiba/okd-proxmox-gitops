@@ -93,7 +93,7 @@ spec:
       config:
         existingClaim: plex-config
       media:
-        existingClaim: plex-media
+        existingClaim: media
         globalMounts:
           - path: /media
             readOnly: true
