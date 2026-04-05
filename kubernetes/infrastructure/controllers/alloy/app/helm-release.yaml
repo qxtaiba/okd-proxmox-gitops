@@ -22,9 +22,13 @@ spec:
   # Alloy role in this cluster: LOG COLLECTION ONLY.
   # - No prometheus.remote_write: metrics scraping is handled by OKD's
   #   built-in user-workload Prometheus (see openshift-monitoring/).
+  # - Single-replica Deployment: loki.source.kubernetes uses the Kubernetes
+  #   API (not /var/log), so one instance can collect the whole cluster.
+  #   A DaemonSet without alloy clustering would ship every pod's logs N
+  #   times. See https://grafana.com/docs/alloy/latest/reference/components/loki/loki.source.kubernetes/
   # - configReloader sidecar is disabled to save memory. Config changes
-  #   require a manual DaemonSet restart:
-  #     oc -n observability rollout restart ds/alloy
+  #   require a manual Deployment restart:
+  #     oc -n observability rollout restart deployment/alloy
   # - The reloader.stakater.com/auto annotation on the controller handles
   #   secret/configmap rotation, but only restarts pods on hash changes.
   values:
@@ -112,9 +116,6 @@ spec:
               url = "http://loki-gateway.observability.svc.cluster.local:80/loki/api/v1/push"
             }
           }
-      mounts:
-        varlog: true
-        dockercontainers: true
       resources:
         requests:
           cpu: 50m
@@ -126,15 +127,9 @@ spec:
     configReloader:
       enabled: false
     controller:
-      type: daemonset
+      type: deployment
+      replicas: 1
       podAnnotations:
         reloader.stakater.com/auto: "true"
-      tolerations:
-        - key: node-role.kubernetes.io/control-plane
-          operator: Exists
-          effect: NoSchedule
-        - key: storage-node
-          operator: Exists
-          effect: NoSchedule
     serviceMonitor:
       enabled: true
