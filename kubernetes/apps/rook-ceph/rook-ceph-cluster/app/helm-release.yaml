@@ -78,9 +78,11 @@ spec:
       storage:
         useAllNodes: true
         useAllDevices: false
-        # Match second SCSI disk (sdb) on each worker node
-        # QEMU/KVM virtio-scsi names disks sequentially: sda (OS), sdb (Ceph data)
-        deviceFilter: "^sdb$"
+        # Match the second Terraform-provisioned disk (scsi1 = CEPH-DATA).
+        # Using devicePathFilter because virtio-scsi-single enumeration of
+        # /dev/sdX is non-deterministic across reboots, but the SCSI bus
+        # assignment (drive-scsi1) is stable per Terraform disk block order.
+        devicePathFilter: "^/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1$"
         config:
           osdsPerDevice: "1"
     cephBlockPools:
