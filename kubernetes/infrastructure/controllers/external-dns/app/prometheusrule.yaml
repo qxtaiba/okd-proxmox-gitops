@@ -14,8 +14,7 @@ spec:
           annotations:
             summary: external-dns has disappeared from Prometheus service discovery
             description: >-
-              Routes and Ingresses will stop getting DNS records published to
-              Cloudflare. Existing records will drift as apps change.
+              Routes and Ingresses will stop getting DNS records published to Cloudflare. Existing records will drift as apps change.
           labels:
             severity: critical
         - alert: ExternalDNSRegistryErrors
@@ -25,8 +24,7 @@ spec:
           annotations:
             summary: external-dns is failing to reconcile DNS records with the registry
             description: >-
-              external-dns is returning errors when talking to Cloudflare.
-              Check the Cloudflare API token (CF_API_TOKEN) and zone ID.
+              external-dns is returning errors when talking to Cloudflare. Check the Cloudflare API token (CF_API_TOKEN) and zone ID.
           labels:
             severity: warning
         - alert: ExternalDNSSourceErrors
@@ -36,7 +34,6 @@ spec:
           annotations:
             summary: external-dns is failing to read Routes/Ingresses from the API
             description: >-
-              external-dns cannot enumerate sources. Check RBAC and the
-              openshift-route source configuration.
+              external-dns cannot enumerate sources. Check RBAC and the openshift-route source configuration.
           labels:
             severity: warning
