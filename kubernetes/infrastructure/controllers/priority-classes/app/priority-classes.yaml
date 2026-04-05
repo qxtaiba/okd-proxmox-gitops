@@ -7,11 +7,3 @@ metadata:
 value: 1000000
 globalDefault: false
 description: Priority class for critical infrastructure components
----
-apiVersion: scheduling.k8s.io/v1
-kind: PriorityClass
-metadata:
-  name: storage-critical
-value: 900000
-globalDefault: false
-description: Priority class for storage components (Rook-Ceph)
