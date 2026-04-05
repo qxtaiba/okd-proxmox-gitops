@@ -7,5 +7,4 @@ resources:
   - ./oci-repository.yaml
   - ./pvc.yaml
   - ./helm-release.yaml
-  - ./route.yaml
   - ./volsync.yaml
