@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/objectbucket.io/objectbucketclaim_v1alpha1.json
+---
+# ObjectBucketClaim for tofu-controller Terraform state.
+#
+# Provisions a dedicated Ceph RGW bucket for storing Terraform state,
+# replacing the default in-cluster Kubernetes Secret state storage.
+# The OBC creates:
+#   - A CephObjectStore bucket
+#   - A ConfigMap named tofu-state-bucket with BUCKET_NAME, BUCKET_HOST, etc.
+#   - A Secret named tofu-state-bucket with AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+#
+# MIGRATION STATUS: bucket provisioned, state NOT yet migrated.
+# See devopsarr/MIGRATION.md for the manual migration procedure.
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: tofu-state-bucket
+spec:
+  generateBucketName: tofu-state
+  storageClassName: ceph-bucket

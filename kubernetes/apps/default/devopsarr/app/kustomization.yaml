@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./rbac.yaml
   - ./external-secret.yaml
+  - ./tofu-state-obc.yaml
   - ./terraform-prowlarr.yaml
   - ./terraform-sonarr.yaml
   - ./terraform-radarr.yaml
