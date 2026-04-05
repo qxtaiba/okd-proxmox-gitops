@@ -22,6 +22,11 @@ spec:
       createPrometheusRules: true
     toolbox:
       enabled: true
+    # NOTE: This cluster requires >=3 Ceph-eligible nodes.
+    # All pools use failureDomain: host with replicated.size: 3, which is
+    # mathematically unsatisfiable with <3 hosts (pools sit DEGRADED, I/O blocks).
+    # If shrinking the cluster below 3 hosts, adjust replicated.size and
+    # failureDomain in every pool (cephBlockPools, cephFileSystems, cephObjectStores).
     cephClusterSpec:
       cleanupPolicy:
         wipeDevicesFromOtherClusters: true
@@ -40,7 +45,7 @@ spec:
           enabled: true
       dashboard:
         enabled: true
-        ssl: false
+        ssl: true
       mgr:
         modules:
           - name: diskprediction_local
@@ -121,6 +126,7 @@ spec:
       - name: okd-cephfs
         spec:
           metadataPool:
+            failureDomain: host
             replicated:
               size: 3
           dataPools:
@@ -171,15 +177,17 @@ spec:
       - name: okd-ceph-objectstore
         spec:
           metadataPool:
+            failureDomain: host
             replicated:
               size: 3
           dataPool:
+            failureDomain: host
             replicated:
               size: 3
           preservePoolsOnDelete: true
           gateway:
             port: 80
-            instances: 1
+            instances: 2
             resources:
               requests:
                 cpu: 100m
