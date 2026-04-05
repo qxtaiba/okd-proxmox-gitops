@@ -24,7 +24,7 @@ metadata:
 spec:
   schedule: "30 3 * * *"
   timeZone: Asia/Dubai
-  suspend: true  # flip to false after first successful manual test
+  suspend: false  # verified via manual test 2026-04-05: snapshot 103 MB to nas
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
