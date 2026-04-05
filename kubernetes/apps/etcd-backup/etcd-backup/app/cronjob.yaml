@@ -38,12 +38,12 @@ spec:
           hostNetwork: true
           hostPID: true
           nodeSelector:
-            node-role.kubernetes.io/master: ""
+            node-role.kubernetes.io/control-plane: ""
           tolerations:
             - operator: Exists
           containers:
             - name: backup
-              image: registry.redhat.io/openshift4/ose-cli:latest
+              image: quay.io/openshift/origin-cli:latest
               imagePullPolicy: IfNotPresent
               command:
                 - /bin/bash
