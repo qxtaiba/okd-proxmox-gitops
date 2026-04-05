@@ -28,6 +28,9 @@ spec:
     # If shrinking the cluster below 3 hosts, adjust replicated.size and
     # failureDomain in every pool (cephBlockPools, cephFileSystems, cephObjectStores).
     cephClusterSpec:
+      cephVersion:
+        image: quay.io/ceph/ceph:v19.2.3
+        allowUnsupported: false
       cleanupPolicy:
         wipeDevicesFromOtherClusters: true
       cephConfig:
