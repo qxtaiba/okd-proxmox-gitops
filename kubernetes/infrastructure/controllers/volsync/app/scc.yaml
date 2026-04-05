@@ -24,7 +24,10 @@ seLinuxContext:
   type: MustRunAs
 supplementalGroups:
   type: RunAsAny
-users: []
+users:
+  - system:serviceaccount:default:volsync-mover
+  - system:serviceaccount:observability:volsync-mover
+  - system:serviceaccount:openshift-image-registry:volsync-mover
 groups: []
 volumes:
   - configMap
