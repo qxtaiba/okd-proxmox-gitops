@@ -30,3 +30,17 @@ subjects:
   - kind: ServiceAccount
     name: kube-vip
     namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kube-vip-scc
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:kube-vip
+subjects:
+  - kind: ServiceAccount
+    name: kube-vip
+    namespace: kube-system

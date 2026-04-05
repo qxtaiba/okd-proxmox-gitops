@@ -1,6 +1,17 @@
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/serviceaccount_v1.json
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: qbittorrent
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: qbittorrent-gluetun-scc
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:qbittorrent-gluetun
+subjects:
+  - kind: ServiceAccount
+    name: qbittorrent

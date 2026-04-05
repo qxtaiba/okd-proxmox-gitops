@@ -18,5 +18,3 @@ fsGroup:
   type: RunAsAny
 supplementalGroups:
   type: RunAsAny
-users:
-  - system:serviceaccount:kube-system:kube-vip

@@ -28,5 +28,3 @@ volumes:
   - persistentVolumeClaim
   - projected
   - secret
-users:
-  - system:serviceaccount:default:qbittorrent
