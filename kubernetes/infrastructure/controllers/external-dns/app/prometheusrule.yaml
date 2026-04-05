@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: external-dns-rules
+spec:
+  groups:
+    - name: external-dns
+      rules:
+        - alert: ExternalDNSAbsent
+          expr: absent(up{job="external-dns"})
+          for: 10m
+          annotations:
+            summary: external-dns has disappeared from Prometheus service discovery
+            description: >-
+              Routes and Ingresses will stop getting DNS records published to
+              Cloudflare. Existing records will drift as apps change.
+          labels:
+            severity: critical
+        - alert: ExternalDNSRegistryErrors
+          expr: |-
+            sum(rate(external_dns_registry_errors_total[5m])) > 0
+          for: 15m
+          annotations:
+            summary: external-dns is failing to reconcile DNS records with the registry
+            description: >-
+              external-dns is returning errors when talking to Cloudflare.
+              Check the Cloudflare API token (CF_API_TOKEN) and zone ID.
+          labels:
+            severity: warning
+        - alert: ExternalDNSSourceErrors
+          expr: |-
+            sum(rate(external_dns_source_errors_total[5m])) > 0
+          for: 15m
+          annotations:
+            summary: external-dns is failing to read Routes/Ingresses from the API
+            description: >-
+              external-dns cannot enumerate sources. Check RBAC and the
+              openshift-route source configuration.
+          labels:
+            severity: warning
