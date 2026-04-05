@@ -59,8 +59,8 @@ spec:
                   mkdir -p "/backup/${TS}"
                   cp -a "${HOST_BACKUP_DIR}"/* "/backup/${TS}/"
                   rm -rf "${HOST_BACKUP_DIR}"
-                  echo "pruning backups older than 7 days"
-                  find /backup -maxdepth 1 -type d -mtime +7 -name '[0-9]*' -print -exec rm -rf {} +
+                  echo "pruning backups older than 35 days"
+                  find /backup -maxdepth 1 -type d -mtime +35 -name '[0-9]*' -print -exec rm -rf {} +
                   echo "etcd backup complete: ${TS}"
               securityContext:
                 privileged: true
