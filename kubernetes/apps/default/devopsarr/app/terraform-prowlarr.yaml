@@ -16,6 +16,36 @@ spec:
   varsFrom:
     - kind: Secret
       name: devopsarr-secrets
+  # State is stored in Ceph RGW S3 bucket (tofu-state-bucket OBC).
+  # Seeded from the original in-cluster Secret state on 2026-04-05.
+  backendConfig:
+    customConfiguration: |-
+      terraform {
+        backend "s3" {
+          bucket                      = "tofu-state-08fa62c1-b5b1-4f19-812a-990166d5e32b"
+          key                         = "devopsarr-prowlarr.tfstate"
+          endpoint                    = "http://rook-ceph-rgw-okd-ceph-objectstore.rook-ceph.svc:80"
+          region                      = "us-east-1"
+          force_path_style            = true
+          skip_credentials_validation = true
+          skip_metadata_api_check     = true
+          skip_region_validation      = true
+          skip_requesting_account_id  = true
+        }
+      }
+  runnerPodTemplate:
+    spec:
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: tofu-state-bucket
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tofu-state-bucket
+              key: AWS_SECRET_ACCESS_KEY
   # destroyResourcesOnDeletion: false protects indexer config from
   # accidental CR deletion. Managed resources survive even if the
   # Terraform CR is removed. Flip to true only for one-shot test envs.
