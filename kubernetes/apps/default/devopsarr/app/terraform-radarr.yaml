@@ -20,18 +20,16 @@ spec:
   # Seeded from the original in-cluster Secret state on 2026-04-05.
   backendConfig:
     customConfiguration: |-
-      terraform {
-        backend "s3" {
-          bucket                      = "tofu-state-08fa62c1-b5b1-4f19-812a-990166d5e32b"
-          key                         = "devopsarr-radarr.tfstate"
-          endpoint                    = "http://rook-ceph-rgw-okd-ceph-objectstore.rook-ceph.svc:80"
-          region                      = "us-east-1"
-          force_path_style            = true
-          skip_credentials_validation = true
-          skip_metadata_api_check     = true
-          skip_region_validation      = true
-          skip_requesting_account_id  = true
-        }
+      backend "s3" {
+        bucket                      = "tofu-state-08fa62c1-b5b1-4f19-812a-990166d5e32b"
+        key                         = "devopsarr-radarr.tfstate"
+        endpoint                    = "http://rook-ceph-rgw-okd-ceph-objectstore.rook-ceph.svc:80"
+        region                      = "us-east-1"
+        force_path_style            = true
+        skip_credentials_validation = true
+        skip_metadata_api_check     = true
+        skip_region_validation      = true
+        skip_requesting_account_id  = true
       }
   runnerPodTemplate:
     spec:
