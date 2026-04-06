@@ -48,8 +48,11 @@ spec:
         ssl: true
       mgr:
         modules:
+          # diskprediction_local disabled: virtual disks (QEMU virtio-scsi)
+          # don't report real SMART data, causing nightly MgrDBNotReady
+          # crashes in the devicehealth module (ceph-tracker#64621).
           - name: diskprediction_local
-            enabled: true
+            enabled: false
           - name: insights
             enabled: true
           - name: pg_autoscaler
