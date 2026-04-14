@@ -106,8 +106,6 @@ spec:
     service:
       app:
         controller: sabnzbd
-        annotations:
-          tailscale.com/expose: "true"
         ports:
           http:
             port: 8080

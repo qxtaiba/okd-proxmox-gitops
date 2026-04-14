@@ -90,8 +90,6 @@ spec:
     service:
       app:
         controller: prowlarr
-        annotations:
-          tailscale.com/expose: "true"
         ports:
           http:
             port: 9696

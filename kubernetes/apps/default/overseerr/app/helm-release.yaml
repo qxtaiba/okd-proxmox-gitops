@@ -88,8 +88,6 @@ spec:
     service:
       app:
         controller: overseerr
-        annotations:
-          tailscale.com/expose: "true"
         ports:
           http:
             port: 5055
