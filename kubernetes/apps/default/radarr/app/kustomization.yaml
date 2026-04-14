@@ -8,6 +8,7 @@ resources:
   - ./external-secret.yaml
   - ./rbac.yaml
   - ./helm-release.yaml
+  - ./route.yaml
   - ./volsync.yaml
 components:
   - ../../../../components/volsync-restic-defaults
