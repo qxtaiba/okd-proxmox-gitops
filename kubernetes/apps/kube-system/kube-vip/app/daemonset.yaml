@@ -67,6 +67,16 @@ spec:
             # Disable services (MetalLB handles this)
             - name: svc_enable
               value: "false"
+            # Node identity for leader election
+            - name: vip_nodename
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            # Use local API server to avoid ClusterIP dependency on OVN at boot
+            - name: KUBERNETES_SERVICE_HOST
+              value: "localhost"
+            - name: KUBERNETES_SERVICE_PORT
+              value: "6443"
             # Logging
             - name: vip_loglevel
               value: "5"
