@@ -6,7 +6,9 @@
 # *arr databases (restored from Volsync) with "resource already exists"
 # errors.
 #
-# Destination: /volume1/backups/tofu-state/<date>/ on the volsync NFS mount.
+# Destination: /volume1/backups/tofu-state/<date>/ on the NAS.
+# Directory must exist and be writable by the pod UID — see etcd-backup
+# and volsync for the same subpath pattern.
 # Retention handled inline (keep last 30 days).
 apiVersion: batch/v1
 kind: CronJob
@@ -42,13 +44,13 @@ spec:
                 - |
                   set -euo pipefail
                   TS=$(date +%Y%m%d-%H%M%S)
-                  DEST=/backup/tofu-state/${TS}
+                  DEST=/backup/${TS}
                   mkdir -p "${DEST}"
                   mc alias set ceph "http://${BUCKET_HOST}:${BUCKET_PORT}" \
                     "${AWS_ACCESS_KEY_ID}" "${AWS_SECRET_ACCESS_KEY}"
                   mc cp --recursive "ceph/${BUCKET_NAME}/" "${DEST}/"
                   echo "pruning tofu-state backups older than 30 days"
-                  find /backup/tofu-state -maxdepth 1 -type d -mtime +30 \
+                  find /backup -maxdepth 1 -type d -mtime +30 \
                     -name '[0-9]*' -print -exec rm -rf {} +
                   echo "tofu-state backup complete: ${TS}"
               securityContext:
@@ -66,4 +68,4 @@ spec:
             - name: backup-nfs
               nfs:
                 server: nas.grappleberry.xyz
-                path: /volume1/backups
+                path: /volume1/backups/tofu-state
