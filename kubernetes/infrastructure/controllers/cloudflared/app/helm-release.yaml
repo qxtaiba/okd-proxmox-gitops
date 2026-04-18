@@ -75,6 +75,14 @@ spec:
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
+      # CoreDNS upstream returns compressed SRV records for
+      # _v2-origintunneld._tcp.argotunnel.com, which Go's resolver rejects
+      # (golang/go#27546). Bypass CoreDNS for cloudflared's external lookups.
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - 1.1.1.1
+          - 1.0.0.1
     service:
       app:
         controller: cloudflared
