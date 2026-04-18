@@ -52,9 +52,12 @@ spec:
                   mc alias set ceph "http://${BUCKET_HOST}:${BUCKET_PORT}" \
                     "${AWS_ACCESS_KEY_ID}" "${AWS_SECRET_ACCESS_KEY}"
                   mc cp --recursive "ceph/${BUCKET_NAME}/" "${DEST}/"
-                  echo "pruning tofu-state backups older than 30 days"
-                  find /backup -maxdepth 1 -type d -mtime +30 \
-                    -name '[0-9]*' -print -exec rm -rf {} +
+                  echo "pruning tofu-state backups, keeping last 30"
+                  cd /backup && \
+                    ls -1dt [0-9]*/ 2>/dev/null | tail -n +31 | while read d; do
+                      echo "pruning: ${d}"
+                      rm -rf "${d}"
+                    done
                   echo "tofu-state backup complete: ${TS}"
               securityContext:
                 allowPrivilegeEscalation: false
