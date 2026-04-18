@@ -38,6 +38,9 @@ spec:
                     name: tofu-state-bucket
                 - configMapRef:
                     name: tofu-state-bucket
+              env:
+                - name: MC_CONFIG_DIR
+                  value: /tmp/mc
               command:
                 - /bin/sh
                 - -c
