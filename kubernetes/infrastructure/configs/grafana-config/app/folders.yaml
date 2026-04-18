@@ -5,6 +5,7 @@ kind: GrafanaFolder
 metadata:
   name: kubernetes
 spec:
+  uid: kubernetes
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -15,6 +16,7 @@ kind: GrafanaFolder
 metadata:
   name: infrastructure
 spec:
+  uid: infrastructure
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -25,6 +27,7 @@ kind: GrafanaFolder
 metadata:
   name: observability
 spec:
+  uid: observability
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -35,6 +38,7 @@ kind: GrafanaFolder
 metadata:
   name: flux
 spec:
+  uid: flux
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -45,6 +49,7 @@ kind: GrafanaFolder
 metadata:
   name: security
 spec:
+  uid: security
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -55,6 +60,7 @@ kind: GrafanaFolder
 metadata:
   name: storage
 spec:
+  uid: storage
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -65,6 +71,7 @@ kind: GrafanaFolder
 metadata:
   name: logging
 spec:
+  uid: logging
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana

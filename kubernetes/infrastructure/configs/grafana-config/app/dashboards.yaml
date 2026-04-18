@@ -6,7 +6,7 @@ kind: GrafanaDashboard
 metadata:
   name: kubernetes-global
 spec:
-  folderRef: kubernetes
+  folderUID: kubernetes
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -21,7 +21,7 @@ kind: GrafanaDashboard
 metadata:
   name: kubernetes-namespaces
 spec:
-  folderRef: kubernetes
+  folderUID: kubernetes
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -36,7 +36,7 @@ kind: GrafanaDashboard
 metadata:
   name: kubernetes-nodes
 spec:
-  folderRef: kubernetes
+  folderUID: kubernetes
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -51,7 +51,7 @@ kind: GrafanaDashboard
 metadata:
   name: kubernetes-pods
 spec:
-  folderRef: kubernetes
+  folderUID: kubernetes
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -66,7 +66,7 @@ kind: GrafanaDashboard
 metadata:
   name: kubernetes-coredns
 spec:
-  folderRef: kubernetes
+  folderUID: kubernetes
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -81,7 +81,7 @@ kind: GrafanaDashboard
 metadata:
   name: kubernetes-etcd
 spec:
-  folderRef: kubernetes
+  folderUID: kubernetes
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -97,7 +97,7 @@ kind: GrafanaDashboard
 metadata:
   name: node-exporter-full
 spec:
-  folderRef: infrastructure
+  folderUID: infrastructure
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -112,7 +112,7 @@ kind: GrafanaDashboard
 metadata:
   name: metallb
 spec:
-  folderRef: infrastructure
+  folderUID: infrastructure
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -128,7 +128,7 @@ kind: GrafanaDashboard
 metadata:
   name: prometheus
 spec:
-  folderRef: observability
+  folderUID: observability
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -143,7 +143,7 @@ kind: GrafanaDashboard
 metadata:
   name: alertmanager
 spec:
-  folderRef: observability
+  folderUID: observability
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -159,7 +159,7 @@ kind: GrafanaDashboard
 metadata:
   name: flux-k8s-api-performance
 spec:
-  folderRef: flux
+  folderUID: flux
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -174,7 +174,7 @@ kind: GrafanaDashboard
 metadata:
   name: flux-performance
 spec:
-  folderRef: flux
+  folderUID: flux
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -189,7 +189,7 @@ kind: GrafanaDashboard
 metadata:
   name: flux-cluster
 spec:
-  folderRef: flux
+  folderUID: flux
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -204,7 +204,7 @@ kind: GrafanaDashboard
 metadata:
   name: flux-control-plane
 spec:
-  folderRef: flux
+  folderUID: flux
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -220,7 +220,7 @@ kind: GrafanaDashboard
 metadata:
   name: cert-manager
 spec:
-  folderRef: security
+  folderUID: security
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -235,7 +235,7 @@ kind: GrafanaDashboard
 metadata:
   name: external-secrets
 spec:
-  folderRef: security
+  folderUID: security
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -251,7 +251,7 @@ kind: GrafanaDashboard
 metadata:
   name: ceph-cluster
 spec:
-  folderRef: storage
+  folderUID: storage
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -266,7 +266,7 @@ kind: GrafanaDashboard
 metadata:
   name: ceph-osd
 spec:
-  folderRef: storage
+  folderUID: storage
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -281,7 +281,7 @@ kind: GrafanaDashboard
 metadata:
   name: ceph-pools
 spec:
-  folderRef: storage
+  folderUID: storage
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -297,7 +297,7 @@ kind: GrafanaDashboard
 metadata:
   name: kubernetes-logs
 spec:
-  folderRef: logging
+  folderUID: logging
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
@@ -312,7 +312,7 @@ kind: GrafanaDashboard
 metadata:
   name: loki-logs
 spec:
-  folderRef: logging
+  folderUID: logging
   allowCrossNamespaceImport: true
   instanceSelector:
     matchLabels:
