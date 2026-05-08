@@ -39,6 +39,24 @@ spec:
               readOnlyRootFilesystem: true
               capabilities:
                 drop: ["ALL"]
+          clean-lockfile:
+            # Stale qbittorrent lockfile/ipc-socket from ungraceful kill or
+            # 5.1.x→5.2.0 format change. Tracked upstream: qbittorrent#24164.
+            image:
+              repository: docker.io/library/busybox
+              tag: 1.37.0
+            command:
+              - sh
+              - -c
+              - rm -f /config/qBittorrent/lockfile /config/qBittorrent/ipc-socket || true
+            securityContext:
+              runAsUser: 1000
+              runAsGroup: 1000
+              runAsNonRoot: true
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
           gluetun:
             dependsOn: init-dirs
             restartPolicy: Always
@@ -136,6 +154,13 @@ spec:
               TZ: Asia/Dubai
               QBT_WEBUI_PORT: "8080"
               QBT_TORRENTING_PORT: "6881"
+            lifecycle:
+              preStop:
+                exec:
+                  command:
+                    - /bin/sh
+                    - -c
+                    - rm -f /config/qBittorrent/lockfile /config/qBittorrent/ipc-socket
             probes:
               liveness:
                 enabled: true
@@ -202,6 +227,7 @@ spec:
           qbittorrent:
             init-dirs: &config-mount
               - path: /config
+            clean-lockfile: *config-mount
             app: *config-mount
       downloads:
         existingClaim: downloads
