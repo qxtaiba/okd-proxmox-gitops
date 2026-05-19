@@ -12,3 +12,21 @@ subjects:
   - kind: ServiceAccount
     name: volsync
     namespace: volsync-system
+---
+# OpenShift only auto-generates system:openshift:scc:<name> ClusterRoles for
+# built-in SCCs, not custom ones. The volsync-nfs-mover RoleBindings reference
+# this ClusterRole, so it must be declared explicitly or NFS-backed movers
+# silently fall back to restricted-v2 and fail.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:openshift:scc:volsync-nfs-mover
+rules:
+  - apiGroups:
+      - security.openshift.io
+    resources:
+      - securitycontextconstraints
+    resourceNames:
+      - volsync-nfs-mover
+    verbs:
+      - use
