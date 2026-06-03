@@ -1,8 +1,10 @@
 # butane source file for kube-vip bootstrap systemd unit
-# regenerate machineconfig.yaml with: make generate-kube-vip-bootstrap
+# regenerate machineconfig.yaml with:
+#   butane -o machineconfig.yaml kube-vip-bootstrap.bu
 #
-# adds vip to interface before kubelet starts, ensuring kube-vip daemonset
-# can start even if api server was previously unreachable
+# adds vip to br-ex AFTER ovs-configuration.service has migrated the host IP
+# from ens18 to the OVS bridge, so the secondary VIP survives until the
+# in-cluster kube-vip DaemonSet takes over leader election.
 variant: openshift
 version: 4.18.0
 metadata:
@@ -18,22 +20,19 @@ storage:
         inline: |
           #!/bin/bash
           # kube-vip bootstrap script
-          # adds vip to interface if not already present
+          # adds vip to br-ex (OVN uplink bridge) if not already present
 
           VIP="192.168.227.10"
-          INTERFACE="ens18"
+          INTERFACE="br-ex"
 
-          # check if vip already exists on any interface
           if ip addr show | grep -q "${VIP}/"; then
             echo "vip ${VIP} already configured"
             exit 0
           fi
 
-          # add vip to interface
           echo "adding vip ${VIP} to ${INTERFACE}"
           ip addr add ${VIP}/32 dev ${INTERFACE}
 
-          # send gratuitous arp
           if command -v arping &> /dev/null; then
             arping -c 3 -A -I ${INTERFACE} ${VIP} || true
           fi
@@ -46,9 +45,11 @@ systemd:
       contents: |
         [Unit]
         Description=kube-vip VIP bootstrap
+        # ovs-configuration.service migrates the host IP from ens18 to br-ex
+        # and must finish before we claim the VIP, or our address is wiped.
+        Requires=ovs-configuration.service
+        After=ovs-configuration.service
         Before=kubelet.service
-        After=network-online.target
-        Wants=network-online.target
 
         [Service]
         Type=oneshot

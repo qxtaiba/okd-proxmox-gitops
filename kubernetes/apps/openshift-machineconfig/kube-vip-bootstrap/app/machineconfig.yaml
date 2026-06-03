@@ -14,7 +14,7 @@ spec:
       files:
         - contents:
             compression: gzip
-            source: data:;base64,H4sIAAAAAAAC/2SRX8vaMBjF7/MpzlLZXa2tsDmGAxkOejNkDO/T5GkbrEmXpJ2ifveR+e+V97bP4XfOr0k+ZJU2WSV8yxLshorSUfeorA0+ONHDS6f7wBIIpTziLVhoE8jVQhJ0DWMDROdIqCN6R55MYGxbbpY8/1JM80+LaVF8nuYzzsqfv9e/fqy+r5ecjM8XnLEEsiW5i5zIvnPooH3wsAbCHJ91TNeIKaUcfGv/4ozGUY/0D/jktC03l4x/RWjJMIBka8Ej9Xp6wKU1tW4GR4rH2EEHzFit2VXynSO7goRS2jR4wwsWk9PD6cLZfVqk3ObMCygaX3Kxx5NRaJwIgw528BCuj27S7vfCKKRj/BLrPn5DpmjMzNB1D7PbLZWYI10hLV/493nnM4Ib6L/Z8188X1bafd9RIM7+BQAA//8eHYlTBQIAAA==
+            source: data:;base64,H4sIAAAAAAAC/1SRTWvyQBSF9/MrzjvKS7sYoxH6QbEgxUI2VkpxP8ncJINxZjqZpBb1v5f4ha7Puc954Pb+Rak2USrrkvWwalISrXZIrQ118NKhzrx2gfUglarRZcEi9YI2uPtYztG4SpsVUq9VQffQOYwNkJUnqX7hPNVkAmPLZDHho+d4MHp4GsTx42A05CyZf80+36dvswk/EDljOod23ZZHXdof7FB4chDf4P3tMlnsI/6CUJJhAGWlBe+UjtFlNbMm10XjSfGuttEBQ5Zrxo4XUiltClwdBov+9mKz5+zsIJU6daJxDEXtTe+gm9n1WhoF0UJ614H/vyJS1EamqaqL7CkTGcYQU4jkhnQW2e0QfENXsrffyOzaVRSIs78AAAD//3K7Rve5AQAA
           mode: 493
           overwrite: true
           path: /usr/local/bin/kube-vip-bootstrap.sh
@@ -23,9 +23,11 @@ spec:
         - contents: |
             [Unit]
             Description=kube-vip VIP bootstrap
+            # ovs-configuration.service migrates the host IP from ens18 to br-ex
+            # and must finish before we claim the VIP, or our address is wiped.
+            Requires=ovs-configuration.service
+            After=ovs-configuration.service
             Before=kubelet.service
-            After=network-online.target
-            Wants=network-online.target
 
             [Service]
             Type=oneshot
