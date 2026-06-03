@@ -9,10 +9,16 @@ spec:
   chartRef:
     kind: OCIRepository
     name: rook-ceph-cluster
+  # The cluster chart waits on operator-reconciled CRs (CephCluster phase,
+  # OSD count). With wait:true Helm times out before the operator settles,
+  # then retries/rollbacks, looping forever. Disable wait and gate dependents
+  # via Kustomization-level health checks instead.
   install:
+    disableWait: true
     remediation:
       retries: 3
   upgrade:
+    disableWait: true
     remediation:
       retries: 3
   values:

@@ -14,6 +14,7 @@ resources:
   - ./grafana
   - ./metallb
   - ./rook-ceph
+  - ./ceph-csi-drivers
   - ./tofu-controller
   - ./loki
   - ./alloy
