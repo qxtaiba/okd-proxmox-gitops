@@ -6,3 +6,4 @@ resources:
   - ./oci-repository.yaml
   - ./helm-release.yaml
   - ./route.yaml
+  - ./csi-sidecar-rbac.yaml
