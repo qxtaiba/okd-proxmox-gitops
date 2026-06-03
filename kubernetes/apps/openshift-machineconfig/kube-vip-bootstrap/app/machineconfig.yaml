@@ -14,7 +14,7 @@ spec:
       files:
         - contents:
             compression: gzip
-            source: data:;base64,H4sIAAAAAAAC/1SRTWvyQBSF9/MrzjvKS7sYoxH6QbEgxUI2VkpxP8ncJINxZjqZpBb1v5f4ha7Puc954Pb+Rak2USrrkvWwalISrXZIrQ118NKhzrx2gfUglarRZcEi9YI2uPtYztG4SpsVUq9VQffQOYwNkJUnqX7hPNVkAmPLZDHho+d4MHp4GsTx42A05CyZf80+36dvswk/EDljOod23ZZHXdof7FB4chDf4P3tMlnsI/6CUJJhAGWlBe+UjtFlNbMm10XjSfGuttEBQ5Zrxo4XUiltClwdBov+9mKz5+zsIJU6daJxDEXtTe+gm9n1WhoF0UJ614H/vyJS1EamqaqL7CkTGcYQU4jkhnQW2e0QfENXsrffyOzaVRSIs78AAAD//3K7Rve5AQAA
+            source: data:;base64,H4sIAAAAAAAC/4yTUW/aMBSF3/0rTgPrQKoLpFvXrmqlqmMS0tShdeJ1cuILsWrszHagqPS/Tw6QQbVNe/KDr8+95/O5raNepkwvE75gLeRaqDkmozGsQeY4PaHzdXKPqtTKPHZhjV5BTWEsbCjIYS58IAehHQm5QiE8VDhhLXgLr+aVDsKQrTwya4OHtOZtgC+1CjxzQhmEgiCkdOQ9RO5sPLTG2VbZMzYZja+TwWV6Oji/OE3TD6eDfsJG99+H3z7f3g2vk3rMhDE1hSprLfjCLtF+bopekN70JC16ptIaa8wcleA/kShDAe3nyWj80kuu4jCGAZQXFslCldurxp41B6pJrH1SAX02VYy10OeDSw8fxGxGDtkKhfXBiDlFMEVkkluTV86RCQdEouXS2YwgAqzJKbrJ7XwujARfwBcifX/uqzmOfxtp5n34MhyOfzwM767bnQ76T+1O7YAbJO3OboRugvWezhoFCQme46KLN0j76HYb6zsH7edG+sUjE55kZLCTjP69JirRbuq2JGRMTC4C8e3nckmB8qCs+RgDJMxqm6Ao1gB25EtrpMfUuuiOtWIYTyBpSg7BYllYWsRXddDQeawy4vGnlOG5ruowkt40wlJpDUeRudLUfcVUuFKZ2R+BqimOdvf8U4R0Br7EO/DRYay2+dgLV3pzPGh0/hGletNIgrSnZUGOrjYmXewZLDQJuecl2ahtwgZMVc15oy6kjI/2mgT7Kqe7xRBS7uJ+lkLS4qCO/T+hHZyazO3fuBxs3RrBVbQ3dxy4XoLgRBn7lpoCJexXAAAA//+/Yab/kwQAAA==
           mode: 493
           overwrite: true
           path: /usr/local/bin/kube-vip-bootstrap.sh

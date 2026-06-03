@@ -19,22 +19,38 @@ storage:
       contents:
         inline: |
           #!/bin/bash
-          # kube-vip bootstrap script
-          # adds vip to br-ex (OVN uplink bridge) if not already present
+          # claim VIP on br-ex (OVN uplink) only if no other master already has it,
+          # so simultaneous boots don't split-brain the address across all 3 masters
 
           VIP="192.168.227.10"
           INTERFACE="br-ex"
 
-          if ip addr show | grep -q "${VIP}/"; then
-            echo "vip ${VIP} already configured"
+          if ip addr show ${INTERFACE} 2>/dev/null | grep -q "inet ${VIP}/"; then
+            echo "vip ${VIP} already on ${INTERFACE}"
             exit 0
+          fi
+
+          # 0-19s stagger by hostname hash so concurrent boots don't all probe at once
+          if command -v sha256sum &>/dev/null; then
+            SLEEP_SEC=$(( 0x$(echo -n "$(hostname)" | sha256sum | head -c 8) % 20 ))
+            echo "stagger ${SLEEP_SEC}s based on hostname"
+            sleep $SLEEP_SEC
+          fi
+
+          # duplicate-address-detection: if any other host already responds for the
+          # VIP, defer to whoever has it (kube-vip in-cluster election will reconcile)
+          if command -v arping &>/dev/null; then
+            if ! arping -D -c 3 -w 4 -I ${INTERFACE} ${VIP} >/dev/null 2>&1; then
+              echo "vip ${VIP} already claimed elsewhere; deferring to leader election"
+              exit 0
+            fi
           fi
 
           echo "adding vip ${VIP} to ${INTERFACE}"
           ip addr add ${VIP}/32 dev ${INTERFACE}
 
-          if command -v arping &> /dev/null; then
-            arping -c 3 -A -I ${INTERFACE} ${VIP} || true
+          if command -v arping &>/dev/null; then
+            arping -c 3 -A -I ${INTERFACE} ${VIP} 2>/dev/null || true
           fi
 
           echo "vip bootstrap complete"
