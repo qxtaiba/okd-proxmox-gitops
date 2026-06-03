@@ -33,9 +33,10 @@ spec:
     # mathematically unsatisfiable with <3 hosts (pools sit DEGRADED, I/O blocks).
     # If shrinking the cluster below 3 hosts, adjust replicated.size and
     # failureDomain in every pool (cephBlockPools, cephFileSystems, cephObjectStores).
+    cephImage:
+      repository: quay.io/ceph/ceph
+      tag: v20.2.1
     cephClusterSpec:
-      cephVersion:
-        image: quay.io/ceph/ceph:v20.2.1
       cleanupPolicy:
         wipeDevicesFromOtherClusters: true
       cephConfig:
