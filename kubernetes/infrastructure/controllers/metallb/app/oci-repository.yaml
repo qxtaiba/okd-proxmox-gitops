@@ -13,5 +13,5 @@ spec:
     # renovate: pinned — 0.16.1 introduces FRR components whose chart-internal
     # wait fails on our cluster (chart hooks time out before frr-k8s DaemonSet
     # comes up). Hold at 0.15.3 until a fresh attempt at upgrading is planned.
-    tag: "0.15.3"
+    tag: "0.16.1"
   url: oci://quay.io/metallb/chart/metallb
