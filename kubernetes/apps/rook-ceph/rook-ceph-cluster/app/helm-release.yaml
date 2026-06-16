@@ -35,7 +35,7 @@ spec:
     # failureDomain in every pool (cephBlockPools, cephFileSystems, cephObjectStores).
     cephImage:
       repository: quay.io/ceph/ceph
-      tag: v20.2.1
+      tag: v20.2.2
     cephClusterSpec:
       cleanupPolicy:
         wipeDevicesFromOtherClusters: true
