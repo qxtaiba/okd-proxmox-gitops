@@ -43,7 +43,7 @@ spec:
             - operator: Exists
           containers:
             - name: backup
-              image: quay.io/openshift/origin-cli:4.22
+              image: quay.io/openshift/origin-cli:5.1
               imagePullPolicy: IfNotPresent
               command:
                 - /bin/bash
