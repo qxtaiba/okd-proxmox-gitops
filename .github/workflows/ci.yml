@@ -50,6 +50,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: fluxcd/flux2/action@4d41251dbcbf01a7cdd4cf6ddbb5a38f0a2adf99 # main
+      - uses: fluxcd/flux2/action@efc030ffe40845dc3787b89f05b9cb89ee9f9934 # main
       - run: pip install flux-local
       - run: flux-local test --path kubernetes/clusters/production --enable-helm --all-namespaces
