@@ -1,0 +1,39 @@
+# ceph-csi-operator OperatorConfig — driver-wide defaults the operator applies
+# to every generated CSI plugin. Orphaned with the Driver CRs when the
+# ceph-csi-drivers Helm release was reverted. Adopted here (proven zero-diff)
+# so the whole driver stack has one self-healing gitops owner.
+---
+apiVersion: csi.ceph.io/v1
+kind: OperatorConfig
+metadata:
+  name: ceph-csi-operator-config
+  namespace: rook-ceph
+spec:
+  driverSpecDefaults:
+    cephFsClientType: kernel
+    clusterName: rook-ceph
+    controllerPlugin:
+      affinity:
+        nodeAffinity: {}
+      deploymentStrategy:
+        type: Recreate
+      hostNetwork: true
+      imagePullPolicy: IfNotPresent
+      priorityClassName: system-cluster-critical
+      replicas: 2
+      resources: {}
+    deployCsiAddons: false
+    enableMetadata: false
+    fsGroupPolicy: File
+    generateOMapInfo: false
+    imageSet:
+      name: rook-csi-operator-image-set-configmap
+    log: {}
+    nodePlugin:
+      affinity:
+        nodeAffinity: {}
+      enableSeLinuxHostMount: false
+      imagePullPolicy: IfNotPresent
+      kubeletDirPath: /var/lib/kubelet
+      priorityClassName: system-node-critical
+      resources: {}

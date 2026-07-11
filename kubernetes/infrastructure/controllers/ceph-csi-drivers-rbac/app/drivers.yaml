@@ -1,0 +1,166 @@
+# ceph-csi Driver CRs. The ceph-csi-operator reconciles these into the CSI
+# DaemonSets/Deployments. They were left orphaned when the ceph-csi-drivers
+# Helm release was reverted (release deleted, CRs survived). Adopted here as-is
+# so Flux owns them alongside the RBAC and OperatorConfig — one gitops source
+# for the whole driver stack, self-healing on prune/drift.
+#
+# The name IS the CSIDriver every PV binds to (470+ rbd, 2 cephfs). Exported
+# byte-for-byte from the live cluster and proven zero-diff, so adoption changes
+# only ownership labels — no operator reconcile, no CSI roll. Do NOT rename or
+# alter spec here without a maintenance window: a CSIDriver-identity change
+# orphans every bound volume.
+---
+apiVersion: csi.ceph.io/v1
+kind: Driver
+metadata:
+  name: rook-ceph.rbd.csi.ceph.com
+  namespace: rook-ceph
+spec:
+  cephFsClientType: kernel
+  clusterName: rook-ceph
+  controllerPlugin:
+    affinity:
+      nodeAffinity: {}
+    imagePullPolicy: ''
+    priorityClassName: system-cluster-critical
+    replicas: 2
+    resources:
+      attacher:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      omapGenerator:
+        limits:
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      plugin:
+        limits:
+          memory: 1Gi
+        requests:
+          memory: 512Mi
+      provisioner:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      resizer:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      snapshotter:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+  deployCsiAddons: false
+  enableMetadata: false
+  fsGroupPolicy: File
+  generateOMapInfo: false
+  imageSet:
+    name: rook-csi-operator-image-set-configmap
+  log: {}
+  nodePlugin:
+    affinity:
+      nodeAffinity: {}
+    enableSeLinuxHostMount: false
+    imagePullPolicy: ''
+    kubeletDirPath: /var/lib/kubelet
+    priorityClassName: system-node-critical
+    resources:
+      plugin:
+        limits:
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      registrar:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+    updateStrategy:
+      type: RollingUpdate
+---
+apiVersion: csi.ceph.io/v1
+kind: Driver
+metadata:
+  name: rook-ceph.cephfs.csi.ceph.com
+  namespace: rook-ceph
+spec:
+  cephFsClientType: kernel
+  clusterName: rook-ceph
+  controllerPlugin:
+    affinity:
+      nodeAffinity: {}
+    imagePullPolicy: ''
+    priorityClassName: system-cluster-critical
+    replicas: 2
+    resources:
+      attacher:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      plugin:
+        limits:
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      provisioner:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      resizer:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      snapshotter:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+  deployCsiAddons: false
+  enableMetadata: false
+  fsGroupPolicy: File
+  generateOMapInfo: false
+  imageSet:
+    name: rook-csi-operator-image-set-configmap
+  log: {}
+  nodePlugin:
+    affinity:
+      nodeAffinity: {}
+    enableSeLinuxHostMount: false
+    imagePullPolicy: ''
+    kubeletDirPath: /var/lib/kubelet
+    priorityClassName: system-node-critical
+    resources:
+      plugin:
+        limits:
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
+      registrar:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+    updateStrategy:
+      type: RollingUpdate
