@@ -59,11 +59,11 @@ spec:
             - name: vip_leasename
               value: kube-vip-lease
             - name: vip_leaseduration
-              value: "15"
+              value: "60"
             - name: vip_renewdeadline
-              value: "10"
+              value: "40"
             - name: vip_retryperiod
-              value: "2"
+              value: "5"
             # Disable services (MetalLB handles this)
             - name: svc_enable
               value: "false"
