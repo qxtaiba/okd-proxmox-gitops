@@ -5,5 +5,4 @@ kind: Kustomization
 resources:
   # No namespace.yaml - kube-system is pre-created by Kubernetes
   - ./generic-device-plugin
-  - ./kube-vip
   - ./reloader

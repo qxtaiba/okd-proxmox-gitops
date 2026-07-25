@@ -1,0 +1,63 @@
+# butane source file for the kube-vip control-plane VIP static pod
+# regenerate machineconfig.yaml with:
+#   butane -o machineconfig.yaml kube-vip-static-pod.bu
+#
+# delivers kube-vip as a kubelet static pod (not a DaemonSet) so it starts
+# without the scheduler or the API VIP it is itself responsible for. a
+# DaemonSet pod needs the kube-scheduler to place it, the scheduler needs the
+# API, and the API is reached through this VIP -- cold-starting all 3 masters
+# at once deadlocks that loop. a static pod is run directly by kubelet, so it
+# breaks the cycle; MachineConfig delivery makes it survive reboots, upgrades,
+# reprovisioning, and auto-applies to any new master.
+#
+# the pod reads /.kube/config (localhost.kubeconfig, already present on every
+# master and pointed at https://localhost:6443), so leader election never
+# depends on the VIP it is bringing up.
+variant: openshift
+version: 4.18.0
+metadata:
+  name: 99-master-kube-vip-static-pod
+  labels:
+    machineconfiguration.openshift.io/role: master
+storage:
+  files:
+    - path: /etc/kubernetes/manifests/kube-vip.yaml
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: kube-vip
+            namespace: kube-system
+          spec:
+            hostNetwork: true
+            priorityClassName: system-node-critical
+            containers:
+            - name: kube-vip
+              image: ghcr.io/kube-vip/kube-vip:v1.2.1
+              args: ["manager"]
+              securityContext:
+                capabilities:
+                  add: ["NET_ADMIN","NET_RAW"]
+              env:
+              - {name: vip_arp, value: "true"}
+              - {name: vip_interface, value: "ens18"}
+              - {name: address, value: "192.168.227.10"}
+              - {name: vip_cidr, value: "32"}
+              - {name: cp_enable, value: "true"}
+              - {name: port, value: "6443"}
+              - {name: vip_leaderelection, value: "true"}
+              - {name: vip_leasename, value: "plndr-cp-lock"}
+              - {name: vip_leaseduration, value: "15"}
+              - {name: vip_renewdeadline, value: "10"}
+              - {name: vip_retryperiod, value: "2"}
+              - {name: prometheus_server, value: ":0"}
+              volumeMounts:
+              - {name: kubeconfig, mountPath: /.kube/config, readOnly: true}
+            volumes:
+            - name: kubeconfig
+              hostPath:
+                path: /etc/kubernetes/static-pod-resources/kube-apiserver-certs/secrets/node-kubeconfigs/localhost.kubeconfig
+                type: File

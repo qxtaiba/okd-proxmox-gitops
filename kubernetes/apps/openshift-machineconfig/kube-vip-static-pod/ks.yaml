@@ -3,20 +3,16 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: kube-vip
+  name: kube-vip-static-pod
   namespace: flux-system
 spec:
-  targetNamespace: kube-system
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: kube-vip
   interval: 10m
   retryInterval: 1m
   timeout: 5m
-  path: ./kubernetes/apps/kube-system/kube-vip/app
-  prune: true
-  wait: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
+  path: ./kubernetes/apps/openshift-machineconfig/kube-vip-static-pod/app
+  prune: true
+  wait: true
