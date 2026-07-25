@@ -48,6 +48,11 @@ storage:
               - {name: vip_cidr, value: "32"}
               - {name: cp_enable, value: "true"}
               - {name: port, value: "6443"}
+              # OKD apiserver certs omit node IPs from their SANs, so kube-vip's
+              # IPVS load-balancer health checks fail TLS; disable LB and rely on
+              # ARP-mode cp_enable. svc LB is MetalLB's job, not kube-vip's.
+              - {name: lb_enable, value: "false"}
+              - {name: svc_enable, value: "false"}
               - {name: vip_leaderelection, value: "true"}
               - {name: vip_leasename, value: "plndr-cp-lock"}
               - {name: vip_leaseduration, value: "15"}
