@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/service.json
+---
+# scrape target for smartctl_exporter running ON THE PROXMOX HOST (.195), not
+# in the cluster. an in-VM smartctl daemonset would be blind: the masters see
+# QEMU virtio-scsi disks with no SMART passthrough (the same reason
+# diskprediction_local is disabled in the rook helm values). the one hardware
+# failure that kills all three replicas and etcd at once is the host NVMe,
+# so its health has to be scraped from the host itself.
+#
+# host side (one-time, on proxmox.grappleberry.xyz):
+#   1. download smartctl_exporter (v0.14.x) from
+#      https://github.com/prometheus-community/smartctl_exporter/releases
+#      into /usr/local/bin/smartctl_exporter
+#   2. systemd unit running:
+#        /usr/local/bin/smartctl_exporter --web.listen-address=:9633
+#      (needs root for smartctl device access)
+#   3. verify: curl http://192.168.227.195:9633/metrics | grep smartctl_device
+# the SmartctlExporterDown alert pages until this is done -- deliberately.
+apiVersion: v1
+kind: Service
+metadata:
+  name: smartctl-exporter
+  labels:
+    app.kubernetes.io/name: smartctl-exporter
+spec:
+  clusterIP: None
+  ports:
+    - name: metrics
+      port: 9633
+      protocol: TCP
+      targetPort: 9633
+
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/endpoints.json
+---
+# manual endpoints (no selector on the service): the target is the proxmox
+# host, outside the cluster. the endpointslice mirroring controller converts
+# this for discovery automatically.
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: smartctl-exporter
+  labels:
+    app.kubernetes.io/name: smartctl-exporter
+subsets:
+  - addresses:
+      - ip: 192.168.227.195
+    ports:
+      - name: metrics
+        port: 9633
+        protocol: TCP

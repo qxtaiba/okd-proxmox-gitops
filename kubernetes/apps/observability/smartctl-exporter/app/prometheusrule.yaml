@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: smartctl-exporter-rules
+spec:
+  groups:
+    - name: smartctl-exporter.rules
+      rules:
+        - alert: SmartDeviceHealthFailed
+          expr: |-
+            smartctl_device_smart_status{namespace="observability"} != 1
+          for: 5m
+          annotations:
+            summary: >-
+              SMART overall-health check FAILED on {{ $labels.device }} -- the disk under the entire cluster is dying, verify NAS backups now
+          labels:
+            severity: critical
+        - alert: NvmeCriticalWarning
+          expr: |-
+            smartctl_device_critical_warning{namespace="observability"} > 0
+          for: 5m
+          annotations:
+            summary: >-
+              NVMe critical warning bits set on {{ $labels.device }} (spare/temperature/degraded/read-only)
+          labels:
+            severity: critical
+        - alert: NvmeWearoutHigh
+          expr: |-
+            smartctl_device_percentage_used{namespace="observability"} > 80
+          for: 1h
+          annotations:
+            summary: >-
+              NVMe {{ $labels.device }} has consumed {{ $value }}% of rated endurance -- plan a replacement
+          labels:
+            severity: warning
+        - alert: NvmeSpareLow
+          expr: |-
+            smartctl_device_available_spare{namespace="observability"}
+              <= on (device, instance)
+            smartctl_device_available_spare_threshold{namespace="observability"}
+          for: 15m
+          annotations:
+            summary: >-
+              NVMe {{ $labels.device }} available spare is at or below its threshold
+          labels:
+            severity: critical
+        - alert: NvmeMediaErrorsIncreasing
+          expr: |-
+            increase(smartctl_device_media_errors{namespace="observability"}[24h]) > 0
+          annotations:
+            summary: >-
+              NVMe {{ $labels.device }} logged new media errors in the last 24h
+          labels:
+            severity: warning
+        - alert: SmartctlExporterDown
+          expr: |-
+            absent(up{job="smartctl-exporter", namespace="observability"} == 1)
+          for: 30m
+          annotations:
+            summary: >-
+              smartctl_exporter on the proxmox host is unreachable -- NVMe death is currently invisible (install/repair it; see the service manifest header)
+          labels:
+            severity: warning
