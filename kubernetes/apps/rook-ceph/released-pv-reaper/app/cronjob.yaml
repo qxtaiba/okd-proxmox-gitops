@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/cronjob_v1.json
+---
+# reaps Released ceph PVs so their RBD/CephFS images stop pinning space on a
+# pool that is already >40% raw-full. ceph-block was Retain-by-default with no
+# reaper, which left ~493 Released PVs (vs 28 Bound) each holding a dead image.
+#
+# how it deletes: it PATCHES persistentVolumeReclaimPolicy to Delete rather
+# than deleting the PV object. deleting a Retain PV outright would remove the
+# API object but ORPHAN the backing image (the CSI driver is never told);
+# flipping the policy makes the PV controller drive a proper CSI DeleteVolume,
+# which removes the image and then the PV. that is the entire point: reclaim
+# space, not hide corpses.
+#
+# safety rails, in order:
+#   - only PVs in phase=Released (claim already deleted by definition)
+#   - only ceph CSI volumes (spec.csi.driver *.csi.ceph.com)
+#   - claimRef PVC must not exist, or must not reference this PV, in case a
+#     same-name PVC was recreated
+#   - annotate a PV with released-pv-reaper.grappleberry.xyz/keep to exempt it
+#   - at most MAX_PER_RUN per run, so the 493-deep backlog drains gradually
+#     instead of hammering ceph with hundreds of image deletions at once
+#
+# to run one supervised pass:
+#   oc -n rook-ceph create job released-pv-reaper-manual --from=cronjob/released-pv-reaper
+#   oc -n rook-ceph logs -f job/released-pv-reaper-manual
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: released-pv-reaper
+spec:
+  schedule: "30 4 * * *"
+  timeZone: Asia/Dubai
+  suspend: false
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 1800
+      template:
+        spec:
+          serviceAccountName: released-pv-reaper
+          restartPolicy: Never
+          containers:
+            - name: reaper
+              image: quay.io/openshift/origin-cli:4.22
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: MAX_PER_RUN
+                  value: "50"
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -euo pipefail
+                  reaped=0
+                  skipped=0
+                  for pv in $(oc get pv -o go-template='{{range .items}}{{if eq .status.phase "Released"}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}'); do
+                    if [ "${reaped}" -ge "${MAX_PER_RUN}" ]; then
+                      echo "reap limit ${MAX_PER_RUN} reached, remaining backlog drains on the next run"
+                      break
+                    fi
+                    keep=$(oc get pv "${pv}" -o go-template='{{index .metadata.annotations "released-pv-reaper.grappleberry.xyz/keep"}}' 2>/dev/null || true)
+                    if [ -n "${keep}" ] && [ "${keep}" != "<no value>" ]; then
+                      echo "SKIP ${pv}: keep annotation set"
+                      skipped=$((skipped+1))
+                      continue
+                    fi
+                    driver=$(oc get pv "${pv}" -o jsonpath='{.spec.csi.driver}')
+                    case "${driver}" in
+                      *.csi.ceph.com) ;;
+                      *)
+                        echo "SKIP ${pv}: driver '${driver:-none}' is not ceph csi"
+                        skipped=$((skipped+1))
+                        continue
+                        ;;
+                    esac
+                    ns=$(oc get pv "${pv}" -o jsonpath='{.spec.claimRef.namespace}')
+                    name=$(oc get pv "${pv}" -o jsonpath='{.spec.claimRef.name}')
+                    if [ -n "${ns}" ] && [ -n "${name}" ]; then
+                      bound_to=$(oc -n "${ns}" get pvc "${name}" -o jsonpath='{.spec.volumeName}' 2>/dev/null || true)
+                      if [ "${bound_to}" = "${pv}" ]; then
+                        echo "SKIP ${pv}: pvc ${ns}/${name} still references it"
+                        skipped=$((skipped+1))
+                        continue
+                      fi
+                    fi
+                    echo "REAP ${pv} (was claimed by ${ns:-?}/${name:-?}): flipping reclaim policy to Delete"
+                    oc patch pv "${pv}" --type=merge -p '{"spec":{"persistentVolumeReclaimPolicy":"Delete"}}'
+                    reaped=$((reaped+1))
+                  done
+                  echo "done: reaped ${reaped}, skipped ${skipped}"
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
