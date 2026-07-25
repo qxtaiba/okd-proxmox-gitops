@@ -1,6 +1,6 @@
 # butane source file for the kube-vip control-plane VIP static pod
 # regenerate machineconfig.yaml with:
-#   butane -o machineconfig.yaml kube-vip-static-pod.bu
+#   butane --strict -o machineconfig.yaml kube-vip-static-pod.bu
 #
 # delivers kube-vip as a kubelet static pod (not a DaemonSet) so it starts
 # without the scheduler or the API VIP it is itself responsible for. a
@@ -31,6 +31,8 @@ storage:
           metadata:
             name: kube-vip
             namespace: kube-system
+            labels:
+              app.kubernetes.io/name: kube-vip
           spec:
             hostNetwork: true
             priorityClassName: system-node-critical
@@ -43,6 +45,10 @@ storage:
                   add: ["NET_ADMIN","NET_RAW"]
               env:
               - {name: vip_arp, value: "true"}
+              # the VIP rides ens18 deliberately: exactly one mechanism (this
+              # static pod), one lease (plndr-cp-lock), and one interface may
+              # ever claim 192.168.227.10. br-ex was the deleted bootstrap MC's
+              # claim path; do not reintroduce a second claimant anywhere.
               - {name: vip_interface, value: "ens18"}
               - {name: address, value: "192.168.227.10"}
               - {name: vip_cidr, value: "32"}
@@ -58,7 +64,11 @@ storage:
               - {name: vip_leaseduration, value: "15"}
               - {name: vip_renewdeadline, value: "10"}
               - {name: vip_retryperiod, value: "2"}
-              - {name: prometheus_server, value: ":0"}
+              # scraped by the podmonitor in this app; hostNetwork, so :2112
+              # binds on the node itself
+              - {name: prometheus_server, value: ":2112"}
+              ports:
+              - {name: metrics, containerPort: 2112, protocol: TCP}
               volumeMounts:
               - {name: kubeconfig, mountPath: /.kube/config, readOnly: true}
             volumes:
