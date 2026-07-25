@@ -5,16 +5,20 @@ kind: ServiceAccount
 metadata:
   name: x509-certificate-exporter
 
+# hostmount-anyuid, not privileged: the exporter only needs to hostPath-mount
+# one root-owned 0600 file and run as uid 0 to read it. that SCC grants
+# exactly hostPath + RunAsAny and nothing else -- no host namespaces, no
+# capabilities.
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/rbac.authorization.k8s.io/rolebinding_v1.json
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: x509-certificate-exporter-scc-privileged
+  name: x509-certificate-exporter-scc-hostmount-anyuid
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: system:openshift:scc:privileged
+  name: system:openshift:scc:hostmount-anyuid
 subjects:
   - kind: ServiceAccount
     name: x509-certificate-exporter

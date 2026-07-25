@@ -43,9 +43,14 @@ spec:
             - containerPort: 9793
               name: metrics
           securityContext:
-            # the watched kubeconfig is root-owned 0600 on the host
-            privileged: true
+            # the watched kubeconfig is root-owned 0600 on the host, so read it
+            # as uid 0 -- but nothing more. no privileged, no added caps; the
+            # hostmount-anyuid SCC (see rbac.yaml) grants exactly hostPath +
+            # RunAsAny.
             runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           volumeMounts:
             - name: kubeconfig
               mountPath: /host/localhost.kubeconfig
