@@ -1,0 +1,60 @@
+# butane source file for the kube-vip credential-reload path unit
+# regenerate machineconfig.yaml with:
+#   butane --strict -o machineconfig.yaml kube-vip-cert-reload.bu
+#
+# kube-vip builds its API client once at startup from the hostPath
+# localhost.kubeconfig and has no kubeconfig hot-reload. today it only picks
+# up a rotated cert because kubelet happens to restart the static pod on
+# every apiserver revision roll -- an accidental refresh. this unit makes the
+# refresh deterministic: when OKD's node-system-admin-signer rotates the cert
+# inside localhost.kubeconfig, systemd recreates the static pod so kube-vip
+# re-reads the credential immediately.
+#
+# recreate (mv out and back), not touch: kubelet keys static pods on file
+# content hash, so an identical-content touch is a no-op. removing the
+# manifest briefly forces a real teardown + recreate.
+variant: openshift
+version: 4.18.0
+metadata:
+  name: 99-master-kube-vip-cert-reload
+  labels:
+    machineconfiguration.openshift.io/role: master
+storage:
+  files:
+    - path: /usr/local/bin/kube-vip-cert-reload.sh
+      mode: 0755
+      overwrite: true
+      contents:
+        inline: |
+          #!/bin/bash
+          # kube-vip loads its kubeconfig once and never hot-reloads. When OKD
+          # rotates the node-system-admin cert inside localhost.kubeconfig,
+          # force kubelet to recreate the static pod so it picks up the new
+          # cert deterministically (instead of waiting for the next apiserver
+          # revision restart to do it by accident).
+          set -euo pipefail
+          M=/etc/kubernetes/manifests/kube-vip.yaml
+          T=/etc/kubernetes/kube-vip.yaml.reload
+          [ -f "$M" ] || exit 0
+          mv "$M" "$T"
+          sleep 3          # let kubelet observe the removal and tear the pod down
+          mv "$T" "$M"
+systemd:
+  units:
+    - name: kube-vip-cert-reload.path
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Recreate kube-vip static pod when its kubeconfig rotates
+        [Path]
+        PathModified=/etc/kubernetes/static-pod-resources/kube-apiserver-certs/secrets/node-kubeconfigs/localhost.kubeconfig
+        Unit=kube-vip-cert-reload.service
+        [Install]
+        WantedBy=multi-user.target
+    - name: kube-vip-cert-reload.service
+      contents: |
+        [Unit]
+        Description=kube-vip kubeconfig-rotation reload
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/local/bin/kube-vip-cert-reload.sh
