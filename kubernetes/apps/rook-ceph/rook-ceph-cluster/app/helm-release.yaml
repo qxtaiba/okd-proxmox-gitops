@@ -113,7 +113,13 @@ spec:
           enabled: true
           name: ceph-block
           isDefault: true
-          reclaimPolicy: Retain
+          # Delete, not Retain: volsync restic to the NAS is the tested undo
+          # button; Retain-by-default with no reaper piled up ~493 Released
+          # PVs pinning dead RBD images. reclaimPolicy is immutable on a live
+          # StorageClass -- after merging, run `oc delete sc ceph-block` once
+          # and let the helm remediation recreate it (existing PVs and PVCs
+          # are untouched; the policy lives on each PV, not the class).
+          reclaimPolicy: Delete
           allowVolumeExpansion: true
           volumeBindingMode: Immediate
           mountOptions:
