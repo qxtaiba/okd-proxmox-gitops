@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+# alerts for the api vip's silent failure modes. lives in kube-system so the
+# thanos-ruler-enforced namespace label matches both the podmonitor-scraped
+# kube-vip series and the platform kube-state-metrics lease series (which
+# carry namespace="kube-system" from the lease object itself).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kube-vip-rules
+  namespace: kube-system
+spec:
+  groups:
+    - name: kube-vip.rules
+      rules:
+        - alert: KubeVipAllInstancesDown
+          expr: |-
+            absent(up{job="kube-vip", namespace="kube-system"} == 1)
+          for: 5m
+          annotations:
+            summary: >-
+              No kube-vip static pod is reporting metrics -- the API VIP 192.168.227.10 may be unmanaged
+          labels:
+            severity: critical
+        - alert: KubeVipInstanceDown
+          expr: |-
+            count(up{job="kube-vip", namespace="kube-system"} == 1) < 3
+          for: 15m
+          annotations:
+            summary: >-
+              Only {{ $value }} of 3 kube-vip static pods are up
+          labels:
+            severity: warning
+        - alert: KubeVipLeaseNotRenewed
+          expr: |-
+            time() - kube_lease_renew_time{namespace="kube-system", lease="plndr-cp-lock"} > 180
+          for: 5m
+          annotations:
+            summary: >-
+              plndr-cp-lock has not been renewed for over 3 minutes -- kube-vip leader election is dead (expired credential or API outage)
+          labels:
+            severity: critical
+        - alert: KubeVipLeaseOwnerChanged
+          expr: |-
+            kube_lease_owner{namespace="kube-system", lease="plndr-cp-lock"}
+              unless
+            kube_lease_owner{namespace="kube-system", lease="plndr-cp-lock"} offset 15m
+          annotations:
+            summary: >-
+              API VIP 192.168.227.10 failed over to {{ $labels.lease_holder }}
+          labels:
+            severity: info
+        - alert: KubeVipKubeconfigCertExpiringSoon
+          expr: |-
+            (min(x509_cert_not_after{namespace="kube-system", filepath=~".*localhost.kubeconfig"}) - time()) < 30 * 86400
+          for: 1h
+          annotations:
+            summary: >-
+              The localhost.kubeconfig cert kube-vip authenticates with expires in under 30 days -- verify the cert-reload path unit fires when OKD rotates it
+          labels:
+            severity: warning
+        - alert: KubeVipKubeconfigCertExpiryImminent
+          expr: |-
+            (min(x509_cert_not_after{namespace="kube-system", filepath=~".*localhost.kubeconfig"}) - time()) < 7 * 86400
+          for: 1h
+          annotations:
+            summary: >-
+              The localhost.kubeconfig cert kube-vip authenticates with expires in under 7 days -- leader election will die when it lapses
+          labels:
+            severity: critical
+        - alert: KubeVipCertExporterAbsent
+          expr: |-
+            absent(up{job="x509-certificate-exporter", namespace="kube-system"} == 1)
+          for: 30m
+          annotations:
+            summary: >-
+              x509-certificate-exporter is not reporting -- kube-vip cert-expiry alerts are blind
+          labels:
+            severity: warning

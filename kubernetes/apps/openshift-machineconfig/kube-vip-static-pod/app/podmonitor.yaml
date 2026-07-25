@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/podmonitor_v1.json
+---
+# scrapes the kube-vip static (mirror) pods on :2112. kube-system carries
+# neither the openshift.io/cluster-monitoring=true nor the
+# openshift.io/user-monitoring=false label, so user workload monitoring
+# picks this up directly.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: kube-vip
+  namespace: kube-system
+spec:
+  podMetricsEndpoints:
+    - port: metrics
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kube-vip
