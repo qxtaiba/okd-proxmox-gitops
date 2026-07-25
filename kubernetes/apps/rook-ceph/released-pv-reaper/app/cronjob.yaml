@@ -30,7 +30,11 @@ metadata:
 spec:
   schedule: "30 4 * * *"
   timeZone: Asia/Dubai
-  suspend: false
+  # suspended on first landing: the first pass reaps a 493-deep backlog and
+  # must be watched (the manual-run recipe below). flip to false once one
+  # supervised run confirms it deletes only corpses -- same pattern the
+  # etcd-backup cronjob used.
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
