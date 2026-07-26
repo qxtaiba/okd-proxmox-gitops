@@ -159,20 +159,35 @@ Notes:
 ### Phase 3 — merge the MC and supervise the rollout (point of no return)
 
 1. Re-run all Phase 0 gates. **GATE.**
-2. Merge this PR into `develop`. Flux applies the MC; MCO renders
-   `99-master-rook-mon-disk` and starts rolling the master pool, one node
-   at a time. Optionally speed Flux up:
-   `flux reconcile ks rook-mon-disk --with-source`.
-3. Supervised one-at-a-time loop — for each node MCO picks (watch
-   `oc get nodes -w` and `oc get mcp master -w`):
-   - the moment the node goes `SchedulingDisabled`, **pause the pool**
-     (brake command above). MCO finishes the in-flight node but will not
-     start the next.
+2. **Pause the master pool BEFORE the merge** — this removes the race where
+   MCO starts draining node 1 before a post-merge pause can land:
+
+   ```sh
+   oc patch mcp master --type merge -p '{"spec":{"paused":true}}'
+   oc get mcp master -o jsonpath='{.spec.paused}{"\n"}'   # must print: true
+   ```
+
+3. Merge this PR into `develop`. Flux applies the MC and MCO renders
+   `99-master-rook-mon-disk`, but the paused pool does NOT roll yet.
+   Optionally speed Flux up: `flux reconcile ks rook-mon-disk --with-source`.
+   Confirm the render landed and the pool is holding:
+   `oc get mcp master` → UPDATED False, UPDATING False, DEGRADED False,
+   `paused=true`.
+4. Supervised one-at-a-time loop — unpause, let MCO roll exactly one node,
+   pause again, re-gate, repeat (watch `oc get nodes -w` and
+   `oc get mcp master -w`):
+   - **unpause** to release a single node:
+     `oc patch mcp master --type merge -p '{"spec":{"paused":false}}'`
+   - **re-pause the instant that node goes `SchedulingDisabled`** so MCO
+     finishes only this one node and will not start the next:
+     `oc patch mcp master --type merge -p '{"spec":{"paused":true}}'`
+     (`maxUnavailable=1` already forbids a second concurrent node, so this
+     is a stop-after-one latch, not a race brake.)
    - the node drains (rook's osd PDB may hold the drain while PGs recover —
      expected backpressure, let it work), reboots, mounts the new disk over
      `/var/lib/rook`, kubelet starts, the mon pod's `init-mon-fs` rebuilds
      an empty store, and the mon resyncs (~130 MiB, seconds).
-   - post-node checks, ALL required before unpausing (**GATE**):
+   - post-node checks, ALL required before releasing the next node (**GATE**):
 
      ```sh
      ssh core@<node-ip> 'findmnt /var/lib/rook'   # xfs, label rookmon, 20G
@@ -183,8 +198,10 @@ Notes:
      #   -> no MON_DISK_LOW for this node's mon
      ```
 
-   - unpause and repeat for the next node.
-4. If a mon crash-loops >10 min after its node is otherwise healthy, rook's
+   - once the gate passes, loop back to unpause for the next node. After the
+     third node passes, leave the pool unpaused (`paused=false`) as its
+     steady state.
+5. If a mon crash-loops >10 min after its node is otherwise healthy, rook's
    mon failover replaces it with a new letter automatically — acceptable
    outcome; verify quorum returns to 3/3 and placement stays on that node.
 
@@ -211,6 +228,46 @@ Notes:
    kubeletconfigs. NOTE: reverting `master-image-gc` re-renders the master
    pool and triggers another rolling reboot — schedule it like any MCO
    change (the worker pool has 0 machines; that half is inert).
+
+## Ongoing operations — new permanent failure mode
+
+The migration adds a **hard, permanent boot dependency**: each master's
+control plane now depends on its MON-DATA disk. Because the mount omits
+`nofail` (deliberate — a mon must never silently regress to the root disk),
+if that disk fails, detaches, or its xfs corrupts at any point in the
+future:
+
+- On the next boot, `var-lib-rook.mount` waits up to
+  `x-systemd.device-timeout=30s` for `/dev/disk/by-label/rookmon`, then
+  fails, and the node drops to **emergency.target**. That takes the node's
+  **etcd member and mon down** until a human intervenes at the Proxmox
+  console. This is by design, but it is a real, standing operational cost
+  that did not exist before.
+- Blast radius is capped at one master (quorum holds at 2/3 for both etcd
+  and mon), so the cluster stays available — but that master will not
+  self-heal across a reboot the way it did when `/var/lib/rook` lived on
+  the root disk.
+
+Recovery when a master is stuck in emergency.target on this mount:
+
+```sh
+# at the Proxmox console for the affected VM, root shell:
+DEV=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi2
+lsblk -f "$DEV"                 # is the disk present? does it still have the rookmon label?
+# disk present but fs corrupt:
+xfs_repair "$DEV" && systemctl default
+# disk missing/detached: reattach it from Proxmox (or via terraform targeted
+#   apply on the bastion), then: systemctl default
+# disk unrecoverable: re-create it blank (terraform), boot — the
+#   format-rookmon unit re-lays xfs, init-mon-fs rebuilds an empty store,
+#   the mon resyncs from quorum. Same path as the original migration.
+```
+
+Detection: the smartctl_exporter alerts (#198) surface NVMe SMART
+degradation on the underlying host disk before it becomes a hard failure;
+`node-exporter` filesystem alerts and the mon's own liveness cover the
+in-guest side. Keep the MON-DATA disks on the same healthy backing store as
+the OSD disks and let SMART be the leading indicator.
 
 ## Rollback
 
