@@ -1,0 +1,69 @@
+# butane source file for the dedicated rook mon disk mount
+# regenerate machineconfig.yaml with:
+#   butane -o machineconfig.yaml rook-mon-disk.bu
+#
+# masters carry the ceph mon stores under /var/lib/rook on the 50G OS disk,
+# shared with the image store, container layers, and logs -- MON_DISK_LOW
+# fires whenever that disk crosses 70% used, and two kubelet image-GC
+# stopgaps already exist to keep it breathing. this MC mounts the dedicated
+# terraform-provisioned scsi2 disk (serial MON-DATA, xfs label rookmon) at
+# /var/lib/rook so nothing else can eat the mon store's headroom.
+#
+# ORDERING FOOTGUN: mounting over /var/lib/rook hides the existing on-disk
+# mon store and rook metadata. the disk must be attached, formatted, and
+# prepped on ALL masters before this MC merges -- flux applies develop
+# immediately and MCO then reboots masters one at a time; each reboot IS
+# that master's migration (the mon rebuilds an empty store via its
+# init-mon-fs container and resyncs from quorum peers). the full gated
+# sequence lives in docs/mon-disk-migration-runbook.md.
+variant: openshift
+version: 4.18.0
+metadata:
+  name: 99-master-rook-mon-disk
+  labels:
+    machineconfiguration.openshift.io/role: master
+systemd:
+  units:
+    # first-boot formatter for masters provisioned after the migration: a
+    # brand-new blank scsi2 disk gets an xfs filesystem and the rookmon
+    # label; any disk carrying an existing signature is refused. on the
+    # three migrated masters the manual runbook format makes this a no-op.
+    - name: format-rookmon.service
+      contents: |
+        [Unit]
+        Description=Format the dedicated rook mon disk if blank
+        # DefaultDependencies=no: this must order Before= a local-fs.target
+        # mount; default deps would place it after basic.target and create
+        # an ordering cycle.
+        DefaultDependencies=no
+        Wants=dev-disk-by\x2did-scsi\x2d0QEMU_QEMU_HARDDISK_drive\x2dscsi2.device
+        After=dev-disk-by\x2did-scsi\x2d0QEMU_QEMU_HARDDISK_drive\x2dscsi2.device
+        Before=var-lib-rook.mount
+        ConditionPathExists=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi2
+        ConditionPathExists=!/dev/disk/by-label/rookmon
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/bin/bash -c 'set -euo pipefail; dev=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi2; if /usr/sbin/blkid -p "$dev" >/dev/null 2>&1; then echo "signature present on $dev; refusing to format"; exit 0; fi; /usr/sbin/mkfs.xfs -L rookmon "$dev"'
+    - name: var-lib-rook.mount
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Dedicated ceph mon-store disk for /var/lib/rook
+        # nofail is omitted deliberately: if the disk vanishes we want a
+        # loud boot failure, not the mon quietly writing to the root disk
+        # behind the mount point. disk existence is guarded upstream by the
+        # terraform only-ever-grow invariant on master_mon_disk_size_gb.
+        Wants=format-rookmon.service
+        After=format-rookmon.service
+        Before=kubelet.service
+
+        [Mount]
+        What=/dev/disk/by-label/rookmon
+        Where=/var/lib/rook
+        Type=xfs
+        Options=noatime,discard
+
+        [Install]
+        WantedBy=local-fs.target
