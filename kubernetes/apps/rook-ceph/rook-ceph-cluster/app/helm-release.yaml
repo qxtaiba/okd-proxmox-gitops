@@ -45,6 +45,9 @@ spec:
           bdev_async_discard_threads: "1"
           osd_class_update_on_start: "false"
           device_failure_prediction_mode: local
+          # The cephfs scratch data pool below is deliberately size 1;
+          # without this Ceph pins HEALTH_WARN (POOL_NO_REDUNDANCY) forever.
+          mon_warn_on_pool_no_redundancy: "false"
       crashCollector:
         disable: false
       csi:
@@ -155,6 +158,19 @@ spec:
                 size: 3
                 requireSafeReplicaSize: true
               name: data0
+            # Unreplicated scratch pool for the shared downloads volume. That
+            # data is transient (re-downloadable partials, or completed files
+            # on their way to the NAS), and every OSD sits on the same single
+            # host NVMe as etcd and the OS disks — 3x replication there turned
+            # a 38 MiB/s download into ~115 MiB/s of physical writes and drove
+            # OSD commit latency to 200-500ms, stalling every ceph-block
+            # database (grafana, plex, ...). One copy is the right amount for
+            # scratch. Consumed via the ceph-filesystem-scratch StorageClass.
+            - failureDomain: host
+              replicated:
+                size: 1
+                requireSafeReplicaSize: false
+              name: scratch
           preserveFilesystemOnDelete: true
           metadataServer:
             activeCount: 1
