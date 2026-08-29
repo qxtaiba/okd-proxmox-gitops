@@ -62,7 +62,7 @@ spec:
             restartPolicy: Always
             image:
               repository: ghcr.io/qdm12/gluetun
-              tag: v3.41.1
+              tag: v3.41.3
             env:
               TZ: Asia/Dubai
               VPN_SERVICE_PROVIDER: protonvpn
