@@ -11,15 +11,3 @@ spec:
     requests:
       storage: 1Gi
   storageClassName: ceph-block
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: downloads
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 500Gi
-  storageClassName: ceph-filesystem
