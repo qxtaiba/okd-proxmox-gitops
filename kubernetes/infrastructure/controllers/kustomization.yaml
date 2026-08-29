@@ -18,5 +18,4 @@ resources:
   - ./tofu-controller
   - ./loki
   - ./alloy
-  - ./tailscale-operator
   - ./volsync
