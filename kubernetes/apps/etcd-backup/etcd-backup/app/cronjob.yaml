@@ -8,9 +8,6 @@
 # pod manifests tarball. Output is copied to the volsync NAS mount
 # so the backup survives cluster loss.
 #
-# suspend: true initially. After first successful manual test, flip
-# to false so the schedule activates.
-#
 # To test manually:
 #   oc -n etcd-backup create job etcd-backup-manual --from=cronjob/etcd-backup
 #   oc -n etcd-backup logs job/etcd-backup-manual
