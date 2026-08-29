@@ -15,7 +15,14 @@ jobs:
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: stable
-      - run: go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+      # Pinned: an unpinned @latest let yamlfmt 0.21.0 change formatting
+      # rules under us and silently redden CI for a month. Renovate bumps
+      # the pin via the annotated-dependency manager; any reformat rides
+      # the same PR.
+      - run: |
+          # renovate: datasource=go depName=github.com/google/yamlfmt
+          YAMLFMT_VERSION=v0.21.0
+          go install "github.com/google/yamlfmt/cmd/yamlfmt@${YAMLFMT_VERSION}"
       - run: yamlfmt -lint .
   validate-schemas:
     runs-on: ubuntu-latest
@@ -24,7 +31,10 @@ jobs:
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: stable
-      - run: go install github.com/yannh/kubeconform/cmd/kubeconform@latest
+      - run: |
+          # renovate: datasource=go depName=github.com/yannh/kubeconform
+          KUBECONFORM_VERSION=v0.8.0
+          go install "github.com/yannh/kubeconform/cmd/kubeconform@${KUBECONFORM_VERSION}"
       - run: |
           kubeconform -summary -strict \
             -ignore-filename-pattern '.*/(kustomization|secret)\.yaml' \
@@ -53,3 +63,28 @@ jobs:
       - uses: fluxcd/flux2/action@16b08d136f181b8d06eec7cfeb7d1b8ec8147f4b # main
       - run: pip install flux-local
       - run: flux-local test --path kubernetes/clusters/production --enable-helm --all-namespaces
+  # Every *.bu must render byte-identically to its committed machineconfig.yaml.
+  # Renovate bumps image tags inside .bu sources (see customManagers) but cannot
+  # regenerate the rendered MachineConfig; this gate turns a bumped-but-stale
+  # render into a loud failure instead of a silently ineffective merge.
+  # Regenerate with: { echo "---"; butane --strict <file>.bu; } > machineconfig.yaml
+  butane-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - run: |
+          # renovate: datasource=github-releases depName=coreos/butane
+          BUTANE_VERSION=v0.25.1
+          curl -fsSL -o /usr/local/bin/butane \
+            "https://github.com/coreos/butane/releases/download/${BUTANE_VERSION}/butane-x86_64-unknown-linux-gnu"
+          chmod +x /usr/local/bin/butane
+      - run: |-
+          rc=0
+          for bu in $(find kubernetes -name '*.bu'); do
+            rendered="$(dirname "$bu")/machineconfig.yaml"
+            if ! { echo "---"; butane --strict "$bu"; } | diff -u "$rendered" -; then
+              echo "::error file=$bu::render drifts from $rendered — regenerate and commit"
+              rc=1
+            fi
+          done
+          exit $rc
