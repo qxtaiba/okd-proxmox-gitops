@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/persistentvolumeclaim.json
+---
+# Shared RWX scratch volume for the download pipeline: sabnzbd and
+# qbittorrent write into it, sonarr and radarr import from it. It lives
+# here — not in any single app's tree — so removing one consumer app can
+# never prune the volume out from under the other three.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: downloads
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 500Gi
+  storageClassName: ceph-filesystem
