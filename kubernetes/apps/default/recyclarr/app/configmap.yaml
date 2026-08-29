@@ -14,14 +14,23 @@ data:
         api_key: !env_var SONARR_API_KEY
         delete_old_custom_formats: true
         replace_existing_custom_formats: true
-        # NOTE: recyclarr 8.x restructured config-templates so templates are
-        # now complete instance definitions used via `recyclarr config create`,
-        # not `include:` targets. The old include: syntax was removed. We keep
-        # only the custom_formats block below (which references trash_ids
-        # directly, not templates). Quality profiles/definitions are assumed
-        # to already exist on the sonarr instance; they are no longer
-        # reconciled by recyclarr. To restore full template-based reconcile,
-        # replace this config entirely per the 8.x quickstart guide.
+        # recyclarr 8.x removed include:-style config templates, but
+        # quality_definition and quality_profiles remain first-class keys —
+        # so size definitions and CF score reconciliation are managed here
+        # directly. The profiles themselves (quality ladders) still live on
+        # the instance; recyclarr syncs TRaSH size limits into the
+        # definitions and owns every CF score inside the named profiles
+        # (reset_unmatched_scores zeroes scores this file stops declaring,
+        # so a removed trash_id can no longer linger as a stale score).
+        quality_definition:
+          type: series
+        quality_profiles:
+          - name: WEB-2160p
+            reset_unmatched_scores:
+              enabled: true
+          - name: WEB-1080p
+            reset_unmatched_scores:
+              enabled: true
         custom_formats:
           # Block DV without HDR10 fallback (causes green tint on non-DV devices)
           - trash_ids:
@@ -58,8 +67,17 @@ data:
         api_key: !env_var RADARR_API_KEY
         delete_old_custom_formats: true
         replace_existing_custom_formats: true
-        # NOTE: see sonarr block above re: recyclarr 8.x template restructure.
-        # The include: block was removed; only custom_formats remain.
+        # See the sonarr block above: quality_definition + quality_profiles
+        # restore the reconciliation the 8.x template removal dropped.
+        quality_definition:
+          type: movie
+        quality_profiles:
+          - name: UHD Bluray + WEB
+            reset_unmatched_scores:
+              enabled: true
+          - name: HD Bluray + WEB
+            reset_unmatched_scores:
+              enabled: true
         custom_formats:
           # Block DV without HDR10 fallback
           - trash_ids:
