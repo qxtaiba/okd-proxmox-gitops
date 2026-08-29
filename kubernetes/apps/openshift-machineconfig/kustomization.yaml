@@ -6,5 +6,3 @@ resources:
   - ./kube-vip-static-pod
   - ./kube-vip-cert-reload
   - ./rook-mon-disk
-  - ./worker-image-gc
-  - ./master-image-gc
