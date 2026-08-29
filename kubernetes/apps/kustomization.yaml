@@ -10,5 +10,6 @@ resources:
   - ./etcd-backup
   - ./openshift-apiserver
   - ./openshift-machineconfig
+  - ./openshift-samples
   - ./openshift-monitoring
   - ./openshift-image-registry

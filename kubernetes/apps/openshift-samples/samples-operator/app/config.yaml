@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/samples.operator.openshift.io/config_v1.json
+---
+# Removes the samples operator's imagestream/template content. It needs
+# registry.redhat.io pull credentials this cluster will never have, so in
+# Managed state it can only fire SamplesMissingTBRCredential forever.
+# Removed state deletes the sample imagestreams/templates and silences the
+# alert; the operator itself stays (it is part of the payload) but idles.
+apiVersion: samples.operator.openshift.io/v1
+kind: Config
+metadata:
+  name: cluster
+spec:
+  managementState: Removed

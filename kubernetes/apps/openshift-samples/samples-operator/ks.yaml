@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: samples-operator
+  namespace: flux-system
+spec:
+  path: ./kubernetes/apps/openshift-samples/samples-operator/app
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  interval: 10m
+  timeout: 5m
+  retryInterval: 1m
+  # The Config CR is a pre-existing cluster singleton (like the APIServer CR
+  # in etcd-encryption): Flux adopts it via SSA and must never delete it.
+  prune: false
+  wait: false
