@@ -3,14 +3,31 @@
   "customManagers": [
     {
       "customType": "regex",
+      // .yml covers CI workflow tool pins (e.g. BUTANE_VERSION in ci.yml).
       "description": "Process annotated dependencies in YAML files",
       "managerFilePatterns": [
-        "/\\.yaml$/"
+        "/\\.yaml$/",
+        "/\\.yml$/"
       ],
       "matchStrings": [
         "datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n.+(:\\s|=)(&\\S+\\s)?(?<currentValue>\\S+)"
       ],
       "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}"
+    },
+    {
+      "customType": "regex",
+      // Images embedded in Butane sources (e.g. the kube-vip static pod)
+      // are invisible to the flux/kubernetes managers because the rendered
+      // MachineConfig gzips them. The butane-drift CI job fails any bump
+      // whose rendered machineconfig.yaml was not regenerated to match.
+      "description": "Process container images in Butane files",
+      "managerFilePatterns": [
+        "/\\.bu$/"
+      ],
+      "matchStrings": [
+        "image: (?<depName>[^:\\s]+):(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "docker"
     },
     {
       "customType": "regex",
