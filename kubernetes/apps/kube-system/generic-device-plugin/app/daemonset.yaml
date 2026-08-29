@@ -27,6 +27,12 @@ spec:
           # manager rolls the digest, which a bare SHA tag can't get.
           image: ghcr.io/squat/generic-device-plugin:latest@sha256:dc192e164c69b03f156765793a1be62ca437709ae477b27ca7d8f3dcf5021576
           args:
+            # Newer builds renamed the default resource domain squat.ai ->
+            # devic.es, which silently unpublished squat.ai/tun and left
+            # gluetun unschedulable (2026-08-29). Pin the legacy domain the
+            # consumers request.
+            - --domain
+            - squat.ai
             - --device
             - |
               name: tun
