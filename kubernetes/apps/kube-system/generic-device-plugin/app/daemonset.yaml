@@ -22,7 +22,10 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: generic-device-plugin
-          image: ghcr.io/squat/generic-device-plugin:854e0c1
+          # Upstream publishes no semver tags (only commit SHAs + latest), so
+          # this tracks latest pinned by digest — Renovate's kubernetes
+          # manager rolls the digest, which a bare SHA tag can't get.
+          image: ghcr.io/squat/generic-device-plugin:latest@sha256:dc192e164c69b03f156765793a1be62ca437709ae477b27ca7d8f3dcf5021576
           args:
             - --device
             - |
