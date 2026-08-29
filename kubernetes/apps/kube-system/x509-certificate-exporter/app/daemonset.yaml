@@ -29,7 +29,7 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: x509-certificate-exporter
-          image: docker.io/enix/x509-certificate-exporter:4.1.0
+          image: docker.io/enix/x509-certificate-exporter:4.2.0
           args:
             - --watch-kubeconf=/host/localhost.kubeconfig
           resources:
