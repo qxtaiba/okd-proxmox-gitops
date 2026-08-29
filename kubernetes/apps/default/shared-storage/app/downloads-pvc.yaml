@@ -4,6 +4,12 @@
 # qbittorrent write into it, sonarr and radarr import from it. It lives
 # here — not in any single app's tree — so removing one consumer app can
 # never prune the volume out from under the other three.
+#
+# ceph-filesystem-scratch is the UNREPLICATED cephfs pool: this data is
+# transient (re-downloadable partials, completed files bound for the NAS),
+# and 3x replication of it onto the single host NVMe was starving every
+# ceph-block database of I/O. Losing this volume costs a re-download, nothing
+# more. storageClassName is immutable — changing it means recreating the PVC.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -14,4 +20,4 @@ spec:
   resources:
     requests:
       storage: 500Gi
-  storageClassName: ceph-filesystem
+  storageClassName: ceph-filesystem-scratch
