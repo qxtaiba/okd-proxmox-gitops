@@ -31,6 +31,14 @@ spec:
               TZ: Asia/Dubai
               PLEX_ADVERTISE_URL: http://192.168.227.206:32400
               PLEX_NO_AUTH_NETWORKS: 192.168.227.0/24,10.128.0.0/14
+              # The pod's own subnet is the cluster SDN, so with LAN Networks
+              # unset Plex classifies every real 192.168.227.x client as
+              # EXTERNAL — WAN bitrate caps + forced transcodes for streams
+              # that never leave the house (bit us 2026-08-29). The SDN range
+              # is included so Route/haproxy-proxied connections (source IP =
+              # router pod) stay local too. Applied by the image entrypoint
+              # on every start, so it also survives config-PVC restores.
+              PLEX_PREFERENCE_LAN_NETWORKS: LanNetworksBandwidth=192.168.227.0/24,10.128.0.0/14
             probes:
               liveness:
                 enabled: true
