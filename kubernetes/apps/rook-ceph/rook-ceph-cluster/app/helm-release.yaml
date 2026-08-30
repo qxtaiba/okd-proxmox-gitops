@@ -37,6 +37,19 @@ spec:
       repository: quay.io/ceph/ceph
       tag: v20.2.4
     cephClusterSpec:
+      # CVE-2025-30156: Ceph 20.2.4 flags the legacy AES-128 cephx keys every
+      # daemon was created with (AUTH_INSECURE_*, two at ERR level). Rook
+      # v1.20.6+ rotates daemon keys declaratively — bump keyGeneration to
+      # rotate again. Rook auto-selects aes256k for daemons on 20.2.4.
+      # CSI (kernel-mount) keys are deliberately NOT rotated to aes256k: the
+      # cephfs/rbd kernel clients need Linux >= 7.0 for it and SCOS ships
+      # older, so AUTH_INSECURE_CLIENT_KEY_TYPE is expected to keep warning
+      # for the csi users — mute that one check rather than "fix" it.
+      security:
+        cephx:
+          daemon:
+            keyRotationPolicy: KeyGeneration
+            keyGeneration: 1
       cleanupPolicy:
         wipeDevicesFromOtherClusters: true
       cephConfig:
