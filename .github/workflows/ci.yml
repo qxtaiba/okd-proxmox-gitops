@@ -74,7 +74,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - run: |
           # renovate: datasource=github-releases depName=coreos/butane
-          BUTANE_VERSION=v0.25.1
+          BUTANE_VERSION=v0.29.0
           curl -fsSL -o /usr/local/bin/butane \
             "https://github.com/coreos/butane/releases/download/${BUTANE_VERSION}/butane-x86_64-unknown-linux-gnu"
           chmod +x /usr/local/bin/butane
