@@ -38,7 +38,7 @@ storage:
             priorityClassName: system-node-critical
             containers:
             - name: kube-vip
-              image: ghcr.io/kube-vip/kube-vip:v1.2.1
+              image: ghcr.io/kube-vip/kube-vip:v1.2.3
               args: ["manager"]
               securityContext:
                 capabilities:
