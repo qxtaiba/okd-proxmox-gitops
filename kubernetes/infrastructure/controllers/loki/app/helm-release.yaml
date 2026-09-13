@@ -77,7 +77,7 @@ spec:
       resources:
         requests:
           cpu: 50m
-          memory: 300Mi
+          memory: 250Mi
         limits:
           memory: 512Mi
       extraEnvFrom:
@@ -93,7 +93,7 @@ spec:
       resources:
         requests:
           cpu: 50m
-          memory: 250Mi
+          memory: 200Mi
         limits:
           memory: 512Mi
       extraEnvFrom:
@@ -109,7 +109,7 @@ spec:
       resources:
         requests:
           cpu: 50m
-          memory: 450Mi
+          memory: 380Mi
         limits:
           memory: 768Mi
       extraEnvFrom:

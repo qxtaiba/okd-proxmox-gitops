@@ -10,6 +10,15 @@
 # alter spec here without a maintenance window: a CSIDriver-identity change
 # orphans every bound volume.
 ---
+# Memory requests below are sized from measured working set, not from the
+# ceph-csi defaults. The plugins were requesting 512Mi each against 43Mi
+# (cephfs) and 104Mi (rbd) of actual use -- 5-12x over -- which was the single
+# largest block of phantom reservation in the cluster and the reason
+# KubeMemoryOvercommit could not be cleared any other way. The Proxmox host is
+# already allocating 94GiB to VMs on 92GiB of physical RAM, so growing the
+# nodes was never an option; the memory had to come from somewhere real.
+#
+# Limits are unchanged. Only the scheduling promise moved.
 apiVersion: csi.ceph.io/v1
 kind: Driver
 metadata:
@@ -36,12 +45,12 @@ spec:
           memory: 1Gi
         requests:
           cpu: 250m
-          memory: 512Mi
+          memory: 256Mi
       plugin:
         limits:
           memory: 1Gi
         requests:
-          memory: 512Mi
+          memory: 256Mi
       provisioner:
         limits:
           memory: 256Mi
@@ -80,13 +89,13 @@ spec:
           memory: 1Gi
         requests:
           cpu: 250m
-          memory: 512Mi
+          memory: 256Mi
       registrar:
         limits:
           memory: 256Mi
         requests:
           cpu: 50m
-          memory: 128Mi
+          memory: 64Mi
     updateStrategy:
       type: RollingUpdate
 ---
@@ -116,7 +125,7 @@ spec:
           memory: 1Gi
         requests:
           cpu: 250m
-          memory: 512Mi
+          memory: 256Mi
       provisioner:
         limits:
           memory: 256Mi
@@ -155,12 +164,12 @@ spec:
           memory: 1Gi
         requests:
           cpu: 250m
-          memory: 512Mi
+          memory: 256Mi
       registrar:
         limits:
           memory: 256Mi
         requests:
           cpu: 50m
-          memory: 128Mi
+          memory: 64Mi
     updateStrategy:
       type: RollingUpdate
