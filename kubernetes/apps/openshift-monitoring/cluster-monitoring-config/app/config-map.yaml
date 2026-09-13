@@ -20,10 +20,17 @@ data:
       # ~350m / 3.6Gi, peaking at 4.6Gi -- roughly 7Gi of memory per pair that
       # the scheduler cannot see, on nodes already near 75% CPU requests.
       # No memory limit on purpose: an OOMKilled Prometheus loses the head block.
+      # 3Gi, not the ~4Gi it actually peaks at. Requesting true usage on both
+      # replicas pushed cluster memory requests past the single-node-failure
+      # budget (61.0GiB requested vs 56.5GiB available with one node removed)
+      # and made KubeMemoryOvercommit fire permanently. 3Gi keeps the
+      # scheduler honest enough -- CMO's default was 1Gi against 3.6Gi actual
+      # -- while leaving headroom. The remaining gap is a real capacity
+      # statement about a 3-node cluster, not something to tune away.
       resources:
         requests:
           cpu: 200m
-          memory: 4Gi
+          memory: 3Gi
       nodeSelector:
         node-role.kubernetes.io/worker: ""
       volumeClaimTemplate:
