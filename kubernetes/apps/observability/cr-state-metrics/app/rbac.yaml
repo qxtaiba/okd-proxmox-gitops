@@ -10,6 +10,15 @@ kind: ClusterRole
 metadata:
   name: cr-state-metrics
 rules:
+  # kube-state-metrics resolves each configured GroupVersionKind against the
+  # CRD API before it can build a collector for it. Without this the process
+  # starts, serves /metrics, reports healthy -- and exports NOTHING, logging
+  # only "customresourcedefinitions.apiextensions.k8s.io is forbidden" in a
+  # reflector retry loop. Exactly the silent-green failure the CRStateMetricsAbsent
+  # alert exists to catch.
+  - apiGroups: [apiextensions.k8s.io]
+    resources: [customresourcedefinitions]
+    verbs: [list, watch]
   # Read-only on the rook CRs whose status we turn into metrics. Deliberately
   # narrow: this exporter never needs core objects, and kube-state-metrics
   # only reads .status, never writes.
