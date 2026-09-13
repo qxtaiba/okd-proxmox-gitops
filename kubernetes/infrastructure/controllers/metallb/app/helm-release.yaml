@@ -25,7 +25,16 @@ spec:
       serviceAccount: prometheus-k8s
       namespace: openshift-monitoring
       serviceMonitor:
-        enabled: true
+        # The chart hardcodes `bearerTokenFile:` on every ServiceMonitor
+        # endpoint (templates/servicemonitor.yaml) with no value to turn it
+        # off. User-workload Prometheus rejects that outright -- "accesses
+        # file system via bearer token file which Prometheus specification
+        # prohibits" -- so both monitors were permanently rejected, firing
+        # PrometheusOperatorRejectedResources and emitting InvalidConfiguration
+        # events every scrape interval while scraping nothing. Restoring
+        # metallb metrics means hand-writing ServiceMonitors that use
+        # `authorization.credentials` against a metallb-system SA token.
+        enabled: false
       speakerMetricsTLSSecret: ""
       controllerMetricsTLSSecret: ""
     speaker:
@@ -54,3 +63,10 @@ spec:
       podDisruptionBudget:
         enabled: true
         minAvailable: 1
+    # Chart 0.16.1 defaults frrk8s.enabled=true, which lands a 3-replica
+    # DaemonSet whose SA (metallb-frr-k8s-controller) has no SCC binding here,
+    # so it has sat at 0/3 created since the 0.16.1 bump, retrying forever.
+    # This cluster is L2-only (one L2Advertisement, zero BGPPeers), so FRR is
+    # not needed at all -- switch it off rather than grant it privileged SCC.
+    frrk8s:
+      enabled: false

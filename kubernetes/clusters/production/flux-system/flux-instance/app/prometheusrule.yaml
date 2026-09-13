@@ -1,5 +1,12 @@
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
 ---
+# These rules previously matched `gotk_reconcile_condition`, which the Flux
+# controllers no longer export -- the series count was zero, so all three
+# alerts sat permanently green and a broken HelmRelease would have produced
+# silence. The live equivalent is `flux_resource_info` from flux-operator
+# (labels: kind, name, exported_namespace, ready, suspended, reason).
+# `exported_namespace` carries the Flux object's namespace because `namespace`
+# is taken by the scrape target (flux-system).
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -10,28 +17,57 @@ spec:
       rules:
         - alert: FluxReconciliationFailure
           expr: |-
-            max(gotk_reconcile_condition{status="False",type="Ready"}) by (namespace, name, kind) == 1
+            max(flux_resource_info{ready="False",suspended="False"}) by (exported_namespace, name, kind) == 1
           for: 15m
           annotations:
             summary: >-
-              {{ $labels.kind }} {{ $labels.namespace }}/{{ $labels.name }} reconciliation has been failing
+              {{ $labels.kind }} {{ $labels.exported_namespace }}/{{ $labels.name }} reconciliation has been failing
           labels:
             severity: warning
+
         - alert: FluxHelmReleaseNotReady
           expr: |-
-            gotk_reconcile_condition{kind="HelmRelease",status="False",type="Ready"} == 1
+            flux_resource_info{kind="HelmRelease",ready="False",suspended="False"} == 1
           for: 10m
           annotations:
             summary: >-
-              HelmRelease {{ $labels.namespace }}/{{ $labels.name }} is not ready
+              HelmRelease {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready
           labels:
             severity: critical
+
         - alert: FluxKustomizationNotReady
           expr: |-
-            gotk_reconcile_condition{kind="Kustomization",status="False",type="Ready"} == 1
+            flux_resource_info{kind="Kustomization",ready="False",suspended="False"} == 1
           for: 10m
           annotations:
             summary: >-
-              Kustomization {{ $labels.namespace }}/{{ $labels.name }} is not ready
+              Kustomization {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready
           labels:
             severity: critical
+
+        # Sources failing is the upstream cause of every stale Kustomization
+        # and HelmRelease -- a rotated deploy key or an unreachable registry
+        # shows up here first, before the dependents time out.
+        - alert: FluxSourceNotReady
+          expr: |-
+            flux_resource_info{kind=~"GitRepository|OCIRepository|HelmRepository",ready="False",suspended="False"} == 1
+          for: 10m
+          annotations:
+            summary: >-
+              {{ $labels.kind }} {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready
+          labels:
+            severity: warning
+
+        # flux-operator exports this for every managed object. If the metric
+        # disappears entirely, the exporter or the operator is down and every
+        # rule above silently stops being able to fire -- exactly the failure
+        # this ruleset just recovered from.
+        - alert: FluxMetricsAbsent
+          expr: |-
+            absent(flux_resource_info)
+          for: 30m
+          annotations:
+            summary: >-
+              flux_resource_info has no series -- Flux alerting is blind
+          labels:
+            severity: warning

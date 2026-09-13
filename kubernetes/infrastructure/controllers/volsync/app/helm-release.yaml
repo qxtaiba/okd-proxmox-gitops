@@ -21,3 +21,13 @@ spec:
     crds: CreateReplace
     remediation:
       retries: -1
+  values:
+    metrics:
+      # The chart fronts /metrics with kube-rbac-proxy on :8443, but its own
+      # ServiceMonitor ships no credentials, so the scrape returned 401 and
+      # volsync_* never reached Prometheus -- every VolSync alerting rule was
+      # unfirable and the nightly backups were effectively unmonitored.
+      # These are backup timing/duration gauges on a ClusterIP service with no
+      # route, so dropping the auth check is the proportionate fix.
+      disableAuth: true
+

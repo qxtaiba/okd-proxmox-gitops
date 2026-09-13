@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/rbac.authorization.k8s.io/clusterrole_v1.json
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cr-state-metrics
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cr-state-metrics
+rules:
+  # Read-only on the rook CRs whose status we turn into metrics. Deliberately
+  # narrow: this exporter never needs core objects, and kube-state-metrics
+  # only reads .status, never writes.
+  - apiGroups: [ceph.rook.io]
+    resources: [cephclusters, cephfilesystems]
+    verbs: [list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cr-state-metrics
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cr-state-metrics
+subjects:
+  - kind: ServiceAccount
+    name: cr-state-metrics
+    namespace: observability
