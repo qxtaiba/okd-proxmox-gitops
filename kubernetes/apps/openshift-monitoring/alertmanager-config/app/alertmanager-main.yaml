@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/secret.json
+---
+# Alertmanager's config. It lives in a Secret only because that is the shape
+# cluster-monitoring-operator seeds -- it contains NO secret material. The
+# Discord webhook and the healthchecks.io ping URL are read from files mounted
+# by `alertmanagerMain.secrets` in cluster-monitoring-config and populated by
+# the alertmanager-discord ExternalSecret, so the config stays plain reviewable
+# YAML in Git.
+#
+# Verified on Alertmanager 0.29.0 with amtool: `webhook_url_file` (discord) and
+# `url_file` (webhook) both exist, and an EMPTY credential file still passes
+# check-config -- *_file values are read when a notification is sent, not at
+# config load. A blank or rotated-away credential therefore costs notifications
+# and can never leave Alertmanager unable to start.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-main
+  namespace: openshift-monitoring
+type: Opaque
+stringData:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
+
+    # Kept from the OKD default: a firing critical mutes the matching
+    # warning/info for the same alert, so one incident is one message.
+    inhibit_rules:
+      - source_matchers:
+          - severity = critical
+        target_matchers:
+          - severity =~ warning|info
+        equal: [namespace, alertname]
+      - source_matchers:
+          - severity = warning
+        target_matchers:
+          - severity = info
+        equal: [namespace, alertname]
+
+    route:
+      group_by: [namespace, alertname]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      receiver: Default
+      routes:
+        # Watchdog fires forever by design. Pinging healthchecks.io on every
+        # repeat turns it into a dead-man's switch: if this cluster, its
+        # Prometheus or this Alertmanager dies, the pings stop and
+        # healthchecks.io notifies out-of-band. Nothing running IN the cluster
+        # can report that the cluster is gone. 5m repeat against a 10m period
+        # + 5m grace detects death in ~15m.
+        - matchers: [alertname = Watchdog]
+          receiver: Watchdog
+          group_wait: 0s
+          group_interval: 5m
+          repeat_interval: 5m
+
+        # Permanent facts about this cluster, not incidents: InsightsDisabled
+        # (deliberate), UpdateAvailable (informational), KubeCPUOvercommit and
+        # SystemMemoryExceedsReservation (unavoidable on a 3-node compacted
+        # control plane running ~75% CPU requests).
+        - matchers:
+            - alertname =~ InsightsDisabled|UpdateAvailable|KubeCPUOvercommit|SystemMemoryExceedsReservation
+          receiver: Drop
+
+        - matchers: [severity = info]
+          receiver: Drop
+
+        - matchers: [severity = critical]
+          receiver: Critical
+          repeat_interval: 1h
+
+    receivers:
+      - name: Drop
+
+      - name: Default
+        discord_configs:
+          - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url
+            send_resolved: true
+
+      - name: Critical
+        discord_configs:
+          - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url
+            send_resolved: true
+
+      - name: Watchdog
+        webhook_configs:
+          - url_file: /etc/alertmanager/secrets/alertmanager-discord/healthchecks-url
+            send_resolved: false
