@@ -105,13 +105,25 @@ cannot report the one failure that matters most.
 
 ### Routing
 
-| Match | Receiver | Interval |
-|---|---|---|
-| `alertname=Watchdog` | Watchdog (healthchecks.io) | repeat 5m |
-| `InsightsDisabled\|UpdateAvailable\|KubeCPUOvercommit\|SystemMemoryExceedsReservation` | Drop | — |
-| `severity=info` | Drop | — |
-| `severity=critical` | Critical (Telegram) | repeat 1h |
-| everything else | Default (Telegram) | repeat 12h |
+| Match | Receiver | Destination | Interval |
+|---|---|---|---|
+| `alertname=Watchdog` | Watchdog | healthchecks.io | repeat 5m |
+| `InsightsDisabled\|UpdateAvailable\|KubeCPUOvercommit\|SystemMemoryExceedsReservation` | Drop | — | — |
+| `severity=info` | Drop | — | — |
+| `severity=critical` | Critical | Discord `#alerts-critical` | repeat 1h |
+| everything else | Default | Discord `#alerts-warning` | repeat 12h |
+
+Criticals and warnings use **separate webhooks**, which is what puts them in
+separate Discord channels — mobile push can then be enabled on criticals alone,
+so a dead Ceph cluster wakes you and a cert expiring in 20 days does not.
+
+A third channel, `#flux-alerts`, is fed directly by Flux's
+notification-controller (`flux-notification/`), not by Alertmanager. It carries
+`eventSeverity: info`, making it a running deploy log — which HelmRelease moved
+to which chart version — as well as failures. Failures are therefore covered
+twice on purpose: the event says what happened at a moment, the
+`FluxHelmReleaseNotReady` alert keeps firing while it is still broken. An event
+is a moment; an alert is a state.
 
 The two OKD inhibit rules are kept: a firing critical mutes the matching
 warning/info for the same alert, so one incident is one message.

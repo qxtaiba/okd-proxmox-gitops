@@ -79,9 +79,12 @@ stringData:
           - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url
             send_resolved: true
 
+      # Separate webhook, and therefore a separate Discord channel, so mobile
+      # push can be enabled on criticals alone. Warnings land in #alerts-warning
+      # where they can be read at leisure without waking anyone.
       - name: Critical
         discord_configs:
-          - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url
+          - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url-critical
             send_resolved: true
 
       - name: Watchdog
