@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/service.json
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cr-state-metrics
+  labels:
+    app.kubernetes.io/name: cr-state-metrics
+spec:
+  selector:
+    app.kubernetes.io/name: cr-state-metrics
+  ports:
+    - name: http-metrics
+      port: 8080
+      targetPort: http-metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cr-state-metrics
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cr-state-metrics
+  endpoints:
+    # Plain HTTP with no bearer token on purpose: user-workload Prometheus
+    # rejects `bearerTokenFile` outright, and these are CR phase gauges on a
+    # ClusterIP service with no route.
+    - port: http-metrics
+      interval: 30s

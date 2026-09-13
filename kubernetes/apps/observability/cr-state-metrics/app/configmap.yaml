@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/configmap.json
+---
+# kube-state-metrics Custom Resource State config. Nothing in the cluster
+# exports the STATUS of a custom resource -- there is no rook_* metric and the
+# platform kube-state-metrics is CMO-managed and cannot be extended -- so a
+# CephCluster stuck in Progressing is invisible to Prometheus. That is exactly
+# how rook sat unable to update any OSD for hours on 2026-09-13 while every
+# ceph_* metric reported a healthy cluster.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cr-state-metrics-config
+data:
+  config.yaml: |
+    kind: CustomResourceStateMetrics
+    spec:
+      resources:
+        - groupVersionKind:
+            group: ceph.rook.io
+            version: v1
+            kind: CephCluster
+          metricNamePrefix: rook_cephcluster
+          labelsFromPath:
+            name: [metadata, name]
+            namespace: [metadata, namespace]
+          metrics:
+            - name: phase
+              help: "CephCluster .status.phase, one series per phase with 0/1"
+              each:
+                type: StateSet
+                stateSet:
+                  labelName: phase
+                  path: [status, phase]
+                  list:
+                    - Ready
+                    - Progressing
+                    - Connecting
+                    - Connected
+                    - Failure
+                    - Deleting
+        - groupVersionKind:
+            group: ceph.rook.io
+            version: v1
+            kind: CephFilesystem
+          metricNamePrefix: rook_cephfilesystem
+          labelsFromPath:
+            name: [metadata, name]
+            namespace: [metadata, namespace]
+          metrics:
+            - name: phase
+              help: "CephFilesystem .status.phase, one series per phase with 0/1"
+              each:
+                type: StateSet
+                stateSet:
+                  labelName: phase
+                  path: [status, phase]
+                  list: [Ready, Progressing, Failure, Deleting]

@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: alertmanager-config
+  namespace: flux-system
+spec:
+  targetNamespace: openshift-monitoring
+  interval: 10m
+  retryInterval: 1m
+  timeout: 5m
+  path: ./kubernetes/apps/openshift-monitoring/alertmanager-config/app
+  # The alertmanager-main Secret is seeded by the cluster-monitoring-operator
+  # with empty receivers; this Kustomization takes over its alertmanager.yaml.
+  # Pruning it would leave Alertmanager with no config at all, so force is off
+  # and prune stays on only for the ExternalSecret alongside it.
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  dependsOn:
+    - name: external-secrets
+      namespace: flux-system

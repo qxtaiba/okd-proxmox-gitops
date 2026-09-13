@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cr-state-rules
+spec:
+  groups:
+    - name: rook-cr-state.rules
+      rules:
+        # The gap this whole exporter exists to close. On 2026-09-13 rook sat
+        # in Progressing/"Configuring Ceph OSDs" for hours, unable to update
+        # any OSD, while ceph reported 201/201 PGs active+clean and every
+        # ceph_* alert stayed green. 30m is well clear of the normal
+        # Progressing blips during an upgrade or a daemon roll.
+        - alert: CephClusterNotReady
+          expr: |-
+            rook_cephcluster_phase{phase="Ready"} == 0
+          for: 30m
+          annotations:
+            summary: >-
+              CephCluster {{ $labels.namespace }}/{{ $labels.name }} has not been Ready for 30m
+              (rook cannot converge; OSD and config changes are not being applied)
+          labels:
+            severity: critical
+
+        - alert: CephFilesystemNotReady
+          expr: |-
+            rook_cephfilesystem_phase{phase="Ready"} == 0
+          for: 30m
+          annotations:
+            summary: >-
+              CephFilesystem {{ $labels.namespace }}/{{ $labels.name }} has not been Ready for 30m
+          labels:
+            severity: critical
+
+        # Without this, the exporter dying looks exactly like a healthy
+        # cluster -- the same silent-green failure mode that left the Flux
+        # rules unfirable against a renamed metric.
+        - alert: CRStateMetricsAbsent
+          expr: |-
+            absent(rook_cephcluster_phase)
+          for: 30m
+          annotations:
+            summary: >-
+              cr-state-metrics is not exporting -- CephCluster phase alerting is blind
+          labels:
+            severity: warning

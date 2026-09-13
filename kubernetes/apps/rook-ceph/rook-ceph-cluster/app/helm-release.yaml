@@ -37,6 +37,17 @@ spec:
       repository: quay.io/ceph/ceph
       tag: v20.2.4
     cephClusterSpec:
+      # The `scratch` dataPool below is size 1, so every PG in it lives on a
+      # single OSD and `ceph osd ok-to-stop` is permanently false for all three
+      # OSDs. Rook gates every OSD deployment update on that check, so without
+      # this flag it retries ~2x/sec forever, never converges, and the
+      # CephCluster sits in Progressing with a ReconcileFailed every ~40min
+      # ("aborting OSD provisioning after waiting more than 20 minutes").
+      # Consequence of skipping: rook still rolls OSDs one at a time, but the
+      # scratch PGs go inactive for the ~30-60s an OSD is restarting, so the
+      # downloads mount stalls briefly. That is the correct trade for a pool
+      # whose whole purpose is discardable data.
+      skipUpgradeChecks: true
       # CVE-2025-30156: Ceph 20.2.4 flags the legacy AES-128 cephx keys every
       # daemon was created with (AUTH_INSECURE_*, two at ERR level). Rook
       # v1.20.6+ rotates daemon keys declaratively — bump keyGeneration to
