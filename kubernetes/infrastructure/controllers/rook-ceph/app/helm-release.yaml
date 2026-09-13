@@ -31,12 +31,13 @@ spec:
       enableLiveness: true
       serviceMonitor:
         enabled: true
+    # measured ~286Mi steady state against a 128Mi request
     resources:
       limits:
-        memory: 512Mi
+        memory: 768Mi
       requests:
         cpu: 200m
-        memory: 128Mi
+        memory: 320Mi
     tolerations:
       - key: node-role.kubernetes.io/control-plane
         operator: Exists

@@ -48,7 +48,12 @@ spec:
             target:
               kind: Deployment
               name: (kustomize-controller|helm-controller|source-controller)
-          - # Increase the memory limits
+          - # Set memory requests and limits. The chart ships a 64Mi request
+            # against ~185Mi of measured working set per controller, so the
+            # scheduler treated the whole Flux control plane as ~320Mi when it
+            # actually holds ~925Mi. Under-requesting is worse than
+            # over-requesting here: these are the controllers that repair
+            # everything else, and they were eligible for eviction first.
             patch: |-
               apiVersion: apps/v1
               kind: Deployment
@@ -60,6 +65,8 @@ spec:
                     containers:
                       - name: manager
                         resources:
+                          requests:
+                            memory: 256Mi
                           limits:
                             memory: 2Gi
             target:

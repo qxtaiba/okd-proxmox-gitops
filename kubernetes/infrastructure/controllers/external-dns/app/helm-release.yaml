@@ -44,6 +44,13 @@ spec:
       - openshift-route
     txtOwnerId: default
     txtPrefix: k8s.
+    # Ran BestEffort; measured ~40Mi.
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
     domainFilters:
       - grappleberry.xyz
     serviceMonitor:

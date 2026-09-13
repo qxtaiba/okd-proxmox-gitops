@@ -120,6 +120,14 @@ spec:
       persistence:
         storageClass: ceph-block
         size: 10Gi
+    # The rules sidecar on each backend pod also ran with no request.
+    sidecar:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          memory: 192Mi
     gateway:
       replicas: 1
       resources:
@@ -137,6 +145,15 @@ spec:
     # silently broken write path looks identical to a quiet cluster.
     lokiCanary:
       enabled: true
+      # Chart ships no request, so the canary ran BestEffort -- the component
+      # whose whole job is proving the log path works would be evicted before
+      # the log path it watches.
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 96Mi
     minio:
       enabled: false
     test:

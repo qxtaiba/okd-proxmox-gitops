@@ -117,12 +117,15 @@ spec:
       # request was 5x under actual, so the scheduler treated a ~500Mi process
       # as a small one. Alloy is single-replica with in-memory log positions,
       # so an OOM is a log gap, not just a restart.
+      # 512Mi was measured before the limit was raised; with room to breathe
+      # Alloy settled at ~731Mi, so the request was still short. Sized above
+      # observed steady state rather than at it.
       resources:
         requests:
           cpu: 50m
-          memory: 512Mi
+          memory: 768Mi
         limits:
-          memory: 1Gi
+          memory: 1536Mi
       initialDelaySeconds: 30
       timeoutSeconds: 10
     configReloader:

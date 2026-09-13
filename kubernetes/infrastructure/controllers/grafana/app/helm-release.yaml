@@ -19,6 +19,14 @@ spec:
       retries: 3
   values:
     isOpenShift: true
+    # Ran BestEffort; measured ~81Mi. It owns every dashboard and datasource,
+    # so losing it to an eviction silently stops dashboard reconciliation.
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
     dashboard:
       enabled: true
     serviceMonitor:

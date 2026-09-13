@@ -29,11 +29,27 @@ spec:
     podDisruptionBudget:
       enabled: true
       minAvailable: 1
+    # The webhook and cert-controller shipped with no memory request at all,
+    # so both ran BestEffort and were first in line for eviction. The webhook
+    # being unavailable blocks every ExternalSecret in the cluster.
     webhook:
       replicaCount: 2
       podDisruptionBudget:
         enabled: true
         minAvailable: 1
+      resources:
+        requests:
+          cpu: 10m
+          memory: 96Mi
+        limits:
+          memory: 256Mi
+    certController:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 128Mi
+        limits:
+          memory: 256Mi
     resources:
       requests:
         cpu: 50m
