@@ -14,7 +14,8 @@ spec:
           annotations:
             summary: cert-manager has disappeared from Prometheus service discovery
           labels:
-            severity: critical
+            # issued certs stay valid ~90d; cert-manager being down is not an outage
+            severity: warning
     - name: certificates
       rules:
         - alert: CertManagerCertExpirySoon
@@ -27,7 +28,8 @@ spec:
             summary: >-
               Certificate {{ $labels.name }} expires in {{ $value | humanizeDuration }}
           labels:
-            severity: critical
+            # "soon" is definitionally days of runway
+            severity: warning
         - alert: CertManagerCertNotReady
           expr: |-
             max by (name, exported_namespace, namespace, condition) (
@@ -37,7 +39,8 @@ spec:
           annotations:
             summary: Certificate {{ $labels.name }} is not ready
           labels:
-            severity: critical
+            # the existing cert keeps serving while a renewal is stuck
+            severity: warning
         - alert: CertManagerHittingRateLimits
           expr: |-
             sum by (host) (
@@ -47,4 +50,5 @@ spec:
           annotations:
             summary: cert-manager hitting LetsEncrypt rate limits
           labels:
-            severity: critical
+            # blocks new issuance, breaks nothing already serving
+            severity: warning

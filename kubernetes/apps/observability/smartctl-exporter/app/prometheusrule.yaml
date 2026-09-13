@@ -45,7 +45,8 @@ spec:
             summary: >-
               NVMe {{ $labels.device }} available spare is at or below its threshold
           labels:
-            severity: critical
+            # a declining trend, with NvmeCriticalWarning still critical for the event
+            severity: warning
         - alert: NvmeMediaErrorsIncreasing
           expr: |-
             increase(smartctl_device_media_errors{namespace="observability"}[24h]) > 0

@@ -32,7 +32,8 @@ spec:
             summary: >-
               HelmRelease {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready
           labels:
-            severity: critical
+            # a release that failed to upgrade leaves the previous one running
+            severity: warning
         - alert: FluxKustomizationNotReady
           expr: |-
             flux_resource_info{kind="Kustomization",ready="False",suspended="False"} == 1
@@ -41,7 +42,8 @@ spec:
             summary: >-
               Kustomization {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready
           labels:
-            severity: critical
+            # a stalled apply means a change did not land, not that anything broke
+            severity: warning
         # Sources failing is the upstream cause of every stale Kustomization
         # and HelmRelease -- a rotated deploy key or an unreachable registry
         # shows up here first, before the dependents time out.
