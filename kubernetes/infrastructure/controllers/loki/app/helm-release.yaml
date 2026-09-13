@@ -74,6 +74,12 @@ spec:
         delete_request_store: s3
     backend:
       replicas: 2
+      resources:
+        requests:
+          cpu: 50m
+          memory: 300Mi
+        limits:
+          memory: 512Mi
       extraEnvFrom:
         - secretRef:
             name: loki-bucket
@@ -84,6 +90,12 @@ spec:
         size: 10Gi
     read:
       replicas: 2
+      resources:
+        requests:
+          cpu: 50m
+          memory: 250Mi
+        limits:
+          memory: 512Mi
       extraEnvFrom:
         - secretRef:
             name: loki-bucket
@@ -94,6 +106,12 @@ spec:
         size: 10Gi
     write:
       replicas: 2
+      resources:
+        requests:
+          cpu: 50m
+          memory: 450Mi
+        limits:
+          memory: 768Mi
       extraEnvFrom:
         - secretRef:
             name: loki-bucket
@@ -104,12 +122,21 @@ spec:
         size: 10Gi
     gateway:
       replicas: 1
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 64Mi
     chunksCache:
       enabled: false
     resultsCache:
       enabled: false
+    # Writes a known line per node and reads it back, so 'logs are flowing'
+    # is measured rather than inferred from pods being Running. Without it a
+    # silently broken write path looks identical to a quiet cluster.
     lokiCanary:
-      enabled: false
+      enabled: true
     minio:
       enabled: false
     test:

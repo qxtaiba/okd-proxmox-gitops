@@ -6,7 +6,13 @@ metadata:
   name: user-workload-config
   namespace: flux-system
 spec:
-  targetNamespace: openshift-monitoring
+  # CMO reads user-workload-monitoring-config ONLY from
+  # openshift-user-workload-monitoring. Targeting openshift-monitoring put a
+  # perfectly valid ConfigMap somewhere nothing consumes it, so none of the
+  # settings below ever applied: UWM Prometheus ran with no retention and an
+  # emptyDir volume, holding ~25h of history instead of 7d on Ceph and losing
+  # all of it on every pod restart or node drain.
+  targetNamespace: openshift-user-workload-monitoring
   path: ./kubernetes/apps/openshift-monitoring/user-workload-config/app
   sourceRef:
     kind: GitRepository
