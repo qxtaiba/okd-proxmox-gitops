@@ -74,12 +74,41 @@ spec:
               The localhost.kubeconfig cert kube-vip authenticates with expires in under 7 days -- leader election will die when it lapses
           labels:
             severity: critical
+        # Asserts on the PAYLOAD, not on `up`. The previous expression watched
+        # scrape liveness, and the exporter has been scraping green while
+        # exporting zero certificate metrics since at least 2026-08-30:
+        #
+        #   level=WARN msg="read kubeconfig" path=/host/localhost.kubeconfig
+        #     error="open /host/localhost.kubeconfig: permission denied"
+        #   x509_source_up = 0 on all three pods
+        #
+        # The container runs as uid 0 so file permissions are satisfied;
+        # SELinux is the blocker -- container_t has no read on
+        # kubernetes_file_t. So the watchdog built to catch a blind cert alert
+        # was itself blind to exactly that, and both KubeVipKubeconfigCert*
+        # alerts above have never been able to fire.
+        #
+        # This will fire immediately and correctly until the exporter is
+        # actually reading the kubeconfig again. That is the point: a broken
+        # exporter should be loud, not green.
         - alert: KubeVipCertExporterAbsent
           expr: |-
-            absent(up{job="kube-system/x509-certificate-exporter"} == 1)
+            absent(x509_cert_not_after{job="kube-system/x509-certificate-exporter"})
           for: 30m
           annotations:
             summary: >-
-              x509-certificate-exporter is not reporting -- kube-vip cert-expiry alerts are blind
+              x509-certificate-exporter is scraping but exporting no certificate metrics -- kube-vip cert-expiry alerting is blind
+          labels:
+            severity: warning
+        # Separate from the above so a partial failure is distinguishable from
+        # a total one: the exporter reports per-source health independently of
+        # whether any certificates were parsed.
+        - alert: KubeVipCertExporterSourceFailing
+          expr: |-
+            x509_source_up == 0
+          for: 30m
+          annotations:
+            summary: >-
+              x509-certificate-exporter cannot read its source on {{ $labels.instance }}
           labels:
             severity: warning
