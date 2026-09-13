@@ -103,19 +103,36 @@ spec:
           tolerations:
             - key: storage-node
               operator: Exists
+      # Requests sized from 7 days of measured working set rather than from
+      # chart defaults. Cluster memory requests had reached 61GiB against a
+      # 56.5GiB single-node-failure budget, which is what KubeMemoryOvercommit
+      # was reporting -- and almost all of the slack was here, not in the
+      # workloads that actually use memory. Limits are left generous; the
+      # request is a scheduling promise, the limit is the safety net.
       resources:
         mon:
+          # measured ~490Mi per mon
           requests:
             cpu: 100m
-            memory: 1Gi
+            memory: 768Mi
           limits:
             memory: 2Gi
         mgr:
+          # measured ~255Mi per mgr
           requests:
             cpu: 100m
-            memory: 512Mi
+            memory: 384Mi
           limits:
             memory: 1Gi
+        # The log-collector sidecar rides on every ceph daemon pod and was
+        # requesting ~1.46GiB in aggregate to use 0.02GiB. Biggest single
+        # source of phantom reservation in the cluster.
+        logcollector:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 128Mi
         osd:
           requests:
             cpu: 200m
@@ -212,10 +229,12 @@ spec:
                     matchLabels:
                       app.kubernetes.io/name: ceph-mds
                       app.kubernetes.io/part-of: okd-cephfs
+            # measured ~45Mi per mds across the active/standby pair; 1Gi was
+            # reserving 22x the working set.
             resources:
               requests:
                 cpu: 100m
-                memory: 1Gi
+                memory: 256Mi
               limits:
                 memory: 4Gi
         storageClass:
