@@ -49,15 +49,20 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
+          # Health endpoints live on the MAIN port (8080), not the telemetry
+          # port -- 8081 serves only kube-state-metrics' own /metrics and
+          # answers 404 to anything else, which crashlooped this container
+          # every ~35s while its logs showed a perfectly healthy exporter.
+          # Ports and paths match upstream kube-state-metrics.
           livenessProbe:
             httpGet:
-              path: /healthz
-              port: 8081
+              path: /livez
+              port: http-metrics
             initialDelaySeconds: 5
           readinessProbe:
             httpGet:
-              path: /
-              port: 8080
+              path: /readyz
+              port: telemetry
             initialDelaySeconds: 5
       volumes:
         - name: config
