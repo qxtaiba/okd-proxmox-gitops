@@ -30,4 +30,3 @@ spec:
       # These are backup timing/duration gauges on a ClusterIP service with no
       # route, so dropping the auth check is the proportionate fix.
       disableAuth: true
-

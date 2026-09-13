@@ -19,11 +19,9 @@ spec:
           for: 30m
           annotations:
             summary: >-
-              CephCluster {{ $labels.namespace }}/{{ $labels.name }} has not been Ready for 30m
-              (rook cannot converge; OSD and config changes are not being applied)
+              CephCluster {{ $labels.namespace }}/{{ $labels.name }} has not been Ready for 30m (rook cannot converge; OSD and config changes are not being applied)
           labels:
             severity: critical
-
         - alert: CephFilesystemNotReady
           expr: |-
             rook_cephfilesystem_phase{phase="Ready"} == 0
@@ -33,7 +31,6 @@ spec:
               CephFilesystem {{ $labels.namespace }}/{{ $labels.name }} has not been Ready for 30m
           labels:
             severity: critical
-
         # Without this, the exporter dying looks exactly like a healthy
         # cluster -- the same silent-green failure mode that left the Flux
         # rules unfirable against a renamed metric.

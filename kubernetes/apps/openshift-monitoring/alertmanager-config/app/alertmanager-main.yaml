@@ -19,7 +19,7 @@ metadata:
   namespace: openshift-monitoring
 type: Opaque
 stringData:
-  alertmanager.yaml: |
+  alertmanager.yaml: |-
     global:
       resolve_timeout: 5m
 

@@ -24,7 +24,6 @@ spec:
               {{ $labels.kind }} {{ $labels.exported_namespace }}/{{ $labels.name }} reconciliation has been failing
           labels:
             severity: warning
-
         - alert: FluxHelmReleaseNotReady
           expr: |-
             flux_resource_info{kind="HelmRelease",ready="False",suspended="False"} == 1
@@ -34,7 +33,6 @@ spec:
               HelmRelease {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready
           labels:
             severity: critical
-
         - alert: FluxKustomizationNotReady
           expr: |-
             flux_resource_info{kind="Kustomization",ready="False",suspended="False"} == 1
@@ -44,7 +42,6 @@ spec:
               Kustomization {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready
           labels:
             severity: critical
-
         # Sources failing is the upstream cause of every stale Kustomization
         # and HelmRelease -- a rotated deploy key or an unreachable registry
         # shows up here first, before the dependents time out.
@@ -57,7 +54,6 @@ spec:
               {{ $labels.kind }} {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready
           labels:
             severity: warning
-
         # flux-operator exports this for every managed object. If the metric
         # disappears entirely, the exporter or the operator is down and every
         # rule above silently stops being able to fire -- exactly the failure
