@@ -108,8 +108,8 @@ cannot report the one failure that matters most.
 | Match | Receiver | Destination | Interval |
 |---|---|---|---|
 | `alertname=Watchdog` | Watchdog | healthchecks.io | repeat 5m |
-| `InsightsDisabled\|UpdateAvailable\|KubeCPUOvercommit\|SystemMemoryExceedsReservation` | Drop | — | — |
-| `severity=info` | Drop | — | — |
+| `InsightsDisabled\|KubeCPUOvercommit\|SystemMemoryExceedsReservation` | Drop | — | — |
+| `severity=info` | Info | Discord `#alerts-info` | repeat 24h |
 | `severity=critical` | Critical | Discord `#alerts-critical` | repeat 1h |
 | everything else | Default | Discord `#alerts-warning` | repeat 12h |
 
@@ -117,10 +117,15 @@ Criticals and warnings use **separate webhooks**, which is what puts them in
 separate Discord channels — mobile push can then be enabled on criticals alone,
 so a dead Ceph cluster wakes you and a cert expiring in 20 days does not.
 
-A third channel, `#flux-alerts`, is fed directly by Flux's
-notification-controller (`flux-notification/`), not by Alertmanager. It carries
+Only permanently-true states are dropped, and only three of them. An alert
+that can never clear teaches you to ignore the channel it lands in, which is
+why they are discarded rather than filed under Info. `UpdateAvailable` is
+deliberately NOT dropped — it is how a new OKD release gets noticed.
+
+`#alerts-info` is fed from two directions: Alertmanager's info route, and Flux's
+notification-controller (`flux-notification/`) sharing the same webhook. It carries
 `eventSeverity: info`, making it a running deploy log — which HelmRelease moved
-to which chart version — as well as failures. Failures are therefore covered
+to which chart version — as well as failures. Failures are covered
 twice on purpose: the event says what happened at a moment, the
 `FluxHelmReleaseNotReady` alert keeps firing while it is still broken. An event
 is a moment; an alert is a state.

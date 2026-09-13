@@ -16,6 +16,10 @@ metadata:
 spec:
   providerRef:
     name: discord
+  # Posts to #alerts-info, the same channel Alertmanager's info route feeds --
+  # deploy events and low-priority alerts are the same kind of material, and
+  # one muted channel beats two.
+  #
   # `info` means info AND error, so this channel is a running deploy log, not
   # just a failure feed: which HelmRelease upgraded to which chart version,
   # which Kustomization applied which revision. Flux only emits these when
