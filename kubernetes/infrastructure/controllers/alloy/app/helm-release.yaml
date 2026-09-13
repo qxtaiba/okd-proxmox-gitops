@@ -112,12 +112,17 @@ spec:
               url = "http://loki-gateway.observability.svc.cluster.local:80/loki/api/v1/push"
             }
           }
+      # Measured 511.2Mi peak against a 512Mi limit over 14 days -- 0.8Mi of
+      # headroom, surviving only because Go respects GOMEMLIMIT. The 96Mi
+      # request was 5x under actual, so the scheduler treated a ~500Mi process
+      # as a small one. Alloy is single-replica with in-memory log positions,
+      # so an OOM is a log gap, not just a restart.
       resources:
         requests:
           cpu: 50m
-          memory: 96Mi
-        limits:
           memory: 512Mi
+        limits:
+          memory: 1Gi
       initialDelaySeconds: 30
       timeoutSeconds: 10
     configReloader:

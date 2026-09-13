@@ -9,6 +9,21 @@ data:
     enableUserWorkload: true
     prometheusK8s:
       retention: 15d
+      # Time-based retention alone leaves nothing bounding the TSDB by size.
+      # The two Prometheus PVCs are 92% of the okd-rbd pool and ~70% of all
+      # Ceph write traffic, and sit at 68.8% of 50Gi at steady state -- a ~45%
+      # series increase (one chatty exporter, one high-cardinality CRD) fills
+      # the volume and takes out both replicas. This converts that into
+      # silently shorter history.
+      retentionSize: 40GiB
+      # CMO defaults to requests cpu=70m memory=1Gi while actual usage is
+      # ~350m / 3.6Gi, peaking at 4.6Gi -- roughly 7Gi of memory per pair that
+      # the scheduler cannot see, on nodes already near 75% CPU requests.
+      # No memory limit on purpose: an OOMKilled Prometheus loses the head block.
+      resources:
+        requests:
+          cpu: 200m
+          memory: 4Gi
       nodeSelector:
         node-role.kubernetes.io/worker: ""
       volumeClaimTemplate:
