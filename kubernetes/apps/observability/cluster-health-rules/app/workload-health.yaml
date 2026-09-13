@@ -57,9 +57,20 @@ spec:
               Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
           labels:
             severity: warning
+        # The recency guard is load-bearing. failedJobsHistoryLimit retains a
+        # failed Job until a FOURTH failure evicts it, so an unguarded
+        # `kube_job_failed > 0` keeps firing on history forever -- this rule
+        # found three genuine etcd-backup failures on its first run, from 111,
+        # 40 and 25 days ago, long since remediated. Upstream's KubeJobFailed
+        # shares the unguarded expression and gets away with it only because
+        # most Jobs are garbage-collected; a CronJob with a failed-history
+        # limit breaks that assumption.
+        #
+        # 48h covers a daily schedule missing up to two consecutive runs.
         - alert: NamespaceJobFailed
           expr: |-
             kube_job_failed > 0
+              and on (namespace, job_name) (time() - kube_job_status_start_time < 172800)
           for: 15m
           annotations:
             summary: >-
@@ -119,9 +130,20 @@ spec:
               Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
           labels:
             severity: warning
+        # The recency guard is load-bearing. failedJobsHistoryLimit retains a
+        # failed Job until a FOURTH failure evicts it, so an unguarded
+        # `kube_job_failed > 0` keeps firing on history forever -- this rule
+        # found three genuine etcd-backup failures on its first run, from 111,
+        # 40 and 25 days ago, long since remediated. Upstream's KubeJobFailed
+        # shares the unguarded expression and gets away with it only because
+        # most Jobs are garbage-collected; a CronJob with a failed-history
+        # limit breaks that assumption.
+        #
+        # 48h covers a daily schedule missing up to two consecutive runs.
         - alert: NamespaceJobFailed
           expr: |-
             kube_job_failed > 0
+              and on (namespace, job_name) (time() - kube_job_status_start_time < 172800)
           for: 15m
           annotations:
             summary: >-
@@ -181,9 +203,20 @@ spec:
               Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
           labels:
             severity: warning
+        # The recency guard is load-bearing. failedJobsHistoryLimit retains a
+        # failed Job until a FOURTH failure evicts it, so an unguarded
+        # `kube_job_failed > 0` keeps firing on history forever -- this rule
+        # found three genuine etcd-backup failures on its first run, from 111,
+        # 40 and 25 days ago, long since remediated. Upstream's KubeJobFailed
+        # shares the unguarded expression and gets away with it only because
+        # most Jobs are garbage-collected; a CronJob with a failed-history
+        # limit breaks that assumption.
+        #
+        # 48h covers a daily schedule missing up to two consecutive runs.
         - alert: NamespaceJobFailed
           expr: |-
             kube_job_failed > 0
+              and on (namespace, job_name) (time() - kube_job_status_start_time < 172800)
           for: 15m
           annotations:
             summary: >-
@@ -243,9 +276,20 @@ spec:
               Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
           labels:
             severity: warning
+        # The recency guard is load-bearing. failedJobsHistoryLimit retains a
+        # failed Job until a FOURTH failure evicts it, so an unguarded
+        # `kube_job_failed > 0` keeps firing on history forever -- this rule
+        # found three genuine etcd-backup failures on its first run, from 111,
+        # 40 and 25 days ago, long since remediated. Upstream's KubeJobFailed
+        # shares the unguarded expression and gets away with it only because
+        # most Jobs are garbage-collected; a CronJob with a failed-history
+        # limit breaks that assumption.
+        #
+        # 48h covers a daily schedule missing up to two consecutive runs.
         - alert: NamespaceJobFailed
           expr: |-
             kube_job_failed > 0
+              and on (namespace, job_name) (time() - kube_job_status_start_time < 172800)
           for: 15m
           annotations:
             summary: >-
@@ -305,9 +349,20 @@ spec:
               Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
           labels:
             severity: warning
+        # The recency guard is load-bearing. failedJobsHistoryLimit retains a
+        # failed Job until a FOURTH failure evicts it, so an unguarded
+        # `kube_job_failed > 0` keeps firing on history forever -- this rule
+        # found three genuine etcd-backup failures on its first run, from 111,
+        # 40 and 25 days ago, long since remediated. Upstream's KubeJobFailed
+        # shares the unguarded expression and gets away with it only because
+        # most Jobs are garbage-collected; a CronJob with a failed-history
+        # limit breaks that assumption.
+        #
+        # 48h covers a daily schedule missing up to two consecutive runs.
         - alert: NamespaceJobFailed
           expr: |-
             kube_job_failed > 0
+              and on (namespace, job_name) (time() - kube_job_status_start_time < 172800)
           for: 15m
           annotations:
             summary: >-
@@ -367,9 +422,20 @@ spec:
               Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
           labels:
             severity: warning
+        # The recency guard is load-bearing. failedJobsHistoryLimit retains a
+        # failed Job until a FOURTH failure evicts it, so an unguarded
+        # `kube_job_failed > 0` keeps firing on history forever -- this rule
+        # found three genuine etcd-backup failures on its first run, from 111,
+        # 40 and 25 days ago, long since remediated. Upstream's KubeJobFailed
+        # shares the unguarded expression and gets away with it only because
+        # most Jobs are garbage-collected; a CronJob with a failed-history
+        # limit breaks that assumption.
+        #
+        # 48h covers a daily schedule missing up to two consecutive runs.
         - alert: NamespaceJobFailed
           expr: |-
             kube_job_failed > 0
+              and on (namespace, job_name) (time() - kube_job_status_start_time < 172800)
           for: 15m
           annotations:
             summary: >-
@@ -429,9 +495,20 @@ spec:
               Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
           labels:
             severity: warning
+        # The recency guard is load-bearing. failedJobsHistoryLimit retains a
+        # failed Job until a FOURTH failure evicts it, so an unguarded
+        # `kube_job_failed > 0` keeps firing on history forever -- this rule
+        # found three genuine etcd-backup failures on its first run, from 111,
+        # 40 and 25 days ago, long since remediated. Upstream's KubeJobFailed
+        # shares the unguarded expression and gets away with it only because
+        # most Jobs are garbage-collected; a CronJob with a failed-history
+        # limit breaks that assumption.
+        #
+        # 48h covers a daily schedule missing up to two consecutive runs.
         - alert: NamespaceJobFailed
           expr: |-
             kube_job_failed > 0
+              and on (namespace, job_name) (time() - kube_job_status_start_time < 172800)
           for: 15m
           annotations:
             summary: >-
@@ -491,9 +568,20 @@ spec:
               Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
           labels:
             severity: warning
+        # The recency guard is load-bearing. failedJobsHistoryLimit retains a
+        # failed Job until a FOURTH failure evicts it, so an unguarded
+        # `kube_job_failed > 0` keeps firing on history forever -- this rule
+        # found three genuine etcd-backup failures on its first run, from 111,
+        # 40 and 25 days ago, long since remediated. Upstream's KubeJobFailed
+        # shares the unguarded expression and gets away with it only because
+        # most Jobs are garbage-collected; a CronJob with a failed-history
+        # limit breaks that assumption.
+        #
+        # 48h covers a daily schedule missing up to two consecutive runs.
         - alert: NamespaceJobFailed
           expr: |-
             kube_job_failed > 0
+              and on (namespace, job_name) (time() - kube_job_status_start_time < 172800)
           for: 15m
           annotations:
             summary: >-
