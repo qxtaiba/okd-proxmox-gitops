@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+# Nine ReplicationSources protect every *arr config PVC, grafana-pvc and the
+# image registry. Their metrics only started reaching Prometheus on 2026-09-13
+# (the scrape had been returning 401), and nothing consumed them.
+#
+# A silently failing restic backup is discovered when you attempt a restore --
+# which is after you already need it.
+#
+# The scrape target lives in volsync-system, so `namespace` is always
+# volsync-system and satisfies enforcedNamespaceLabel; the PVC being protected
+# is carried in obj_namespace/obj_name, which is what the annotations report.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: volsync-rules
+  namespace: volsync-system
+spec:
+  groups:
+    - name: volsync.rules
+      rules:
+        - alert: VolsyncVolumeOutOfSync
+          expr: |-
+            volsync_volume_out_of_sync > 0
+          for: 1h
+          annotations:
+            summary: >-
+              VolSync backup {{ $labels.obj_namespace }}/{{ $labels.obj_name }} is out of sync
+          labels:
+            severity: critical
+        - alert: VolsyncMissedIntervals
+          expr: |-
+            increase(volsync_missed_intervals_total[6h]) > 0
+          for: 5m
+          annotations:
+            summary: >-
+              VolSync {{ $labels.obj_namespace }}/{{ $labels.obj_name }} missed a scheduled sync
+          labels:
+            severity: warning
+        # Without this, the exporter disappearing looks exactly like healthy
+        # backups -- assert on the payload metric, never on `up`.
+        - alert: VolsyncMetricsAbsent
+          expr: |-
+            absent(volsync_volume_out_of_sync)
+          for: 1h
+          annotations:
+            summary: >-
+              VolSync metrics are absent -- backup alerting is blind
+          labels:
+            severity: warning

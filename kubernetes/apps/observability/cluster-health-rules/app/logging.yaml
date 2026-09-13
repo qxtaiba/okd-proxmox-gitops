@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+# No rule anywhere mentioned Loki or Alloy. Combined with every Loki pod having
+# been BestEffort -- and therefore first to be evicted under memory pressure --
+# the log pipeline was both the designated first casualty and completely silent
+# about it.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: logging-rules
+  namespace: observability
+spec:
+  groups:
+    - name: logging.rules
+      rules:
+        - alert: LokiDown
+          expr: |-
+            absent(up{job=~".*loki.*"} == 1)
+          for: 15m
+          annotations:
+            summary: >-
+              No Loki target is up -- log ingestion and query are down
+          labels:
+            severity: critical
+        - alert: AlloyDown
+          expr: |-
+            absent(up{job=~".*alloy.*"} == 1)
+          for: 15m
+          annotations:
+            summary: >-
+              Alloy is not being scraped -- logs are probably not being collected
+          labels:
+            severity: critical
+        # Alloy keeps log positions in memory and runs single-replica, so a
+        # restart is a log gap, not just a blip. It also sat at 99.8% of its
+        # memory limit for 14 days before that limit was raised.
+        - alert: AlloyRestarting
+          expr: |-
+            increase(kube_pod_container_status_restarts_total{container="alloy"}[1h]) > 2
+          for: 5m
+          annotations:
+            summary: >-
+              Alloy has restarted more than twice in an hour -- expect gaps in logs
+          labels:
+            severity: warning
+        # The canary writes a known line per node and reads it back. This is
+        # the only check that proves logs are actually flowing end to end
+        # rather than that pods happen to be Running.
+        - alert: LokiCanaryMissingLogs
+          expr: |-
+            sum(increase(loki_canary_missing_entries_total[10m])) > 0
+          for: 15m
+          annotations:
+            summary: >-
+              Loki canary entries are missing -- the write path is dropping logs
+          labels:
+            severity: warning
