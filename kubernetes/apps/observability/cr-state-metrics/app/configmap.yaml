@@ -11,7 +11,7 @@ kind: ConfigMap
 metadata:
   name: cr-state-metrics-config
 data:
-  config.yaml: |
+  config.yaml: |-
     kind: CustomResourceStateMetrics
     spec:
       resources:
