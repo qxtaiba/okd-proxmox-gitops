@@ -56,6 +56,18 @@ stringData:
           group_interval: 5m
           repeat_interval: 5m
 
+        # Second dead-man's switch, for the OTHER alerting path. `Watchdog`
+        # above is a platform rule from prometheus-k8s; every user rule --
+        # Ceph, Flux, cert-manager, kube-vip, VolSync, workload health --
+        # is evaluated by Thanos Ruler instead. If the ruler stops evaluating,
+        # all of those go silent while the platform Watchdog keeps pinging and
+        # healthchecks.io keeps reporting the cluster healthy.
+        - matchers: [alertname = UserWorkloadWatchdog]
+          receiver: UserWorkloadWatchdog
+          group_wait: 0s
+          group_interval: 5m
+          repeat_interval: 5m
+
         # Permanently-true states, not incidents, and none of them will change
         # without a deliberate config change: InsightsDisabled (switched off on
         # purpose), KubeCPUOvercommit and SystemMemoryExceedsReservation
@@ -99,6 +111,11 @@ stringData:
       - name: Info
         discord_configs:
           - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url-info
+            send_resolved: false
+
+      - name: UserWorkloadWatchdog
+        webhook_configs:
+          - url_file: /etc/alertmanager/secrets/alertmanager-discord/healthchecks-url-uwm
             send_resolved: false
 
       - name: Watchdog

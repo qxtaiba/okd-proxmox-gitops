@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+# The healthchecks.io dead-man's switch watches the PLATFORM alerting path:
+# `Watchdog` is a platform rule evaluated by prometheus-k8s. Every user rule --
+# Ceph, Flux, cert-manager, kube-vip, VolSync, workload health -- is evaluated
+# by Thanos Ruler instead, and none of those always-fires.
+#
+# So if Thanos Ruler stops evaluating (a bad rule file, a broken query config,
+# an RBAC change on thanos-querier) every one of those alerts goes silent while
+# healthchecks.io stays green and reports the cluster healthy. This closes the
+# one gap where "no alerts" is indistinguishable from "all healthy".
+#
+# Routed to its own healthchecks.io check via the UserWorkloadWatchdog receiver.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: user-workload-watchdog
+  namespace: observability
+spec:
+  groups:
+    - name: user-workload-watchdog.rules
+      rules:
+        - alert: UserWorkloadWatchdog
+          expr: vector(1)
+          labels:
+            severity: none
+          annotations:
+            summary: >-
+              Always firing. Its absence at healthchecks.io means Thanos Ruler has stopped evaluating user-defined alerting rules.

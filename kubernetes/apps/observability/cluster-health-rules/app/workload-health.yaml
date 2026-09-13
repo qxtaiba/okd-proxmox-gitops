@@ -1,0 +1,513 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+
+
+# OKD's own workload rules are all scoped namespace=~"(openshift-.*|kube-.*|default)",
+# which leaves 11 namespaces and ~78 pods with no workload-health alerting at
+# all. That is not theoretical: a pod crashlooped in `observability` for 25
+# minutes with 15+ restarts on 2026-09-13 and nothing fired.
+#
+# One PrometheusRule per namespace is required, not stylistic: Thanos Ruler
+# runs with enforcedNamespaceLabel=namespace, so every expression is rewritten
+# to match the rule's OWN namespace. A single rule listing all namespaces
+# would silently match nothing -- the same trap that made 6 of rook's node
+# rules unfirable.
+#
+# kube-state-metrics labels by the OBSERVED object's namespace, so these
+# resolve correctly under that rewrite.
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workload-health
+  namespace: etcd-backup
+spec:
+  groups:
+    - name: workload-health.rules
+      rules:
+        - alert: NamespacePodCrashLooping
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]) >= 1
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} is crashlooping
+          labels:
+            severity: warning
+        - alert: NamespacePodNotReady
+          expr: |-
+            sum by (namespace, pod) (
+              max by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown"})
+              * on (namespace, pod) group_left(owner_kind)
+              topk by (namespace, pod) (1, max by (namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"}))
+            ) > 0
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} has been not-ready for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceDeploymentReplicasMismatch
+          expr: |-
+            (kube_deployment_spec_replicas != kube_deployment_status_replicas_available)
+              and (changes(kube_deployment_status_replicas_updated[10m]) == 0)
+          for: 15m
+          annotations:
+            summary: >-
+              Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceJobFailed
+          expr: |-
+            kube_job_failed > 0
+          for: 15m
+          annotations:
+            summary: >-
+              Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
+          labels:
+            severity: critical
+        - alert: NamespacePersistentVolumeFillingUp
+          expr: |-
+            kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes < 0.15
+              and kubelet_volume_stats_used_bytes > 0
+              and predict_linear(kubelet_volume_stats_available_bytes[6h], 4 * 24 * 3600) < 0
+          for: 1h
+          annotations:
+            summary: >-
+              PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workload-health
+  namespace: observability
+spec:
+  groups:
+    - name: workload-health.rules
+      rules:
+        - alert: NamespacePodCrashLooping
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]) >= 1
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} is crashlooping
+          labels:
+            severity: warning
+        - alert: NamespacePodNotReady
+          expr: |-
+            sum by (namespace, pod) (
+              max by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown"})
+              * on (namespace, pod) group_left(owner_kind)
+              topk by (namespace, pod) (1, max by (namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"}))
+            ) > 0
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} has been not-ready for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceDeploymentReplicasMismatch
+          expr: |-
+            (kube_deployment_spec_replicas != kube_deployment_status_replicas_available)
+              and (changes(kube_deployment_status_replicas_updated[10m]) == 0)
+          for: 15m
+          annotations:
+            summary: >-
+              Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceJobFailed
+          expr: |-
+            kube_job_failed > 0
+          for: 15m
+          annotations:
+            summary: >-
+              Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
+          labels:
+            severity: warning
+        - alert: NamespacePersistentVolumeFillingUp
+          expr: |-
+            kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes < 0.15
+              and kubelet_volume_stats_used_bytes > 0
+              and predict_linear(kubelet_volume_stats_available_bytes[6h], 4 * 24 * 3600) < 0
+          for: 1h
+          annotations:
+            summary: >-
+              PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workload-health
+  namespace: rook-ceph
+spec:
+  groups:
+    - name: workload-health.rules
+      rules:
+        - alert: NamespacePodCrashLooping
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]) >= 1
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} is crashlooping
+          labels:
+            severity: warning
+        - alert: NamespacePodNotReady
+          expr: |-
+            sum by (namespace, pod) (
+              max by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown"})
+              * on (namespace, pod) group_left(owner_kind)
+              topk by (namespace, pod) (1, max by (namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"}))
+            ) > 0
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} has been not-ready for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceDeploymentReplicasMismatch
+          expr: |-
+            (kube_deployment_spec_replicas != kube_deployment_status_replicas_available)
+              and (changes(kube_deployment_status_replicas_updated[10m]) == 0)
+          for: 15m
+          annotations:
+            summary: >-
+              Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceJobFailed
+          expr: |-
+            kube_job_failed > 0
+          for: 15m
+          annotations:
+            summary: >-
+              Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
+          labels:
+            severity: warning
+        - alert: NamespacePersistentVolumeFillingUp
+          expr: |-
+            kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes < 0.15
+              and kubelet_volume_stats_used_bytes > 0
+              and predict_linear(kubelet_volume_stats_available_bytes[6h], 4 * 24 * 3600) < 0
+          for: 1h
+          annotations:
+            summary: >-
+              PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workload-health
+  namespace: flux-system
+spec:
+  groups:
+    - name: workload-health.rules
+      rules:
+        - alert: NamespacePodCrashLooping
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]) >= 1
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} is crashlooping
+          labels:
+            severity: warning
+        - alert: NamespacePodNotReady
+          expr: |-
+            sum by (namespace, pod) (
+              max by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown"})
+              * on (namespace, pod) group_left(owner_kind)
+              topk by (namespace, pod) (1, max by (namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"}))
+            ) > 0
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} has been not-ready for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceDeploymentReplicasMismatch
+          expr: |-
+            (kube_deployment_spec_replicas != kube_deployment_status_replicas_available)
+              and (changes(kube_deployment_status_replicas_updated[10m]) == 0)
+          for: 15m
+          annotations:
+            summary: >-
+              Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceJobFailed
+          expr: |-
+            kube_job_failed > 0
+          for: 15m
+          annotations:
+            summary: >-
+              Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
+          labels:
+            severity: warning
+        - alert: NamespacePersistentVolumeFillingUp
+          expr: |-
+            kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes < 0.15
+              and kubelet_volume_stats_used_bytes > 0
+              and predict_linear(kubelet_volume_stats_available_bytes[6h], 4 * 24 * 3600) < 0
+          for: 1h
+          annotations:
+            summary: >-
+              PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workload-health
+  namespace: cert-manager
+spec:
+  groups:
+    - name: workload-health.rules
+      rules:
+        - alert: NamespacePodCrashLooping
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]) >= 1
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} is crashlooping
+          labels:
+            severity: warning
+        - alert: NamespacePodNotReady
+          expr: |-
+            sum by (namespace, pod) (
+              max by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown"})
+              * on (namespace, pod) group_left(owner_kind)
+              topk by (namespace, pod) (1, max by (namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"}))
+            ) > 0
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} has been not-ready for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceDeploymentReplicasMismatch
+          expr: |-
+            (kube_deployment_spec_replicas != kube_deployment_status_replicas_available)
+              and (changes(kube_deployment_status_replicas_updated[10m]) == 0)
+          for: 15m
+          annotations:
+            summary: >-
+              Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceJobFailed
+          expr: |-
+            kube_job_failed > 0
+          for: 15m
+          annotations:
+            summary: >-
+              Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
+          labels:
+            severity: warning
+        - alert: NamespacePersistentVolumeFillingUp
+          expr: |-
+            kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes < 0.15
+              and kubelet_volume_stats_used_bytes > 0
+              and predict_linear(kubelet_volume_stats_available_bytes[6h], 4 * 24 * 3600) < 0
+          for: 1h
+          annotations:
+            summary: >-
+              PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workload-health
+  namespace: external-secrets
+spec:
+  groups:
+    - name: workload-health.rules
+      rules:
+        - alert: NamespacePodCrashLooping
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]) >= 1
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} is crashlooping
+          labels:
+            severity: warning
+        - alert: NamespacePodNotReady
+          expr: |-
+            sum by (namespace, pod) (
+              max by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown"})
+              * on (namespace, pod) group_left(owner_kind)
+              topk by (namespace, pod) (1, max by (namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"}))
+            ) > 0
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} has been not-ready for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceDeploymentReplicasMismatch
+          expr: |-
+            (kube_deployment_spec_replicas != kube_deployment_status_replicas_available)
+              and (changes(kube_deployment_status_replicas_updated[10m]) == 0)
+          for: 15m
+          annotations:
+            summary: >-
+              Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceJobFailed
+          expr: |-
+            kube_job_failed > 0
+          for: 15m
+          annotations:
+            summary: >-
+              Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
+          labels:
+            severity: warning
+        - alert: NamespacePersistentVolumeFillingUp
+          expr: |-
+            kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes < 0.15
+              and kubelet_volume_stats_used_bytes > 0
+              and predict_linear(kubelet_volume_stats_available_bytes[6h], 4 * 24 * 3600) < 0
+          for: 1h
+          annotations:
+            summary: >-
+              PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workload-health
+  namespace: metallb-system
+spec:
+  groups:
+    - name: workload-health.rules
+      rules:
+        - alert: NamespacePodCrashLooping
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]) >= 1
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} is crashlooping
+          labels:
+            severity: warning
+        - alert: NamespacePodNotReady
+          expr: |-
+            sum by (namespace, pod) (
+              max by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown"})
+              * on (namespace, pod) group_left(owner_kind)
+              topk by (namespace, pod) (1, max by (namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"}))
+            ) > 0
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} has been not-ready for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceDeploymentReplicasMismatch
+          expr: |-
+            (kube_deployment_spec_replicas != kube_deployment_status_replicas_available)
+              and (changes(kube_deployment_status_replicas_updated[10m]) == 0)
+          for: 15m
+          annotations:
+            summary: >-
+              Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceJobFailed
+          expr: |-
+            kube_job_failed > 0
+          for: 15m
+          annotations:
+            summary: >-
+              Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
+          labels:
+            severity: warning
+        - alert: NamespacePersistentVolumeFillingUp
+          expr: |-
+            kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes < 0.15
+              and kubelet_volume_stats_used_bytes > 0
+              and predict_linear(kubelet_volume_stats_available_bytes[6h], 4 * 24 * 3600) < 0
+          for: 1h
+          annotations:
+            summary: >-
+              PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workload-health
+  namespace: volsync-system
+spec:
+  groups:
+    - name: workload-health.rules
+      rules:
+        - alert: NamespacePodCrashLooping
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]) >= 1
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} is crashlooping
+          labels:
+            severity: warning
+        - alert: NamespacePodNotReady
+          expr: |-
+            sum by (namespace, pod) (
+              max by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown"})
+              * on (namespace, pod) group_left(owner_kind)
+              topk by (namespace, pod) (1, max by (namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"}))
+            ) > 0
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} has been not-ready for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceDeploymentReplicasMismatch
+          expr: |-
+            (kube_deployment_spec_replicas != kube_deployment_status_replicas_available)
+              and (changes(kube_deployment_status_replicas_updated[10m]) == 0)
+          for: 15m
+          annotations:
+            summary: >-
+              Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched its replica count for 15m
+          labels:
+            severity: warning
+        - alert: NamespaceJobFailed
+          expr: |-
+            kube_job_failed > 0
+          for: 15m
+          annotations:
+            summary: >-
+              Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
+          labels:
+            severity: warning
+        - alert: NamespacePersistentVolumeFillingUp
+          expr: |-
+            kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes < 0.15
+              and kubelet_volume_stats_used_bytes > 0
+              and predict_linear(kubelet_volume_stats_available_bytes[6h], 4 * 24 * 3600) < 0
+          for: 1h
+          annotations:
+            summary: >-
+              PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning

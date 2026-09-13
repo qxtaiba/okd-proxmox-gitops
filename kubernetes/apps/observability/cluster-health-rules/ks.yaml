@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cluster-health-rules
+  namespace: flux-system
+spec:
+  # Deliberately NO targetNamespace. enforcedNamespaceLabel rewrites every user
+  # expression to match the rule's own namespace, so covering eight namespaces
+  # means eight PrometheusRules that each must land in a different namespace.
+  # Each resource therefore carries its own metadata.namespace.
+  path: ./kubernetes/apps/observability/cluster-health-rules/app
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  interval: 10m
+  timeout: 5m
+  retryInterval: 1m
+  prune: true
+  wait: true
