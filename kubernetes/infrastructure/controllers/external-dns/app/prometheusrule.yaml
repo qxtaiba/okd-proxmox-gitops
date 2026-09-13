@@ -16,7 +16,8 @@ spec:
             description: >-
               Routes and Ingresses will stop getting DNS records published to Cloudflare. Existing records will drift as apps change.
           labels:
-            severity: critical
+            # existing DNS records keep resolving
+            severity: warning
         - alert: ExternalDNSRegistryErrors
           expr: |-
             sum(rate(external_dns_registry_errors_total[5m])) > 0
