@@ -31,7 +31,7 @@ spec:
         - name: x509-certificate-exporter
           image: docker.io/enix/x509-certificate-exporter:4.2.0
           args:
-            - --watch-kubeconf=/host/localhost.kubeconfig
+            - --watch-kubeconf=/etc/kubeconfig/localhost.kubeconfig
           resources:
             requests:
               cpu: 10m
@@ -42,23 +42,20 @@ spec:
           ports:
             - containerPort: 9793
               name: metrics
+          # No runAsUser: 0 and no SCC exception any more. The kubeconfig now
+          # arrives as a projected Secret volume owned by the container, so
+          # neither root nor an SELinux exemption is needed to read it.
           securityContext:
-            # the watched kubeconfig is root-owned 0600 on the host, so read it
-            # as uid 0 -- but nothing more. no privileged, no added caps; the
-            # hostmount-anyuid SCC (see rbac.yaml) grants exactly hostPath +
-            # RunAsAny.
-            runAsUser: 0
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
           volumeMounts:
             - name: kubeconfig
-              mountPath: /host/localhost.kubeconfig
+              mountPath: /etc/kubeconfig
               readOnly: true
       volumes:
         - name: kubeconfig
-          hostPath:
-            path: /etc/kubernetes/static-pod-resources/kube-apiserver-certs/secrets/node-kubeconfigs/localhost.kubeconfig
-            type: File
+          secret:
+            secretName: x509-node-kubeconfig
   updateStrategy:
     type: RollingUpdate
