@@ -18,6 +18,12 @@ data:
             requests:
               storage: 50Gi
     alertmanagerMain:
+      # Mounted at /etc/alertmanager/secrets/alertmanager-discord/ so
+      # alertmanager.yaml can reference webhook_url_file / url_file instead of
+      # embedding credentials. Populated by the alertmanager-discord
+      # ExternalSecret; Alertmanager cannot read a Secret from its config.
+      secrets:
+        - alertmanager-discord
       nodeSelector:
         node-role.kubernetes.io/worker: ""
       volumeClaimTemplate:

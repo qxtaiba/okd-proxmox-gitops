@@ -63,9 +63,12 @@ invisible.
    custom node-disk rule would match nothing and look healthy — do not add
    one. Platform `NodeFilesystemAlmostOutOfSpace` already covers disk and now
    reaches Telegram.
-2. **Alertmanager 0.29.0 has no `chat_id_file`.** `bot_token_file` and
-   `url_file` exist; `chat_id_file` does not. Verified by `amtool`. The
-   file-indirection trick therefore cannot keep every value out of Git.
+2. **Alertmanager 0.29.0 has no `chat_id_file`** (`bot_token_file` and
+   `url_file` do exist). Verified by `amtool`. This is why Telegram was
+   rejected in favour of Discord: Telegram needs two values and one of them
+   cannot be file-mounted, forcing the whole config to be templated by
+   external-secrets. Discord needs one value and supports `webhook_url_file`,
+   so the config stays plain YAML in Git.
 3. **Alertmanager cannot read a Kubernetes Secret from its config**, so the
    config itself must be rendered with the values already in it.
 4. **CMO seeds `alertmanager-main`.** Taking it over needs
@@ -74,20 +77,31 @@ invisible.
 
 ## Design
 
-### Delivery — Telegram
+### Delivery — Discord
 
-`ExternalSecret` `alertmanager-main` renders the whole `alertmanager.yaml`,
-injecting `bot-token`, `chat-id` and `healthchecks-url` from 1Password item
-`alertmanager-telegram` in the `Kubernetes` vault. Alertmanager's native
-`telegram_configs` is used; no gateway workload, nothing to keep alive.
+`alertmanager.yaml` is a plain Secret in Git containing **no secret material**.
+The Discord webhook and healthchecks.io ping URL are read via
+`webhook_url_file` / `url_file` from `/etc/alertmanager/secrets/
+alertmanager-discord/`, mounted by `alertmanagerMain.secrets` and populated by
+the `alertmanager-discord` ExternalSecret from the 1Password item of the same
+name in the `Kubernetes` vault.
 
-Templating is safe only because the config contains no Go template syntax of
-its own. A custom Telegram `message:` must escape braces as `{{ ` + "`{{`" + ` }}`.
+This avoids external-secrets templating entirely, so there is no Go-template
+escaping hazard, and the config is reviewable in a PR as ordinary YAML.
 
-Signal was considered and rejected as the primary channel: Alertmanager has no
-native Signal receiver, `signal-cli-rest-api` needs a dedicated phone number
-and periodic re-registration, and — decisively — it would run *on the cluster
-it monitors*, so it cannot report the one failure that matters most.
+Verified with `amtool`: an **empty** credential file still passes
+`check-config`, because `*_file` values are read when a notification is sent,
+not at config load. A blank or rotated-away credential therefore costs
+notifications and can never leave Alertmanager unable to start. (Under the
+rejected Telegram design, a blank field produced valid YAML that Alertmanager
+refused to load — silently fine until the next pod restart, then total
+alerting loss.)
+
+All 14 of Alertmanager 0.29.0's receiver types were probed with `amtool`;
+every one is supported, so channel choice was preference, not capability.
+Signal and ntfy were rejected: neither has a native receiver, both need a
+bridge workload, and that bridge would run *on the cluster it monitors* — it
+cannot report the one failure that matters most.
 
 ### Routing
 
@@ -131,8 +145,10 @@ that hid Gap 1 for months.
 ## Validation performed
 
 - `kustomize build` on all 13 changed/new paths
-- `amtool check-config` on the rendered config: SUCCESS, 4 receivers
+- `amtool check-config`: SUCCESS with populated AND with empty credential
+  files, proving blank fields cannot break config load
 - `amtool config routes test` on 9 representative alerts
+- All 14 receiver types probed against this Alertmanager build
 - Every new PromQL expression executed against live Prometheus, each with an
   inverted control query proving the label selectors match real series
 
