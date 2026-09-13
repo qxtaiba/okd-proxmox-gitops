@@ -56,16 +56,22 @@ stringData:
           group_interval: 5m
           repeat_interval: 5m
 
-        # Permanent facts about this cluster, not incidents: InsightsDisabled
-        # (deliberate), UpdateAvailable (informational), KubeCPUOvercommit and
-        # SystemMemoryExceedsReservation (unavoidable on a 3-node compacted
-        # control plane running ~75% CPU requests).
+        # Permanently-true states, not incidents, and none of them will change
+        # without a deliberate config change: InsightsDisabled (switched off on
+        # purpose), KubeCPUOvercommit and SystemMemoryExceedsReservation
+        # (unavoidable on a 3-node compacted control plane at ~75% CPU
+        # requests). Dropped rather than sent to Info, because an alert that
+        # can never clear teaches you to ignore the channel it lands in.
         - matchers:
-            - alertname =~ InsightsDisabled|UpdateAvailable|KubeCPUOvercommit|SystemMemoryExceedsReservation
+            - alertname =~ InsightsDisabled|KubeCPUOvercommit|SystemMemoryExceedsReservation
           receiver: Drop
 
+        # Everything else at info severity -- notably UpdateAvailable, which is
+        # how a new OKD release gets noticed. Low frequency and no resolved
+        # messages, because this channel is read at leisure, not reacted to.
         - matchers: [severity = info]
-          receiver: Drop
+          receiver: Info
+          repeat_interval: 24h
 
         - matchers: [severity = critical]
           receiver: Critical
@@ -86,6 +92,14 @@ stringData:
         discord_configs:
           - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url-critical
             send_resolved: true
+
+      # Shares a channel (and therefore a webhook) with the Flux deploy feed:
+      # both are "read when you feel like it" material, and one muted channel
+      # beats two.
+      - name: Info
+        discord_configs:
+          - webhook_url_file: /etc/alertmanager/secrets/alertmanager-discord/webhook-url-info
+            send_resolved: false
 
       - name: Watchdog
         webhook_configs:
