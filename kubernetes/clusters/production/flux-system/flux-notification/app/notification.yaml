@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/notification.toolkit.fluxcd.io/provider_v1beta3.json
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Provider
+metadata:
+  name: discord
+spec:
+  type: discord
+  secretRef:
+    name: discord-flux-webhook
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: discord-flux
+spec:
+  providerRef:
+    name: discord
+  # `info` means info AND error, so this channel is a running deploy log, not
+  # just a failure feed: which HelmRelease upgraded to which chart version,
+  # which Kustomization applied which revision. Flux only emits these when
+  # something actually changes, not once per reconcile interval, so on this
+  # cluster it is a handful of messages a day -- mostly renovate landing.
+  #
+  # Failures are deliberately covered TWICE and that is the point: this gives
+  # the event detail, while FluxHelmReleaseNotReady / FluxKustomizationNotReady
+  # (flux-instance/app/prometheusrule.yaml) page through Alertmanager and keep
+  # firing until resolved. An event is a moment; an alert is a state.
+  #
+  # Set eventSeverity: error to reduce this channel to failures only.
+  eventSeverity: info
+  eventSources:
+    - kind: Kustomization
+      name: "*"
+      namespace: flux-system
+    - kind: HelmRelease
+      name: "*"
+      namespace: "*"
