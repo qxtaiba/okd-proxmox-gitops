@@ -88,6 +88,24 @@ spec:
               PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
           labels:
             severity: warning
+        # A container that can never start is invisible to every rule above.
+        # Found live 2026-09-13: default/tofu-state-backup sat in
+        # ImagePullBackOff for 159 minutes, guarding Terraform state, with
+        # nothing alerting -- KubePodNotReady excludes owner_kind=Job,
+        # kube_job_failed stays 0 because the Job retries forever rather than
+        # failing, and the crashloop rule above only matches CrashLoopBackOff.
+        #
+        # Same shape as the etcd-backup gap: a job that never fails is never
+        # noticed.
+        - alert: NamespaceContainerStuck
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+          for: 20m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+          labels:
+            severity: warning
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -159,6 +177,24 @@ spec:
           annotations:
             summary: >-
               PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning
+        # A container that can never start is invisible to every rule above.
+        # Found live 2026-09-13: default/tofu-state-backup sat in
+        # ImagePullBackOff for 159 minutes, guarding Terraform state, with
+        # nothing alerting -- KubePodNotReady excludes owner_kind=Job,
+        # kube_job_failed stays 0 because the Job retries forever rather than
+        # failing, and the crashloop rule above only matches CrashLoopBackOff.
+        #
+        # Same shape as the etcd-backup gap: a job that never fails is never
+        # noticed.
+        - alert: NamespaceContainerStuck
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+          for: 20m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
           labels:
             severity: warning
 ---
@@ -234,6 +270,24 @@ spec:
               PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
           labels:
             severity: warning
+        # A container that can never start is invisible to every rule above.
+        # Found live 2026-09-13: default/tofu-state-backup sat in
+        # ImagePullBackOff for 159 minutes, guarding Terraform state, with
+        # nothing alerting -- KubePodNotReady excludes owner_kind=Job,
+        # kube_job_failed stays 0 because the Job retries forever rather than
+        # failing, and the crashloop rule above only matches CrashLoopBackOff.
+        #
+        # Same shape as the etcd-backup gap: a job that never fails is never
+        # noticed.
+        - alert: NamespaceContainerStuck
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+          for: 20m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+          labels:
+            severity: warning
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -305,6 +359,24 @@ spec:
           annotations:
             summary: >-
               PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning
+        # A container that can never start is invisible to every rule above.
+        # Found live 2026-09-13: default/tofu-state-backup sat in
+        # ImagePullBackOff for 159 minutes, guarding Terraform state, with
+        # nothing alerting -- KubePodNotReady excludes owner_kind=Job,
+        # kube_job_failed stays 0 because the Job retries forever rather than
+        # failing, and the crashloop rule above only matches CrashLoopBackOff.
+        #
+        # Same shape as the etcd-backup gap: a job that never fails is never
+        # noticed.
+        - alert: NamespaceContainerStuck
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+          for: 20m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
           labels:
             severity: warning
 ---
@@ -380,6 +452,24 @@ spec:
               PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
           labels:
             severity: warning
+        # A container that can never start is invisible to every rule above.
+        # Found live 2026-09-13: default/tofu-state-backup sat in
+        # ImagePullBackOff for 159 minutes, guarding Terraform state, with
+        # nothing alerting -- KubePodNotReady excludes owner_kind=Job,
+        # kube_job_failed stays 0 because the Job retries forever rather than
+        # failing, and the crashloop rule above only matches CrashLoopBackOff.
+        #
+        # Same shape as the etcd-backup gap: a job that never fails is never
+        # noticed.
+        - alert: NamespaceContainerStuck
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+          for: 20m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+          labels:
+            severity: warning
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -451,6 +541,24 @@ spec:
           annotations:
             summary: >-
               PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning
+        # A container that can never start is invisible to every rule above.
+        # Found live 2026-09-13: default/tofu-state-backup sat in
+        # ImagePullBackOff for 159 minutes, guarding Terraform state, with
+        # nothing alerting -- KubePodNotReady excludes owner_kind=Job,
+        # kube_job_failed stays 0 because the Job retries forever rather than
+        # failing, and the crashloop rule above only matches CrashLoopBackOff.
+        #
+        # Same shape as the etcd-backup gap: a job that never fails is never
+        # noticed.
+        - alert: NamespaceContainerStuck
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+          for: 20m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
           labels:
             severity: warning
 ---
@@ -526,6 +634,24 @@ spec:
               PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
           labels:
             severity: warning
+        # A container that can never start is invisible to every rule above.
+        # Found live 2026-09-13: default/tofu-state-backup sat in
+        # ImagePullBackOff for 159 minutes, guarding Terraform state, with
+        # nothing alerting -- KubePodNotReady excludes owner_kind=Job,
+        # kube_job_failed stays 0 because the Job retries forever rather than
+        # failing, and the crashloop rule above only matches CrashLoopBackOff.
+        #
+        # Same shape as the etcd-backup gap: a job that never fails is never
+        # noticed.
+        - alert: NamespaceContainerStuck
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+          for: 20m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+          labels:
+            severity: warning
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -597,5 +723,55 @@ spec:
           annotations:
             summary: >-
               PVC {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} is below 15% free and trending full
+          labels:
+            severity: warning
+        # A container that can never start is invisible to every rule above.
+        # Found live 2026-09-13: default/tofu-state-backup sat in
+        # ImagePullBackOff for 159 minutes, guarding Terraform state, with
+        # nothing alerting -- KubePodNotReady excludes owner_kind=Job,
+        # kube_job_failed stays 0 because the Job retries forever rather than
+        # failing, and the crashloop rule above only matches CrashLoopBackOff.
+        #
+        # Same shape as the etcd-backup gap: a job that never fails is never
+        # noticed.
+        - alert: NamespaceContainerStuck
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+          for: 20m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+          labels:
+            severity: warning
+---
+# `default` is excluded from the namespaces above because OKD's platform rules
+# already cover it for crashloops, readiness and deployment mismatch. They do
+# NOT cover a container that can never start, so it gets this rule alone --
+# duplicating the others here would double-alert.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workload-health
+  namespace: default
+spec:
+  groups:
+    - name: workload-health.rules
+      rules:
+        # A container that can never start is invisible to every rule above.
+        # Found live 2026-09-13: default/tofu-state-backup sat in
+        # ImagePullBackOff for 159 minutes, guarding Terraform state, with
+        # nothing alerting -- KubePodNotReady excludes owner_kind=Job,
+        # kube_job_failed stays 0 because the Job retries forever rather than
+        # failing, and the crashloop rule above only matches CrashLoopBackOff.
+        #
+        # Same shape as the etcd-backup gap: a job that never fails is never
+        # noticed.
+        - alert: NamespaceContainerStuck
+          expr: |-
+            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+          for: 20m
+          annotations:
+            summary: >-
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
           labels:
             severity: warning
