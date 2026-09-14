@@ -32,7 +32,11 @@ spec:
           serviceAccountName: tf-runner
           containers:
             - name: backup
-              image: docker.io/minio/mc:RELEASE.2025-04-03T17-07-56Z
+              # quay.io, not docker.io: anonymous Docker Hub pulls are rate
+              # limited and this CronJob spent 3h37m in ImagePullBackOff with
+              # 932 backoff events on 2026-09-13. Same image and tag, verified
+              # present on quay, no pull secret required.
+              image: quay.io/minio/mc:RELEASE.2025-04-03T17-07-56Z
               envFrom:
                 - secretRef:
                     name: tofu-state-bucket

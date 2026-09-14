@@ -98,12 +98,20 @@ spec:
         # Same shape as the etcd-backup gap: a job that never fails is never
         # noticed.
         - alert: NamespaceContainerStuck
+          # Aggregated by container, NOT by reason. kubelet reports a failing
+          # pull as both ErrImagePull and ImagePullBackOff, so keeping `reason`
+          # in the label set turns one broken container into two independent
+          # alert series that fire and resolve separately -- observed on
+          # default/tofu-state-backup, which delivered a firing and a resolved
+          # message for the same problem.
           expr: |-
-            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+            max by (namespace, pod, container) (
+              max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m])
+            ) >= 1
           for: 20m
           annotations:
             summary: >-
-              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start
           labels:
             severity: warning
 ---
@@ -189,12 +197,20 @@ spec:
         # Same shape as the etcd-backup gap: a job that never fails is never
         # noticed.
         - alert: NamespaceContainerStuck
+          # Aggregated by container, NOT by reason. kubelet reports a failing
+          # pull as both ErrImagePull and ImagePullBackOff, so keeping `reason`
+          # in the label set turns one broken container into two independent
+          # alert series that fire and resolve separately -- observed on
+          # default/tofu-state-backup, which delivered a firing and a resolved
+          # message for the same problem.
           expr: |-
-            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+            max by (namespace, pod, container) (
+              max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m])
+            ) >= 1
           for: 20m
           annotations:
             summary: >-
-              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start
           labels:
             severity: warning
 ---
@@ -280,12 +296,20 @@ spec:
         # Same shape as the etcd-backup gap: a job that never fails is never
         # noticed.
         - alert: NamespaceContainerStuck
+          # Aggregated by container, NOT by reason. kubelet reports a failing
+          # pull as both ErrImagePull and ImagePullBackOff, so keeping `reason`
+          # in the label set turns one broken container into two independent
+          # alert series that fire and resolve separately -- observed on
+          # default/tofu-state-backup, which delivered a firing and a resolved
+          # message for the same problem.
           expr: |-
-            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+            max by (namespace, pod, container) (
+              max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m])
+            ) >= 1
           for: 20m
           annotations:
             summary: >-
-              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start
           labels:
             severity: warning
 ---
@@ -371,12 +395,20 @@ spec:
         # Same shape as the etcd-backup gap: a job that never fails is never
         # noticed.
         - alert: NamespaceContainerStuck
+          # Aggregated by container, NOT by reason. kubelet reports a failing
+          # pull as both ErrImagePull and ImagePullBackOff, so keeping `reason`
+          # in the label set turns one broken container into two independent
+          # alert series that fire and resolve separately -- observed on
+          # default/tofu-state-backup, which delivered a firing and a resolved
+          # message for the same problem.
           expr: |-
-            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+            max by (namespace, pod, container) (
+              max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m])
+            ) >= 1
           for: 20m
           annotations:
             summary: >-
-              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start
           labels:
             severity: warning
 ---
@@ -462,12 +494,20 @@ spec:
         # Same shape as the etcd-backup gap: a job that never fails is never
         # noticed.
         - alert: NamespaceContainerStuck
+          # Aggregated by container, NOT by reason. kubelet reports a failing
+          # pull as both ErrImagePull and ImagePullBackOff, so keeping `reason`
+          # in the label set turns one broken container into two independent
+          # alert series that fire and resolve separately -- observed on
+          # default/tofu-state-backup, which delivered a firing and a resolved
+          # message for the same problem.
           expr: |-
-            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+            max by (namespace, pod, container) (
+              max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m])
+            ) >= 1
           for: 20m
           annotations:
             summary: >-
-              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start
           labels:
             severity: warning
 ---
@@ -553,12 +593,20 @@ spec:
         # Same shape as the etcd-backup gap: a job that never fails is never
         # noticed.
         - alert: NamespaceContainerStuck
+          # Aggregated by container, NOT by reason. kubelet reports a failing
+          # pull as both ErrImagePull and ImagePullBackOff, so keeping `reason`
+          # in the label set turns one broken container into two independent
+          # alert series that fire and resolve separately -- observed on
+          # default/tofu-state-backup, which delivered a firing and a resolved
+          # message for the same problem.
           expr: |-
-            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+            max by (namespace, pod, container) (
+              max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m])
+            ) >= 1
           for: 20m
           annotations:
             summary: >-
-              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start
           labels:
             severity: warning
 ---
@@ -644,12 +692,20 @@ spec:
         # Same shape as the etcd-backup gap: a job that never fails is never
         # noticed.
         - alert: NamespaceContainerStuck
+          # Aggregated by container, NOT by reason. kubelet reports a failing
+          # pull as both ErrImagePull and ImagePullBackOff, so keeping `reason`
+          # in the label set turns one broken container into two independent
+          # alert series that fire and resolve separately -- observed on
+          # default/tofu-state-backup, which delivered a firing and a resolved
+          # message for the same problem.
           expr: |-
-            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+            max by (namespace, pod, container) (
+              max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m])
+            ) >= 1
           for: 20m
           annotations:
             summary: >-
-              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start
           labels:
             severity: warning
 ---
@@ -735,12 +791,20 @@ spec:
         # Same shape as the etcd-backup gap: a job that never fails is never
         # noticed.
         - alert: NamespaceContainerStuck
+          # Aggregated by container, NOT by reason. kubelet reports a failing
+          # pull as both ErrImagePull and ImagePullBackOff, so keeping `reason`
+          # in the label set turns one broken container into two independent
+          # alert series that fire and resolve separately -- observed on
+          # default/tofu-state-backup, which delivered a firing and a resolved
+          # message for the same problem.
           expr: |-
-            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+            max by (namespace, pod, container) (
+              max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m])
+            ) >= 1
           for: 20m
           annotations:
             summary: >-
-              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start
           labels:
             severity: warning
 ---
@@ -767,11 +831,19 @@ spec:
         # Same shape as the etcd-backup gap: a job that never fails is never
         # noticed.
         - alert: NamespaceContainerStuck
+          # Aggregated by container, NOT by reason. kubelet reports a failing
+          # pull as both ErrImagePull and ImagePullBackOff, so keeping `reason`
+          # in the label set turns one broken container into two independent
+          # alert series that fire and resolve separately -- observed on
+          # default/tofu-state-backup, which delivered a firing and a resolved
+          # message for the same problem.
           expr: |-
-            max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m]) >= 1
+            max by (namespace, pod, container) (
+              max_over_time(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|InvalidImageName"}[10m])
+            ) >= 1
           for: 20m
           annotations:
             summary: >-
-              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start ({{ $labels.reason }})
+              {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} cannot start
           labels:
             severity: warning
