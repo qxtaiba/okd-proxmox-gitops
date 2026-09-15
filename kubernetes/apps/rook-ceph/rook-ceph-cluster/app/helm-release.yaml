@@ -35,7 +35,7 @@ spec:
     # failureDomain in every pool (cephBlockPools, cephFileSystems, cephObjectStores).
     cephImage:
       repository: quay.io/ceph/ceph
-      tag: v20.2.4
+      tag: v21.1.0
     cephClusterSpec:
       # The `scratch` dataPool below is size 1, so every PG in it lives on a
       # single OSD and `ceph osd ok-to-stop` is permanently false for all three
