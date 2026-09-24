@@ -124,9 +124,21 @@ storage:
               virtual_router_id 51
               priority 100
               advert_int 1
-              # Once a node holds the VIP it keeps it even when a higher-IP peer
-              # returns. Recovery should not cost a second failover.
-              nopreempt
+              # NO nopreempt here, deliberately. nopreempt means "a BACKUP will
+              # not take over from a lower-priority MASTER", which silently
+              # defeats the health check below: verified live on 2026-09-24,
+              # the master logged
+              #     VRRP_Script(chk_apiserver) failed (exited with status 1)
+              #     (API) Changing effective priority from 100 to 40
+              # and the backups still refused to take the VIP. The whole reason
+              # for moving off kube-vip was health-check-driven failover, so
+              # nopreempt cancels the feature this file exists to provide.
+              #
+              # It also damps nothing. Every master has the same base priority,
+              # and VRRP only preempts on STRICTLY higher priority, so a
+              # recovered node returning to 100 never displaces an equal
+              # master. Preemption happens only when a master's effective
+              # priority actually drops -- exactly the intended behaviour.
               unicast_src_ip ${MY_IP}
               unicast_peer {
           ${PEERS}    }
