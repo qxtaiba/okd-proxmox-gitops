@@ -107,12 +107,20 @@ stringData:
         # to mobile push. A MachineConfig rollout reboots all three nodes in
         # sequence: three pages per rollout.
         #
+        # CephMonClockSkew is here for a different reason than the rest: its
+        # rule is `for: 60s` while ceph only re-measures skew every
+        # mon_timecheck_interval = 300s. One perturbed timecheck round fires
+        # it and the next round five minutes later clears it -- fire, resolve,
+        # repeat, forever. The clocks are fine: chrony reports microsecond
+        # offsets against a 50ms threshold and ceph measures skew: 0 on all
+        # three mons. The blips track VM clock jitter under Proxmox host load.
+        #
         # group_wait does the job that `for:` would, without index-patching a
         # chart-generated rule list (which breaks silently when upstream
         # reorders). Nothing is sent unless the condition survives 15 minutes,
         # which a rolling reboot never does and a real failure always does.
         - matchers:
-            - alertname =~ CephOSDDownHigh|CephOSDFlapping|CephMonDown|CephMonDownQuorumAtRisk|CephFilesystemInsufficientStandby|CephPoolBackfillFull|CephOSDHostDown
+            - alertname =~ CephOSDDownHigh|CephOSDFlapping|CephMonDown|CephMonDownQuorumAtRisk|CephFilesystemInsufficientStandby|CephPoolBackfillFull|CephOSDHostDown|CephMonClockSkew
           receiver: Critical
           group_wait: 15m
           group_interval: 15m
