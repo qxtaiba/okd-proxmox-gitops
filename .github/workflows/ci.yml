@@ -63,22 +63,22 @@ jobs:
       - uses: fluxcd/flux2/action@03af120af1b9c97dba1c94ca251ece481b352bfb # main
       - run: pip install flux-local
       - run: flux-local test --path kubernetes/clusters/production --enable-helm --all-namespaces
-  # Every *.bu must render byte-identically to its committed machineconfig.yaml.
-  # Renovate bumps image tags inside .bu sources (see customManagers) but cannot
-  # regenerate the rendered MachineConfig; this gate turns a bumped-but-stale
-  # render into a loud failure instead of a silently ineffective merge.
-  # Regenerate with: { echo "---"; butane --strict <file>.bu; } > machineconfig.yaml
-  # Renders every *.bu and, on a same-repo PR, COMMITS the result rather than
-  # merely failing. The rendered MachineConfig embeds its files as gzip+base64,
-  # so the image tag inside is not greppable and renovate cannot refresh it --
-  # it edits the .bu and leaves the render stale every single time. Before
-  # this, each bump needed a human to run butane by hand; PR #211 sat red for
-  # exactly that reason. A VIP nobody wants to touch is precisely the component
-  # that ends up running a stale image for months.
+  # Every *.bu must render byte-identically to its committed machineconfig.yaml,
+  # because the MachineConfig is what the node actually applies -- a stale
+  # render means the node keeps the old image while git claims otherwise.
   #
-  # Still fails closed on push-to-develop and on fork PRs, where pushing the
-  # fix is impossible or unsafe: a stale render merged to develop would mean
-  # the node keeps the old image while git claims otherwise.
+  # Renovate bumps image tags inside .bu sources (see customManagers) but cannot
+  # regenerate the render: a MachineConfig embeds its files as gzip+base64, so
+  # the tag inside is not greppable. Renovate edits the .bu and leaves the
+  # render stale every single time. This job closes that gap by rendering every
+  # *.bu and, on a same-repo PR, COMMITTING the result rather than merely
+  # failing -- previously each bump needed a human to run butane by hand, and
+  # PR #211 sat red for exactly that reason. A VIP nobody wants to touch is
+  # precisely the component that ends up running a stale image for months.
+  #
+  # Still fails closed on push-to-develop and on fork PRs, where pushing the fix
+  # is impossible or unsafe. Regenerate by hand there with:
+  #   { echo "---"; butane --strict <file>.bu; } > machineconfig.yaml
   butane-drift:
     runs-on: ubuntu-latest
     permissions:
