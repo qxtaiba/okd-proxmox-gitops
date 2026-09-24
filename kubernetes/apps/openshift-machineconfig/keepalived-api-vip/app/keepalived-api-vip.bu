@@ -168,7 +168,7 @@ storage:
             priorityClassName: system-node-critical
             containers:
             - name: keepalived
-              image: quay.io/openshift/origin-keepalived-ipfailover:4.20
+              image: quay.io/openshift/origin-keepalived-ipfailover:5.1
               # The image's default entrypoint is OpenShift's ipfailover
               # monitor.sh wrapper, which expects env this pod does not set.
               # Run keepalived directly against our own rendered config.
