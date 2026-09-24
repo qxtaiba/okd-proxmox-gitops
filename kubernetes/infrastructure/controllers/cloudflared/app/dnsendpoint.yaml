@@ -4,6 +4,21 @@ apiVersion: externaldns.k8s.io/v1alpha1
 kind: DNSEndpoint
 metadata:
   name: cloudflared-tunnel
+  annotations:
+    # external-dns runs with --annotation-filter=external-dns.alpha.kubernetes.io/target,
+    # and that filter applies to EVERY source including this CRD one. Without
+    # the annotation present this DNSEndpoint is silently skipped -- external-dns
+    # logs "All records are already up to date" and never reconciles it, which
+    # is why external.grappleberry.xyz has no TXT ownership record and why
+    # router-grappleberry.grappleberry.xyz was never created.
+    #
+    # The value is set to the tunnel rather than something arbitrary on
+    # purpose. The CRD source should take targets from spec.endpoints and
+    # ignore this, but if external-dns ever honours the annotation as an
+    # override here, both endpoints already point where they should -- rather
+    # than being rewritten to a bogus hostname, which would take
+    # external.grappleberry.xyz down and with it plex.
+    external-dns.alpha.kubernetes.io/target: 6e5ac84c-22c7-4a51-891e-1a5133ab9e54.cfargotunnel.com
 spec:
   endpoints:
     - dnsName: external.grappleberry.xyz
