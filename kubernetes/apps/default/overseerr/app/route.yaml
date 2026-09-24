@@ -7,7 +7,14 @@ metadata:
   labels:
     ingress: grappleberry
   annotations:
-    external-dns.alpha.kubernetes.io/target: external.grappleberry.xyz
+    # Straight to the tunnel, not via external.grappleberry.xyz. That hop is
+    # itself a PROXIED record, and Cloudflare treats a proxied CNAME's target
+    # as the origin -- a proxied hostname has no origin IP to resolve, so the
+    # edge returned HTTP 530 / error 1016 and the tunnel never saw a request
+    # (cloudflared_tunnel_total_requests stayed 0). Verified side by side:
+    # external.grappleberry.xyz returns 404 from the tunnel's own catch-all,
+    # while overseerr.grappleberry.xyz returned 1016.
+    external-dns.alpha.kubernetes.io/target: 6e5ac84c-22c7-4a51-891e-1a5133ab9e54.cfargotunnel.com
 spec:
   host: overseerr.grappleberry.xyz
   port:
@@ -28,7 +35,14 @@ metadata:
   labels:
     ingress: grappleberry
   annotations:
-    external-dns.alpha.kubernetes.io/target: external.grappleberry.xyz
+    # Straight to the tunnel, not via external.grappleberry.xyz. That hop is
+    # itself a PROXIED record, and Cloudflare treats a proxied CNAME's target
+    # as the origin -- a proxied hostname has no origin IP to resolve, so the
+    # edge returned HTTP 530 / error 1016 and the tunnel never saw a request
+    # (cloudflared_tunnel_total_requests stayed 0). Verified side by side:
+    # external.grappleberry.xyz returns 404 from the tunnel's own catch-all,
+    # while overseerr.grappleberry.xyz returned 1016.
+    external-dns.alpha.kubernetes.io/target: 6e5ac84c-22c7-4a51-891e-1a5133ab9e54.cfargotunnel.com
 spec:
   host: requests.grappleberry.xyz
   port:
