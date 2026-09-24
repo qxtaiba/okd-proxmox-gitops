@@ -11,3 +11,20 @@ spec:
       recordType: CNAME
       targets:
         - 6e5ac84c-22c7-4a51-891e-1a5133ab9e54.cfargotunnel.com
+    # external-dns publishes OpenShift Routes as a CNAME to the Route's
+    # status.ingress[].routerCanonicalHostname -- router-grappleberry.grappleberry.xyz
+    # -- and ignores the external-dns.alpha.kubernetes.io/target annotation
+    # when doing so. That hostname had no record in the zone, so every
+    # externally-published Route was a dangling CNAME and Cloudflare answered
+    # HTTP 530 / error 1016 (origin DNS error). overseerr and requests were
+    # both affected; plex was not, because its record predates external-dns
+    # taking ownership and still points at external.grappleberry.xyz.
+    #
+    # Pointing the canonical router hostname at the tunnel fixes every Route
+    # external-dns manages, present and future, with one record -- rather than
+    # fighting external-dns over each annotation.
+    - dnsName: router-grappleberry.grappleberry.xyz
+      recordTTL: 1
+      recordType: CNAME
+      targets:
+        - 6e5ac84c-22c7-4a51-891e-1a5133ab9e54.cfargotunnel.com
