@@ -1,11 +1,19 @@
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/apps/daemonset_v1.json
 ---
-# watches the on-disk localhost.kubeconfig that the kube-vip static pod
-# authenticates with. kube-vip loads that credential once at startup and never
-# hot-reloads it, so cert expiry there is a silent leader-election killer --
-# this exporter turns it into a metric (x509_cert_not_after) that the kube-vip
-# prometheusrule alerts on. runs on masters only; the platform node-exporter
-# cannot do this because its textfile dir is an emptyDir, not a hostPath.
+# watches localhost.kubeconfig, the node credential OKD rotates via
+# node-system-admin-signer, and turns its expiry into a metric
+# (x509_cert_not_after) that api-vip-rules alerts on.
+#
+# Originally added because the kube-vip static pod authenticated with this file
+# and never hot-reloaded it, making expiry a silent leader-election killer.
+# keepalived replaced kube-vip and needs no kubeconfig at all, so that specific
+# failure mode is gone -- but the certificate is still a real cluster
+# credential worth watching, so this stays.
+#
+# Reads the credential from a Secret synced by external-secrets rather than the
+# host path: the container runs as uid 0 so DAC passes, but SELinux forbids
+# container_t from reading kubernetes_file_t, which left this exporter scraping
+# green while exporting nothing for months. Runs on masters only.
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:

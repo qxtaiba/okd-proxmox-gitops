@@ -2,7 +2,7 @@
 ---
 # The healthchecks.io dead-man's switch watches the PLATFORM alerting path:
 # `Watchdog` is a platform rule evaluated by prometheus-k8s. Every user rule --
-# Ceph, Flux, cert-manager, kube-vip, VolSync, workload health -- is evaluated
+# Ceph, Flux, cert-manager, API VIP, VolSync, workload health -- is evaluated
 # by Thanos Ruler instead, and none of those always-fires.
 #
 # So if Thanos Ruler stops evaluating (a bad rule file, a broken query config,

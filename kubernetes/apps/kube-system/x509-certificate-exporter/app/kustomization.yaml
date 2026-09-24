@@ -7,3 +7,4 @@ resources:
   - ./rbac.yaml
   - ./daemonset.yaml
   - ./podmonitor.yaml
+  - ./prometheusrule.yaml
