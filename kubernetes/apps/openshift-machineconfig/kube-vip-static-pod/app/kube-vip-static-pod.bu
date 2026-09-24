@@ -43,6 +43,19 @@ storage:
               securityContext:
                 capabilities:
                   add: ["NET_ADMIN","NET_RAW"]
+              # Measured ~129Mi steady state across the three nodes. This is
+              # scheduler accounting, not eviction protection --
+              # system-node-critical above already puts kube-vip last in
+              # kubelet's eviction order regardless of QoS class. Without
+              # requests the mirror pod contributes nothing to node
+              # allocatable, so the scheduler plans as though the process that
+              # owns the API VIP were free.
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 192Mi
+                limits:
+                  memory: 384Mi
               env:
               - {name: vip_arp, value: "true"}
               # the VIP rides ens18 deliberately: exactly one mechanism (this

@@ -68,10 +68,26 @@ jobs:
   # regenerate the rendered MachineConfig; this gate turns a bumped-but-stale
   # render into a loud failure instead of a silently ineffective merge.
   # Regenerate with: { echo "---"; butane --strict <file>.bu; } > machineconfig.yaml
+  # Renders every *.bu and, on a same-repo PR, COMMITS the result rather than
+  # merely failing. The rendered MachineConfig embeds its files as gzip+base64,
+  # so the image tag inside is not greppable and renovate cannot refresh it --
+  # it edits the .bu and leaves the render stale every single time. Before
+  # this, each bump needed a human to run butane by hand; PR #211 sat red for
+  # exactly that reason. A VIP nobody wants to touch is precisely the component
+  # that ends up running a stale image for months.
+  #
+  # Still fails closed on push-to-develop and on fork PRs, where pushing the
+  # fix is impossible or unsafe: a stale render merged to develop would mean
+  # the node keeps the old image while git claims otherwise.
   butane-drift:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
       - run: |
           # renovate: datasource=github-releases depName=coreos/butane
           BUTANE_VERSION=v0.29.0
@@ -79,12 +95,30 @@ jobs:
             "https://github.com/coreos/butane/releases/download/${BUTANE_VERSION}/butane-x86_64-unknown-linux-gnu"
           chmod +x /usr/local/bin/butane
       - run: |-
-          rc=0
+          changed=0
           for bu in $(find kubernetes -name '*.bu'); do
             rendered="$(dirname "$bu")/machineconfig.yaml"
-            if ! { echo "---"; butane --strict "$bu"; } | diff -u "$rendered" -; then
-              echo "::error file=$bu::render drifts from $rendered — regenerate and commit"
-              rc=1
+            if ! { echo "---"; butane --strict "$bu"; } | diff -u "$rendered" - ; then
+              { echo "---"; butane --strict "$bu"; } > "$rendered"
+              echo "::notice file=$bu::regenerated $rendered"
+              changed=1
             fi
           done
-          exit $rc
+          echo "BUTANE_CHANGED=$changed" >> "$GITHUB_ENV"
+      - name: Commit the regenerated render
+        if: env.BUTANE_CHANGED == '1'
+        env:
+          IS_PR: ${{ github.event_name == 'pull_request' }}
+          SAME_REPO: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |-
+          if [ "$IS_PR" != "true" ] || [ "$SAME_REPO" != "true" ]; then
+            echo "::error::render drifts and cannot be auto-committed here. Regenerate locally:"
+            echo "::error::  { echo '---'; butane --strict <file>.bu; } > machineconfig.yaml"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(butane): regenerate MachineConfig from .bu source"
+          git push origin "HEAD:$HEAD_REF"
