@@ -33,9 +33,25 @@ spec:
     # mathematically unsatisfiable with <3 hosts (pools sit DEGRADED, I/O blocks).
     # If shrinking the cluster below 3 hosts, adjust replicated.size and
     # failureDomain in every pool (cephBlockPools, cephFileSystems, cephObjectStores).
+    # Pinned to the last GA release. Renovate offered v21.1.0 and it was
+    # merged on 2026-09-24; rook refused it outright:
+    #
+    #   failed the ceph version check: allowUnsupported must be set to true
+    #   to run with this version "21.1.0-0 umbrella"
+    #
+    # "umbrella" is a pre-release build, not a stable GA - renovate matched it
+    # on version-string shape alone. The daemons never left v20.2.4 and the
+    # data was never at risk (HEALTH_OK, 30/30 PVCs bound, verified by writing
+    # through a live Ceph volume), but the cluster sat in Progressing with the
+    # object and file controllers refusing to reconcile, and the toolbox broke
+    # because rook had already moved IT to the v21 image against a v20 cluster.
+    #
+    # Do not take a Ceph major here without a planned rollout: pre-flight
+    # checks, a fresh etcd backup, and a watched roll, the same way the OKD
+    # 4.22 upgrade was done.
     cephImage:
       repository: quay.io/ceph/ceph
-      tag: v21.1.0
+      tag: v20.2.4
     cephClusterSpec:
       # The `scratch` dataPool below is size 1, so every PG in it lives on a
       # single OSD and `ceph osd ok-to-stop` is permanently false for all three
