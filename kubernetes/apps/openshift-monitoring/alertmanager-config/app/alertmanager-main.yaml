@@ -89,7 +89,7 @@ stringData:
 
         # Second dead-man's switch, for the OTHER alerting path. `Watchdog`
         # above is a platform rule from prometheus-k8s; every user rule --
-        # Ceph, Flux, cert-manager, kube-vip, VolSync, workload health --
+        # Ceph, Flux, cert-manager, API VIP, VolSync, workload health --
         # is evaluated by Thanos Ruler instead. If the ruler stops evaluating,
         # all of those go silent while the platform Watchdog keeps pinging and
         # healthchecks.io keeps reporting the cluster healthy.

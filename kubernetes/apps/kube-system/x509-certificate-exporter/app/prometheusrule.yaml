@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+# Alerts for the API VIP and for the node kubeconfig certificate.
+#
+# These used to live in the kube-vip prometheusrule, which was deleted when
+# keepalived replaced kube-vip as the owner of 192.168.227.10. Two things
+# changed with that migration:
+#
+#  - The lease alerts are gone. kube-vip elected through the Kubernetes Lease
+#    plndr-cp-lock, so kube_lease_* gave a free leader signal. VRRP elects
+#    between the keepalived instances themselves and produces no Kubernetes
+#    object at all, so there is nothing equivalent to alert on.
+#  - The cert alerts are no longer VIP-critical. keepalived needs no kubeconfig,
+#    so an expired localhost.kubeconfig can no longer kill leader election.
+#    The certificate still matters to the cluster, so the alerts are kept here
+#    under generic names rather than deleted.
+#
+# NOTE: none of these asserts that 192.168.227.10 actually answers. That needs
+# a prober and is deliberately a follow-up, so the front-door migration and a
+# brand-new component are not landed in the same change.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: api-vip-rules
+  namespace: kube-system
+spec:
+  groups:
+    - name: api-vip.rules
+      rules:
+        # keepalived runs as a static pod on every master. Its mirror pod is
+        # visible to kube-state-metrics, so pod presence is the cheapest
+        # liveness signal available without an exporter.
+        - alert: KeepalivedAllInstancesDown
+          expr: |-
+            absent(kube_pod_status_phase{namespace="kube-system", pod=~"keepalived-.*", phase="Running"} == 1)
+          for: 5m
+          annotations:
+            summary: >-
+              No keepalived static pod is Running -- the API VIP 192.168.227.10 is unmanaged
+          labels:
+            severity: critical
+        - alert: KeepalivedInstanceDown
+          expr: |-
+            count(kube_pod_status_phase{namespace="kube-system", pod=~"keepalived-.*", phase="Running"} == 1) < 3
+          for: 15m
+          annotations:
+            summary: >-
+              Only {{ $value }} of 3 keepalived static pods are Running
+          labels:
+            severity: warning
+        # Asserts on the PAYLOAD, not on `up`: this exporter scraped green for
+        # months while exporting zero certificates because SELinux blocked it
+        # from reading its source. A broken exporter should be loud.
+        - alert: CertExporterAbsent
+          expr: |-
+            absent(x509_cert_not_after{job="kube-system/x509-certificate-exporter"})
+          for: 30m
+          annotations:
+            summary: >-
+              x509-certificate-exporter is scraping but exporting no certificate metrics
+          labels:
+            severity: warning
+        - alert: CertExporterSourceFailing
+          expr: |-
+            x509_source_up == 0
+          for: 30m
+          annotations:
+            summary: >-
+              x509-certificate-exporter cannot read its source on {{ $labels.instance }}
+          labels:
+            severity: warning
+        - alert: NodeKubeconfigCertExpiringSoon
+          expr: |-
+            (min(x509_cert_not_after{namespace="kube-system", filepath=~".*localhost.kubeconfig"}) - time()) < 30 * 86400
+          for: 1h
+          annotations:
+            summary: >-
+              The node localhost.kubeconfig certificate expires in under 30 days
+          labels:
+            severity: warning
+        - alert: NodeKubeconfigCertExpiryImminent
+          expr: |-
+            (min(x509_cert_not_after{namespace="kube-system", filepath=~".*localhost.kubeconfig"}) - time()) < 7 * 86400
+          for: 1h
+          annotations:
+            summary: >-
+              The node localhost.kubeconfig certificate expires in under 7 days
+          labels:
+            severity: critical

@@ -1,0 +1,196 @@
+# butane source file for the keepalived control-plane VIP static pod
+# regenerate machineconfig.yaml with:
+#   butane --strict -o machineconfig.yaml keepalived-api-vip.bu
+# (CI renders and commits this automatically on same-repo PRs)
+#
+# Replaces kube-vip as the owner of 192.168.227.10. The reason is the one
+# thing kube-vip structurally could not do: kube-vip elects through a
+# Kubernetes Lease (plndr-cp-lock), so a total API or etcd-quorum outage means
+# nobody can hold the VIP and the address disappears -- exactly when a stable
+# endpoint matters most. VRRP elects between the keepalived instances
+# themselves and needs no API at all.
+#
+# Delivered as a kubelet static pod via MachineConfig for the same reasons
+# kube-vip was: it starts without the scheduler or the API VIP it is itself
+# responsible for, and it survives reboots, upgrades and reprovisioning.
+#
+# EXACTLY ONE mechanism, one interface and one VRRP instance may ever claim
+# 192.168.227.10. kube-vip has been removed in the same change; do not
+# reintroduce a second claimant anywhere. Commit 7ebb34a deleted the previous
+# br-ex claimant precisely because it raced kube-vip's ens18 claim on cold
+# boot -- that objection does not apply here, because keepalived is now the
+# only claimant and br-ex is the only interface it uses.
+variant: openshift
+version: 4.18.0
+metadata:
+  name: 99-master-keepalived-api-vip
+  labels:
+    machineconfiguration.openshift.io/role: master
+storage:
+  files:
+    # Renders keepalived.conf from the node's own identity. A MachineConfig
+    # delivers identical bytes to every master, but VRRP needs per-node unicast
+    # peers, so the config cannot be static. Runs in the pod (hostNetwork, so
+    # ens18 is the node's interface) and writes to the hostPath-mounted dir.
+    - path: /etc/keepalived/gen-conf.sh
+      mode: 0755
+      overwrite: true
+      contents:
+        inline: |
+          #!/bin/bash
+          set -euo pipefail
+          # br-ex, NOT ens18. Under OVN-Kubernetes, ovs-configuration enslaves
+          # ens18 to the OVS bridge and moves the host IP to br-ex, so ens18
+          # ends up with no address at all. Commit 65ecfea learned this the
+          # hard way: a VIP placed on ens18 at boot was WIPED when
+          # ovs-configuration migrated host networking, leaving nobody holding
+          # 192.168.227.10 and the API URL unreachable.
+          #
+          # kube-vip could live on ens18 only because it ran its own userspace
+          # ARP responder and continuously re-asserted the address. keepalived
+          # assigns the VIP and relies on kernel ARP, so it must sit on the
+          # interface that actually owns the host IP.
+          IFACE=br-ex
+          ALL_MASTERS="192.168.227.22 192.168.227.23 192.168.227.24"
+          VIP=192.168.227.10
+
+          # Pick the address that is one of the known masters, rather than
+          # whichever the kernel lists first. On the node currently holding the
+          # VIP, ens18 carries BOTH its real address and 192.168.227.10, and
+          # taking the first match yields the VIP -- which would source VRRP
+          # adverts from the very address VRRP is supposed to be creating, and
+          # would stop the node excluding itself from its own peer list.
+          # Intersecting with ALL_MASTERS is immune to ordering and to any
+          # extra address on the interface.
+          MY_IP=""
+          for addr in $(ip -4 -o addr show "$IFACE" | awk '{print $4}' | cut -d/ -f1); do
+            for m in $ALL_MASTERS; do
+              [ "$addr" = "$m" ] && MY_IP="$addr"
+            done
+          done
+          if [ -z "$MY_IP" ]; then
+            echo "FATAL: no address on $IFACE matches a known master ($ALL_MASTERS)" >&2
+            ip -4 -o addr show "$IFACE" >&2
+            exit 1
+          fi
+          if [ "$MY_IP" = "$VIP" ]; then
+            echo "FATAL: refusing to use the VIP $VIP as unicast_src_ip" >&2
+            exit 1
+          fi
+
+          # Unicast peers = the other masters. Unicast rather than multicast is
+          # deliberate: it removes any dependence on IGMP snooping behaving on
+          # the LAN switch, which is the most common way keepalived fails
+          # quietly in a homelab.
+          PEERS=""
+          for ip in $ALL_MASTERS; do
+            [ "$ip" = "$MY_IP" ] && continue
+            PEERS="${PEERS}        ${ip}"$'\n'
+          done
+          if [ -z "$PEERS" ]; then
+            echo "FATAL: $MY_IP is not in ALL_MASTERS ($ALL_MASTERS)" >&2
+            exit 1
+          fi
+
+          cat > /etc/keepalived/keepalived.conf <<EOF
+          global_defs {
+              router_id grappleberry
+              enable_script_security
+              script_user root
+              # With unicast_peer the only adverts we ever see come from the
+              # explicitly listed masters, so the source-address check adds
+              # nothing and trips on multi-homed nodes.
+              vrrp_skip_check_adv_addr
+          }
+
+          # The real reason for this migration: an actual health check on the
+          # local apiserver, not "can I still renew my lease". A degraded but
+          # lease-renewing apiserver used to keep the VIP and blackhole traffic.
+          vrrp_script chk_apiserver {
+              script "/etc/keepalived/check-apiserver.sh"
+              interval 3
+              timeout 5
+              fall 2
+              rise 2
+              weight -60
+          }
+
+          vrrp_instance API {
+              # Every master starts BACKUP and lets VRRP elect. Priorities are
+              # identical, so VRRP breaks the tie on highest source IP --
+              # deterministic without per-node config.
+              state BACKUP
+              interface ${IFACE}
+              virtual_router_id 51
+              priority 100
+              advert_int 1
+              # Once a node holds the VIP it keeps it even when a higher-IP peer
+              # returns. Recovery should not cost a second failover.
+              nopreempt
+              unicast_src_ip ${MY_IP}
+              unicast_peer {
+          ${PEERS}    }
+              virtual_ipaddress {
+                  ${VIP}/32 dev ${IFACE}
+              }
+              track_script {
+                  chk_apiserver
+              }
+          }
+          EOF
+          echo "keepalived.conf rendered: me=${MY_IP} vip=${VIP}"
+
+    # Health check. hostNetwork means 127.0.0.1 is this node's own apiserver,
+    # so a node whose apiserver is sick loses 60 priority and hands the VIP to
+    # a peer that is actually serving.
+    - path: /etc/keepalived/check-apiserver.sh
+      mode: 0755
+      overwrite: true
+      contents:
+        inline: |
+          #!/bin/bash
+          exec /usr/bin/curl -sk -o /dev/null --max-time 3 https://127.0.0.1:6443/readyz
+
+    - path: /etc/kubernetes/manifests/keepalived.yaml
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: keepalived
+            namespace: kube-system
+            labels:
+              app.kubernetes.io/name: keepalived
+          spec:
+            hostNetwork: true
+            priorityClassName: system-node-critical
+            containers:
+            - name: keepalived
+              image: quay.io/openshift/origin-keepalived-ipfailover:4.20
+              # The image's default entrypoint is OpenShift's ipfailover
+              # monitor.sh wrapper, which expects env this pod does not set.
+              # Run keepalived directly against our own rendered config.
+              command: ["/bin/bash", "-c"]
+              args:
+                - /etc/keepalived/gen-conf.sh && exec /usr/sbin/keepalived
+                  -n -l -f /etc/keepalived/keepalived.conf
+              securityContext:
+                capabilities:
+                  add: ["NET_ADMIN", "NET_BROADCAST", "NET_RAW"]
+              # Measured on kube-vip the hard way: request what the process
+              # actually uses. keepalived is far smaller than kube-vip was.
+              resources:
+                requests:
+                  cpu: 25m
+                  memory: 48Mi
+                limits:
+                  memory: 128Mi
+              volumeMounts:
+              - {name: keepalived-conf, mountPath: /etc/keepalived}
+            volumes:
+            - name: keepalived-conf
+              hostPath:
+                path: /etc/keepalived
+                type: Directory
