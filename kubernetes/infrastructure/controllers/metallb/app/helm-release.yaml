@@ -54,18 +54,21 @@ spec:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
           effect: NoSchedule
+      # 128Mi is below the controller's steady state (~117Mi, higher while
+      # it lists every namespace at startup): it OOM-killed on boot and
+      # otherwise sat at memory.max thrashing its own pages, which is what
+      # actually made /healthz miss the probe deadline.
       resources:
         requests:
           cpu: 50m
-          memory: 64Mi
-        limits:
           memory: 128Mi
+        limits:
+          memory: 384Mi
       podDisruptionBudget:
         enabled: true
         minAvailable: 1
-      # Chart default is a 1s probe timeout. Any storage stall on the shared
-      # NVMe pushes /healthz past that, and three misses restart a healthy
-      # controller -- 12 restarts in 43h, all probe timeouts, zero crashes.
+      # Chart default is a 1s probe timeout; any stall on the shared NVMe
+      # pushes /healthz past it and three misses restart the controller.
       livenessProbe:
         timeoutSeconds: 5
       readinessProbe:

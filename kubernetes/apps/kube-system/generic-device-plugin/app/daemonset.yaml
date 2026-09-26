@@ -43,10 +43,12 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 10Mi
+              memory: 32Mi
+            # 20Mi sat exactly at memory.max and page-cache thrashed (72k
+            # major faults) rather than OOMing -- same failure as grafana.
             limits:
               cpu: 50m
-              memory: 20Mi
+              memory: 64Mi
           ports:
             - containerPort: 8080
               name: http
