@@ -1,4 +1,3 @@
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/operator.openshift.io/machineconfiguration_v1.json
 ---
 # Without this, any edit to keepalived.yaml -- including a routine renovate
 # image bump -- makes MCO drain and REBOOT every master in turn, because a
