@@ -63,6 +63,13 @@ spec:
       podDisruptionBudget:
         enabled: true
         minAvailable: 1
+      # Chart default is a 1s probe timeout. Any storage stall on the shared
+      # NVMe pushes /healthz past that, and three misses restart a healthy
+      # controller -- 12 restarts in 43h, all probe timeouts, zero crashes.
+      livenessProbe:
+        timeoutSeconds: 5
+      readinessProbe:
+        timeoutSeconds: 5
     # Chart 0.16.1 defaults frrk8s.enabled=true, which lands a 3-replica
     # DaemonSet whose SA (metallb-frr-k8s-controller) has no SCC binding here,
     # so it has sat at 0/3 created since the 0.16.1 bump, retrying forever.
