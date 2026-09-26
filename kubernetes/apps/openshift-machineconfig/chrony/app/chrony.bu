@@ -1,0 +1,36 @@
+# butane source for the masters' chrony.conf
+# regenerate machineconfig.yaml with:
+#   { echo "---"; butane --strict chrony.bu; } > machineconfig.yaml
+#
+# Ceph mons raise CephMonClockSkew when their clocks disagree by more than
+# 50ms. Stock SCOS config gives each master `pool 2.centos.pool.ntp.org`, so
+# the three nodes each chased a DIFFERENT set of public servers -- fine
+# against UTC, but they only agree with each other by coincidence, and any
+# VM stall let them drift apart independently. What Ceph needs is agreement,
+# so all three now prefer the same LAN source: the gateway (192.168.227.1),
+# measured at 64us offset. The public pool stays as fallback so a gateway
+# outage degrades to the old behaviour instead of freewheeling.
+#
+# /etc/chrony.conf has a nodeDisruptionPolicy (Restart chronyd) in
+# ../node-disruption-policy, so edits here do not reboot the masters.
+variant: openshift
+version: 4.18.0
+metadata:
+  name: 99-master-chrony
+  labels:
+    machineconfiguration.openshift.io/role: master
+storage:
+  files:
+    - path: /etc/chrony.conf
+      mode: 0644
+      overwrite: true
+      contents:
+        inline: |
+          server 192.168.227.1 iburst prefer
+          pool 2.centos.pool.ntp.org iburst maxsources 2
+          sourcedir /run/chrony-dhcp
+          driftfile /var/lib/chrony/drift
+          makestep 1.0 3
+          rtcsync
+          ntsdumpdir /var/lib/chrony
+          logdir /var/log/chrony

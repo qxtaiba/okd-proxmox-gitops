@@ -41,7 +41,7 @@ jobs:
             -ignore-filename-pattern '.*/homepage/app/resources/.*' \
             -schema-location default \
             -schema-location 'https://kubernetes-schemas.pages.dev/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
-            -skip CustomResourceDefinition,MachineConfig,MachineConfiguration,Terraform,FluxInstance,Route,SecurityContextConstraints,APIServer,Config,DNS,IngressController,IPAddressPool,L2Advertisement \
+            -skip CustomResourceDefinition,MachineConfig,MachineConfiguration,KubeletConfig,Terraform,FluxInstance,Route,SecurityContextConstraints,APIServer,Config,DNS,IngressController,IPAddressPool,L2Advertisement \
             kubernetes/
   validate-terraform:
     runs-on: ubuntu-latest

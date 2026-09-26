@@ -1,0 +1,29 @@
+---
+# Files with no disruption policy default to "Reboot": MCO drains and
+# reboots every master in turn for any change to them. List here the files
+# whose consumer already picks up changes by itself.
+#
+# - keepalived.yaml: the kubelet watches /etc/kubernetes/manifests and
+#   restarts a static pod whose manifest changes. Worst case is one VRRP
+#   failover (~3s) per node as MCO walks the pool.
+# - chrony.conf: chronyd only rereads it on restart.
+#
+# `cluster` is a singleton the MCO owns; Flux only server-side-applies this
+# one field. Never let Flux prune it.
+apiVersion: operator.openshift.io/v1
+kind: MachineConfiguration
+metadata:
+  name: cluster
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  nodeDisruptionPolicy:
+    files:
+      - path: /etc/kubernetes/manifests/keepalived.yaml
+        actions:
+          - type: None
+      - path: /etc/chrony.conf
+        actions:
+          - type: Restart
+            restart:
+              serviceName: chronyd.service
