@@ -49,12 +49,20 @@ spec:
                     secretKeyRef:
                       name: grafana-admin
                       key: GF_SECURITY_ADMIN_PASSWORD
+              # 256Mi was below Grafana's working set. It never OOM-killed --
+              # the kernel instead reclaimed Grafana's own file-backed pages
+              # (binary, plugins, sqlite) and it faulted them straight back
+              # in: 19.9M major faults in 43h, ~3 GB/s of reads off the NVMe
+              # shared by all three masters, which dragged etcd commit p99
+              # from ~8ms to ~80ms and tripped BlueStore slow-op warnings.
+              # A pod pinned at memory.max with rising major faults is the
+              # tell; OOMKilled never appears.
               resources:
                 requests:
                   cpu: 100m
-                  memory: 128Mi
+                  memory: 384Mi
                 limits:
-                  memory: 256Mi
+                  memory: 1Gi
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true

@@ -63,6 +63,16 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": ["quay.io/ceph/ceph"],
       "allowedVersions": "/^v\\d+\\.2\\.\\d+$/"
+    },
+    {
+      // origin-keepalived-ipfailover is tagged by OKD release stream, not by
+      // keepalived version: 5.x is the next OKD major, rebuilt on a different
+      // base, and not what this 4.x cluster ships. It serves the API VIP, so a
+      // broken bump takes the whole control plane off 192.168.227.10. Track
+      // the cluster's own 4.x stream only; lift this with the OKD 5 upgrade.
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["quay.io/openshift/origin-keepalived-ipfailover"],
+      "allowedVersions": "<5"
     }
   ]
 }

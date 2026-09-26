@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/operator.openshift.io/machineconfiguration_v1.json
+---
+# Without this, any edit to keepalived.yaml -- including a routine renovate
+# image bump -- makes MCO drain and REBOOT every master in turn, because a
+# file with no disruption policy defaults to "Reboot". The kubelet already
+# watches /etc/kubernetes/manifests and restarts a static pod whose manifest
+# changes, so writing the file is the whole update. Worst case is one VRRP
+# failover (~3s) per node as MCO walks the pool.
+#
+# `cluster` is a singleton the MCO owns; Flux only server-side-applies this
+# one field. Never let Flux prune it.
+apiVersion: operator.openshift.io/v1
+kind: MachineConfiguration
+metadata:
+  name: cluster
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  nodeDisruptionPolicy:
+    files:
+      - path: /etc/kubernetes/manifests/keepalived.yaml
+        actions:
+          - type: None

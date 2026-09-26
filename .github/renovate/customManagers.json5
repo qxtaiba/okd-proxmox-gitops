@@ -16,7 +16,7 @@
     },
     {
       "customType": "regex",
-      // Images embedded in Butane sources (e.g. the kube-vip static pod)
+      // Images embedded in Butane sources (e.g. the keepalived static pod)
       // are invisible to the flux/kubernetes managers because the rendered
       // MachineConfig gzips them. The butane-drift CI job fails any bump
       // whose rendered machineconfig.yaml was not regenerated to match.
