@@ -1,0 +1,23 @@
+---
+# Stock OKD reserves 1Gi for system.slice (kubelet, crio, sshd, journald...).
+# Measured RSS runs 0.5-0.85Gi and peaks past 0.95Gi, so
+# SystemMemoryExceedsReservation fired for ~17h on master1 -- meaning the
+# scheduler was handing pods memory the node daemons were actually using.
+#
+# Explicit 2Gi rather than autoSizingReserved: the auto formula reserves
+# ~3.4Gi on these 30Gi masters, and with ~22Gi already requested on two of
+# three nodes, a drain has to fit one node's pods onto the other two. 2Gi
+# doubles the measured peak for 1Gi of allocatable per node.
+apiVersion: machineconfiguration.openshift.io/v1
+kind: KubeletConfig
+metadata:
+  name: master-system-reserved
+spec:
+  machineConfigPoolSelector:
+    matchLabels:
+      pools.operator.machineconfiguration.openshift.io/master: ""
+  kubeletConfig:
+    systemReserved:
+      cpu: 500m
+      memory: 2Gi
+      ephemeral-storage: 1Gi
