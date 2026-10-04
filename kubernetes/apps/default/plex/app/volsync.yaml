@@ -12,3 +12,22 @@ spec:
     repository: volsync-restic-plex
     volumeSnapshotClassName: csi-ceph-blockpool
     cacheCapacity: 2Gi
+---
+# Populates plex-config on first creation (see pvc.yaml).
+# `restore-once` fires a single restore and then idles; it never touches
+# the live PVC again.
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: plex-config-bootstrap
+spec:
+  trigger:
+    manual: restore-once
+  restic:
+    repository: volsync-restic-plex
+    volumeSnapshotClassName: csi-ceph-blockpool
+    cacheCapacity: 2Gi
+    capacity: 50Gi
+    storageClassName: ceph-block
+    accessModes:
+      - ReadWriteOnce

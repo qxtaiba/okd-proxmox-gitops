@@ -12,3 +12,22 @@ spec:
     repository: volsync-restic-sabnzbd
     volumeSnapshotClassName: csi-ceph-blockpool
     cacheCapacity: 1Gi
+---
+# Populates sabnzbd-config on first creation (see pvc.yaml).
+# `restore-once` fires a single restore and then idles; it never touches
+# the live PVC again.
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: sabnzbd-config-bootstrap
+spec:
+  trigger:
+    manual: restore-once
+  restic:
+    repository: volsync-restic-sabnzbd
+    volumeSnapshotClassName: csi-ceph-blockpool
+    cacheCapacity: 1Gi
+    capacity: 1Gi
+    storageClassName: ceph-block
+    accessModes:
+      - ReadWriteOnce

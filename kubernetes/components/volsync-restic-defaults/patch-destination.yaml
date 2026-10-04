@@ -1,0 +1,22 @@
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: _
+spec:
+  restic:
+    copyMethod: Snapshot
+    moverServiceAccount: volsync-mover
+    moverSecurityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+    cacheStorageClassName: ceph-block
+    cacheAccessModes:
+      - ReadWriteOnce
+    moverVolumes:
+      - mountPath: restic-repo
+        volumeSource:
+          nfs:
+            server: nas.grappleberry.xyz
+            path: /volume1/backups/volsync

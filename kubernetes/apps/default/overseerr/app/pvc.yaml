@@ -3,8 +3,21 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    # dataSourceRef is immutable, so Flux must never re-apply this to a PVC
+    # that already exists: create-only. Spec edits here (e.g. a resize) are
+    # therefore NOT rolled out to an existing PVC -- patch those by hand.
+    kustomize.toolkit.fluxcd.io/ssa: IfNotPresent
   name: overseerr-config
 spec:
+  # Restore-on-create: on a fresh cluster this PVC stays Pending until the
+  # bootstrap ReplicationDestination in volsync.yaml has restored the newest
+  # restic snapshot from the NAS, so the app starts on its old data instead
+  # of initialising an empty config.
+  dataSourceRef:
+    apiGroup: volsync.backube
+    kind: ReplicationDestination
+    name: overseerr-config-bootstrap
   accessModes:
     - ReadWriteOnce
   resources:

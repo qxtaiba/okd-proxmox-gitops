@@ -12,3 +12,22 @@ spec:
     repository: volsync-restic-sonarr
     volumeSnapshotClassName: csi-ceph-blockpool
     cacheCapacity: 1Gi
+---
+# Populates sonarr-config on first creation (see pvc.yaml).
+# `restore-once` fires a single restore and then idles; it never touches
+# the live PVC again.
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: sonarr-config-bootstrap
+spec:
+  trigger:
+    manual: restore-once
+  restic:
+    repository: volsync-restic-sonarr
+    volumeSnapshotClassName: csi-ceph-blockpool
+    cacheCapacity: 1Gi
+    capacity: 5Gi
+    storageClassName: ceph-block
+    accessModes:
+      - ReadWriteOnce
