@@ -32,19 +32,23 @@ spec:
           serviceAccountName: tf-runner
           containers:
             - name: backup
-              # quay.io, not docker.io: anonymous Docker Hub pulls are rate
-              # limited and this CronJob spent 3h37m in ImagePullBackOff with
-              # 932 backoff events on 2026-09-13. Same image and tag, verified
-              # present on quay, no pull secret required.
-              image: quay.io/minio/mc:RELEASE.2025-04-03T17-07-56Z
+              # AWS CLI from public ECR, not minio/mc: MinIO stopped publishing
+              # community images and quay.io/minio/mc went private (401 for
+              # anonymous pulls, found 2026-10-04 after the last success on
+              # 09-26). Docker Hub is out too -- anonymous pulls are rate
+              # limited and this CronJob once sat 3h37m in ImagePullBackOff.
+              # RGW speaks S3, so `aws s3 cp --endpoint-url` is a drop-in.
+              image: public.ecr.aws/aws-cli/aws-cli:2.37.9
               envFrom:
                 - secretRef:
                     name: tofu-state-bucket
                 - configMapRef:
                     name: tofu-state-bucket
               env:
-                - name: MC_CONFIG_DIR
-                  value: /tmp/mc
+                - name: HOME
+                  value: /tmp
+                - name: AWS_DEFAULT_REGION
+                  value: us-east-1
               command:
                 - /bin/sh
                 - -c
@@ -53,9 +57,11 @@ spec:
                   TS=$(date +%Y%m%d-%H%M%S)
                   DEST=/backup/${TS}
                   mkdir -p "${DEST}"
-                  mc alias set ceph "http://${BUCKET_HOST}:${BUCKET_PORT}" \
-                    "${AWS_ACCESS_KEY_ID}" "${AWS_SECRET_ACCESS_KEY}"
-                  mc cp --recursive "ceph/${BUCKET_NAME}/" "${DEST}/"
+                  aws s3 cp --recursive --only-show-errors \
+                    --endpoint-url "http://${BUCKET_HOST}:${BUCKET_PORT}" \
+                    "s3://${BUCKET_NAME}/" "${DEST}/"
+                  # an empty bucket copies nothing and still exits 0
+                  [ -n "$(ls -A "${DEST}")" ] || { echo "no objects copied"; exit 1; }
                   echo "pruning tofu-state backups, keeping last 30"
                   cd /backup && \
                     ls -1dt [0-9]*/ 2>/dev/null | tail -n +31 | while read d; do
