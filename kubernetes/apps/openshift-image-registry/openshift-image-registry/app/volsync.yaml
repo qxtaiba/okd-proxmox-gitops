@@ -12,3 +12,22 @@ spec:
     repository: volsync-restic-image-registry
     volumeSnapshotClassName: csi-ceph-filesystem
     cacheCapacity: 2Gi
+---
+# Populates image-registry-storage on first creation (see pvc.yaml).
+# `restore-once` fires a single restore and then idles; it never touches
+# the live PVC again.
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationDestination
+metadata:
+  name: image-registry-storage-bootstrap
+spec:
+  trigger:
+    manual: restore-once
+  restic:
+    repository: volsync-restic-image-registry
+    volumeSnapshotClassName: csi-ceph-filesystem
+    cacheCapacity: 2Gi
+    capacity: 100Gi
+    storageClassName: ceph-filesystem
+    accessModes:
+      - ReadWriteMany
