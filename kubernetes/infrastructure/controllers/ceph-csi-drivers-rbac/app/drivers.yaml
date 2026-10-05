@@ -19,6 +19,19 @@
 # nodes was never an option; the memory had to come from somewhere real.
 #
 # Limits are unchanged. Only the scheduling promise moved.
+#
+# Second pass (2026-10-05), controller plugins only, from peak working set:
+# sidecars 128->96Mi (peak 76-83Mi), rbd plugin 256->128Mi (peak 103Mi),
+# cephfs plugin 256->64Mi (peak 40Mi). Reserving 2Gi per node for
+# system.slice had pushed requests (55.1GiB) past what two nodes can hold
+# (54.5GiB). Node plugins are deliberately untouched: changing them rolls
+# the per-node CSI DaemonSets.
+#
+# The sidecar request fields also carry a "rook" field manager, from a
+# one-off Update on 2026-06-03 (Rook v1.20 has no CSI resource values left
+# in its chart, and does not reconcile these). Flux applies with force, so
+# it simply takes ownership; if a future Rook upgrade rewrites its
+# defaults, the next Flux interval puts these back.
 apiVersion: csi.ceph.io/v1
 kind: Driver
 metadata:
@@ -39,7 +52,7 @@ spec:
           memory: 256Mi
         requests:
           cpu: 100m
-          memory: 128Mi
+          memory: 96Mi
       omapGenerator:
         limits:
           memory: 1Gi
@@ -50,25 +63,25 @@ spec:
         limits:
           memory: 1Gi
         requests:
-          memory: 256Mi
+          memory: 128Mi
       provisioner:
         limits:
           memory: 256Mi
         requests:
           cpu: 100m
-          memory: 128Mi
+          memory: 96Mi
       resizer:
         limits:
           memory: 256Mi
         requests:
           cpu: 100m
-          memory: 128Mi
+          memory: 96Mi
       snapshotter:
         limits:
           memory: 256Mi
         requests:
           cpu: 100m
-          memory: 128Mi
+          memory: 96Mi
   deployCsiAddons: false
   enableMetadata: false
   fsGroupPolicy: File
@@ -119,31 +132,31 @@ spec:
           memory: 256Mi
         requests:
           cpu: 100m
-          memory: 128Mi
+          memory: 96Mi
       plugin:
         limits:
           memory: 1Gi
         requests:
           cpu: 250m
-          memory: 256Mi
+          memory: 64Mi
       provisioner:
         limits:
           memory: 256Mi
         requests:
           cpu: 100m
-          memory: 128Mi
+          memory: 96Mi
       resizer:
         limits:
           memory: 256Mi
         requests:
           cpu: 100m
-          memory: 128Mi
+          memory: 96Mi
       snapshotter:
         limits:
           memory: 256Mi
         requests:
           cpu: 100m
-          memory: 128Mi
+          memory: 96Mi
   deployCsiAddons: false
   enableMetadata: false
   fsGroupPolicy: File
