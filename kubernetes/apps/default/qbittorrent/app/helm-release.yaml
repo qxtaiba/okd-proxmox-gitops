@@ -77,6 +77,14 @@ spec:
               FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
               FIREWALL_IPV6: "off"
               UPDATER_PERIOD: 24h
+              # IP targets, not the cloudflare.com/github.com default: the
+              # startup check must finish a TCP+TLS dial within 6s of the
+              # tunnel coming up, but gluetun's own DNS server restarts with
+              # every VPN restart and is often not listening yet. 503 of 543
+              # VPN restarts on 2026-10-04/05 were "lookup github.com" failures
+              # -- a self-sustaining loop that held the tunnel down for 9h.
+              # Both certs carry an IP SAN, so the TLS check stays meaningful.
+              HEALTH_TARGET_ADDRESSES: "1.1.1.1:443,8.8.8.8:443"
               UPDATER_VPN_SERVICE_PROVIDERS: protonvpn
               VPN_PORT_FORWARDING: "on"
               VPN_PORT_FORWARDING_UP_COMMAND: >-
