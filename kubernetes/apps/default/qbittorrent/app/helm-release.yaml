@@ -145,13 +145,18 @@ spec:
               capabilities:
                 drop: ["ALL"]
                 add: ["NET_ADMIN", "NET_RAW", "CHOWN", "NET_BIND_SERVICE", "DAC_OVERRIDE"]
+            # Steady state is 50-110Mi, but startup occasionally spikes: one
+            # container hit 381Mi of the old 384Mi limit at 02:45Z on
+            # 2026-10-05 and was OOM-killed mid-reconnect, feeding the restart
+            # loop. Limit doubled for headroom; the request (what scheduling
+            # and KubeMemoryOvercommit count) is unchanged.
             resources:
               requests:
                 cpu: 50m
                 memory: 128Mi
               limits:
                 cpu: 500m
-                memory: 384Mi
+                memory: 768Mi
                 squat.ai/tun: "1"
         containers:
           app:
