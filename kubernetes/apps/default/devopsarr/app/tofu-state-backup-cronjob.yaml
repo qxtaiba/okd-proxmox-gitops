@@ -38,7 +38,7 @@ spec:
               # 09-26). Docker Hub is out too -- anonymous pulls are rate
               # limited and this CronJob once sat 3h37m in ImagePullBackOff.
               # RGW speaks S3, so `aws s3 cp --endpoint-url` is a drop-in.
-              image: public.ecr.aws/aws-cli/aws-cli:2.37.9
+              image: public.ecr.aws/aws-cli/aws-cli:2.37.10
               envFrom:
                 - secretRef:
                     name: tofu-state-bucket
