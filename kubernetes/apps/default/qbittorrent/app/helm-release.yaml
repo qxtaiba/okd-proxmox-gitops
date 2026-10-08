@@ -251,6 +251,11 @@ spec:
     service:
       app:
         controller: qbittorrent
+        primary: true
+        # With more than one service, app-template suffixes each name with its
+        # identifier ("qbittorrent-app"). Sonarr/Radarr's download client and
+        # the Route address plain "qbittorrent", so pin it.
+        forceRename: qbittorrent
         ports:
           http:
             port: 8080
