@@ -18,7 +18,10 @@ spec:
             severity: warning
         - alert: PolymakerRecorderStalled
           expr: |-
-            time() - polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} > 600
+            (
+              time() - polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} > 600
+              and polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} > 0
+            )
             or (
               polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} == 0
               and time() - process_start_time_seconds{namespace="polymaker"} > 900
