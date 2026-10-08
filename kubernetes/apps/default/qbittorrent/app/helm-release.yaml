@@ -72,11 +72,21 @@ spec:
               SERVER_CITIES: Amsterdam
               PORT_FORWARD_ONLY: "on"
               WIREGUARD_MTU: "1340"
-              FIREWALL_INPUT_PORTS: "8080"
+              # 8888: gluetun's HTTP proxy (below), reachable in-cluster only
+              # from Prowlarr and Byparr (networkpolicy.yaml).
+              FIREWALL_INPUT_PORTS: "8080,8888"
               FIREWALL_VPN_INPUT_PORTS: "6881"
               FIREWALL_OUTBOUND_SUBNETS: "10.128.0.0/14,172.30.0.0/16,192.168.227.0/24"
               FIREWALL_IPV6: "off"
               UPDATER_PERIOD: 24h
+              # VPN egress for indexer traffic. The ISP SNI-blocks specific
+              # tracker mirrors (1337x.to, eztvx.to, torrentdownload.info...)
+              # while the same hosts answer through Proton, so Prowlarr's "vpn"
+              # tagged indexers and Byparr's browser go out through here.
+              # Stealth: no Via/X-Forwarded-For headers revealing the proxy.
+              HTTPPROXY: "on"
+              HTTPPROXY_LISTENING_ADDRESS: ":8888"
+              HTTPPROXY_STEALTH: "on"
               # IP targets, not the cloudflare.com/github.com default: the
               # startup check must finish a TCP+TLS dial within 6s of the
               # tunnel coming up, but gluetun's own DNS server restarts with
@@ -244,6 +254,12 @@ spec:
         ports:
           http:
             port: 8080
+      # qbittorrent-proxy.default.svc:8888 -> gluetun HTTP proxy (VPN egress)
+      proxy:
+        controller: qbittorrent
+        ports:
+          http:
+            port: 8888
     persistence:
       config:
         existingClaim: qbittorrent-config

@@ -5,9 +5,8 @@
 # which no longer clears Turnstile). Prowlarr reaches it as a "FlareSolverr"
 # indexer proxy and only routes indexers carrying the matching tag through it.
 #
-# Internal only: no Route. Egress is the node's own, so this clears
-# Cloudflare challenges but NOT ISP DNS blocking -- PROXY_SERVER is the hook
-# for routing it through the VPN later.
+# Internal only: no Route. Egress goes through gluetun's HTTP proxy (VPN), so
+# it clears both Cloudflare challenges and the ISP's SNI blocks on mirrors.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -36,8 +35,11 @@ spec:
             env:
               TZ: Asia/Dubai
               LOG_LEVEL: info
-              # Unset, the locale follows the egress country (ar-AE here).
+              # Unset, the locale follows the egress country.
               BROWSER_LOCALE: en-US
+              # Egress through gluetun (VPN) so challenges are solved from the
+              # Proton exit, past the ISP's SNI blocks on tracker mirrors.
+              PROXY_SERVER: http://qbittorrent-proxy.default.svc.cluster.local:8888
             # Plain TCP probes on purpose: Byparr's /health launches a real
             # browser and loads google.com (its own Dockerfile only runs it
             # every 15 minutes), far too heavy for a 10s probe.

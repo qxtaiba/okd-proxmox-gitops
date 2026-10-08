@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/networking.k8s.io/networkpolicy_v1.json
+---
+# gluetun's HTTP proxy on 8888 is an open door into the VPN: anything that can
+# reach it egresses as the Proton exit IP. Only Prowlarr and Byparr may use it.
+#
+# This is the first NetworkPolicy selecting the qbittorrent pod, so every port
+# not listed here becomes denied: 8080 (web UI, the Route, Sonarr/Radarr's
+# download-client calls) is therefore explicitly open to all sources. Torrent
+# peer traffic arrives on the VPN tunnel interface, not the pod network, and
+# gluetun's own firewall already closes 53/8000 to the cluster.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: qbittorrent
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: qbittorrent
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - port: 8080
+          protocol: TCP
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - prowlarr
+                  - byparr
+      ports:
+        - port: 8888
+          protocol: TCP
