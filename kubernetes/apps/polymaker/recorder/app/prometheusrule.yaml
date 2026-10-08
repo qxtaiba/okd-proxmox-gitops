@@ -17,11 +17,30 @@ spec:
           labels:
             severity: warning
         - alert: PolymakerRecorderStalled
-          expr: time() - polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} > 600 and polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} > 0
+          expr: >-
+            time() - polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} > 600
+            or (polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} == 0
+            and time() - process_start_time_seconds{namespace="polymaker"} > 900)
           for: 5m
           annotations:
-            summary: The Polymarket recorder has not written for 15 minutes
-            description: WebSocket shards may be down or the VPN tunnel is broken. Check gluetun logs and polymaker_recorder_ws_connected.
+            summary: The Polymarket recorder is not writing
+            description: No journal write for 15 minutes, or none at all 15 minutes after start (e.g. stuck retrying the initial universe refresh). WebSocket shards may be down or the VPN tunnel is broken. Check gluetun logs and polymaker_recorder_ws_connected.
+          labels:
+            severity: warning
+        - alert: PolymakerRecorderNoMarkets
+          expr: polymaker_recorder_markets{namespace="polymaker"} == 0
+          for: 15m
+          annotations:
+            summary: The Polymarket recorder has an empty universe
+            description: The recorder is up but subscribed to no markets, usually because the initial reward/market refresh keeps failing through the tunnel. Check the recorder logs for recorder_initial_refresh_failed.
+          labels:
+            severity: warning
+        - alert: PolymakerRecorderShardDown
+          expr: min(polymaker_recorder_ws_connected{namespace="polymaker"}) < 1
+          for: 10m
+          annotations:
+            summary: A recorder WebSocket shard has been disconnected for 10 minutes
+            description: At least one market-WS shard is down, so its markets are not being recorded. Gap seconds accrue in polymaker_recorder_gap_seconds_total while it stays down.
           labels:
             severity: warning
         - alert: PolymakerRecorderGapRateHigh
