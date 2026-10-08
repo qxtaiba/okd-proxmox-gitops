@@ -17,10 +17,12 @@ spec:
           labels:
             severity: warning
         - alert: PolymakerRecorderStalled
-          expr: >-
+          expr: |-
             time() - polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} > 600
-            or (polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} == 0
-            and time() - process_start_time_seconds{namespace="polymaker"} > 900)
+            or (
+              polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} == 0
+              and time() - process_start_time_seconds{namespace="polymaker"} > 900
+            )
           for: 5m
           annotations:
             summary: The Polymarket recorder is not writing
