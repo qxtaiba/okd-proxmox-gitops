@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: polymaker-recorder-rules
+spec:
+  groups:
+    - name: polymaker-recorder
+      rules:
+        - alert: PolymakerRecorderAbsent
+          expr: absent(up{namespace="polymaker", service=~".*recorder.*"} == 1)
+          for: 15m
+          annotations:
+            summary: The Polymarket recorder is not being scraped
+            description: Stage 0 data collection has stopped or the metrics endpoint is unreachable through the gluetun firewall.
+          labels:
+            severity: warning
+        - alert: PolymakerRecorderStalled
+          expr: time() - polymaker_recorder_last_write_timestamp_seconds{namespace="polymaker"} > 600
+          for: 5m
+          annotations:
+            summary: The Polymarket recorder has not written for 10 minutes
+            description: WebSocket shards may be down or the VPN tunnel is broken. Check gluetun logs and polymaker_recorder_ws_connected.
+          labels:
+            severity: warning
+        - alert: PolymakerRecorderGapRateHigh
+          expr: rate(polymaker_recorder_gap_seconds_total{namespace="polymaker"}[1h]) > 0.05
+          for: 30m
+          annotations:
+            summary: Recorder WebSocket gaps exceed 5% of wall time
+            description: Recordings are losing more than 5% of the time to reconnects; Stage 0 statistics will be biased.
+          labels:
+            severity: warning
+        - alert: PolymakerGeoblockNotAllowed
+          expr: polymaker_geoblock_blocked{namespace="polymaker"} != 0
+          for: 15m
+          annotations:
+            summary: Polymarket geoblock reports the VPN exit as blocked or unknown
+            description: The exit IP is in a restricted country or the check is failing. Orders would be rejected; verify SERVER_COUNTRIES and the tunnel.
+          labels:
+            severity: warning
