@@ -76,16 +76,19 @@ spec:
               readOnlyRootFilesystem: false
               capabilities:
                 drop: ["ALL"]
-            # Idles at a few hundred MiB and spikes while a browser solves a
-            # challenge. Low request on purpose: pod memory requests sit just
-            # under KubeMemoryOvercommit's threshold (54.0 of 54.5GiB).
+            # Idles at a few hundred MiB but each in-flight challenge holds a
+            # browser page: Prowlarr fires several requests per search (front
+            # page + search, often in parallel) and 1.5Gi was OOM-killed mid-
+            # search on the first real use (2026-10-08). Low request on
+            # purpose: pod memory requests sit just under KubeMemoryOvercommit's
+            # threshold (54.0 of 54.5GiB); only the limit carries the bursts.
             resources:
               requests:
                 cpu: 50m
                 memory: 256Mi
               limits:
                 cpu: 2000m
-                memory: 1536Mi
+                memory: 2560Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
