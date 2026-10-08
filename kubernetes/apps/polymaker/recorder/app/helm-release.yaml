@@ -128,12 +128,31 @@ spec:
         ports:
           metrics:
             port: 9108
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 0
+        fsGroup: 1001
+        fsGroupChangePolicy: OnRootMismatch
+        seLinuxOptions:
+          level: "s0"
     persistence:
       data:
         existingClaim: polymaker-recordings
-        globalMounts:
-          - path: /data
+        advancedMounts:
+          recorder:
+            app:
+              - path: /data
       tmp:
         type: emptyDir
-        globalMounts:
-          - path: /tmp
+        advancedMounts:
+          recorder:
+            app:
+              - path: /tmp
+      gluetun-data:
+        type: emptyDir
+        advancedMounts:
+          recorder:
+            gluetun:
+              - path: /tmp/gluetun
