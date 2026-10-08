@@ -102,14 +102,25 @@ spec:
               - secretRef:
                   name: gluetun-secret
             probes:
+              # Liveness also requires a live forwarded port. When Proton's
+              # NAT-PMP request times out, gluetun logs one ERROR, gives up on
+              # port forwarding for the rest of the session, and keeps
+              # reporting itself healthy -- qbittorrent then sits unconnectable
+              # (seen 2026-10-08: hours of near-zero speed). The control API
+              # reports the live state ({"port":0} once forwarding is lost), so
+              # three failures (~90s) restart gluetun, which reconnects and
+              # renegotiates. Readiness/startup stay on the plain healthcheck so
+              # a fresh start has time to negotiate the port.
               liveness:
                 enabled: true
                 custom: true
                 spec:
                   exec:
                     command:
-                      - /gluetun-entrypoint
-                      - healthcheck
+                      - /bin/sh
+                      - -c
+                      - >-
+                        /gluetun-entrypoint healthcheck >/dev/null && wget -qO- -T 3 http://127.0.0.1:8000/v1/portforward | grep -q '"port":[1-9]'
                   periodSeconds: 30
                   timeoutSeconds: 5
                   failureThreshold: 3
