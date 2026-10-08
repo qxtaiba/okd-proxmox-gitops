@@ -95,7 +95,7 @@ spec:
           app:
             image:
               repository: ghcr.io/qxtaiba/poly-maker
-              tag: a4b4c1300077322d73116db523291a7b005a52c2
+              tag: 59d26a29fbb005b3f2c371606d362c3fb63af8aa
             args: ["record", "--root", "/data/recordings", "--port", "9108"]
             env:
               TZ: UTC
