@@ -57,6 +57,10 @@ module.exports = async (args) => {
   const skip = (why) => { args.jobLog('skip: ' + why); return { outputFileObj: args.inputFileObj, outputNumber: 2, variables: args.variables }; };
   const streams = (args.inputFileObj.ffProbeData && args.inputFileObj.ffProbeData.streams) || [];
   if (!streams.some((s) => s.codec_type === 'video')) return skip('no video stream');
+  // ffmpeg cannot stream-copy a track whose codec it does not recognise (e.g. some
+  // streaming-service subtitle formats probe as "unknown"); muxing would fail.
+  const unknown = streams.filter((s) => ['video', 'audio', 'subtitle'].includes(s.codec_type) && (!s.codec_name || s.codec_name === 'unknown'));
+  if (unknown.length) return skip('track(s) ffmpeg cannot copy: ' + unknown.map((s) => s.codec_type + '#' + s.index).join(', '));
   if (!/\.mkv$/i.test(file)) return skip('not an MKV (a container change would look like a new file to Radarr/Sonarr)');
   let st;
   try { st = fs.statSync(file); } catch (e) { return skip('cannot stat file'); }
