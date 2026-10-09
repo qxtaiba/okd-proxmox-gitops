@@ -1,0 +1,156 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+---
+# Tdarr: lossless library cleanup (no video re-encoding). Libraries and the
+# flow are declared in tdarr-config (applied through Tdarr's API).
+#
+# Runs both binaries directly as UID 1000 instead of the image's s6 init,
+# which wants root: the server, plus one node in the same pod with a single
+# CPU worker (a remux is I/O-bound on the NAS, so more workers just contend).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: tdarr
+spec:
+  interval: 10m
+  chartRef:
+    kind: OCIRepository
+    name: tdarr
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      tdarr:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: tdarr
+        containers:
+          server:
+            image: &image
+              repository: ghcr.io/haveagitgat/tdarr
+              tag: 2.95.01@sha256:6b4dcd9a20dc80a26d06b50378bdfa6955f2d37e413bf4c52d93a4bb37e74afc
+            command: ["/app/Tdarr_Server/Tdarr_Server"]
+            env:
+              TZ: Asia/Dubai
+              HOME: /tmp
+              inContainer: "true"
+              serverIP: 0.0.0.0
+              serverPort: "8266"
+              webUIPort: "8265"
+              internalNode: "false"
+              openBrowser: "false"
+              auth: "true"
+              seededApiKey:
+                valueFrom:
+                  secretKeyRef:
+                    name: tdarr-api-key
+                    key: TDARR_API_KEY
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 8265
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness: *probe
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 8265
+                  periodSeconds: 10
+                  failureThreshold: 60
+            securityContext: &securityContext
+              allowPrivilegeEscalation: false
+              # The node unpacks plugins under /app at runtime.
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 50m
+                memory: 512Mi
+              limits:
+                cpu: 1000m
+                memory: 2Gi
+          node:
+            image: *image
+            command: ["/app/Tdarr_Node/Tdarr_Node"]
+            env:
+              TZ: Asia/Dubai
+              HOME: /tmp
+              inContainer: "true"
+              nodeName: grappleberry-tdarr
+              serverURL: http://127.0.0.1:8266
+              nodeType: mapped
+              transcodecpuWorkers: "1"
+              transcodegpuWorkers: "0"
+              healthcheckcpuWorkers: "0"
+              healthcheckgpuWorkers: "0"
+              apiKey:
+                valueFrom:
+                  secretKeyRef:
+                    name: tdarr-api-key
+                    key: TDARR_API_KEY
+            securityContext: *securityContext
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                # Stream copy needs well under a core; the cap protects the
+                # control plane sharing these nodes.
+                cpu: 1500m
+                memory: 2Gi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seLinuxOptions:
+          level: "s0"
+    service:
+      app:
+        controller: tdarr
+        ports:
+          http:
+            port: 8265
+          server:
+            port: 8266
+    persistence:
+      config:
+        existingClaim: tdarr-config
+        advancedMounts:
+          tdarr:
+            server:
+              - path: /app/server
+                subPath: server
+              - path: /app/configs
+                subPath: configs
+            node:
+              - path: /app/configs
+                subPath: configs
+      # Media and the transcode cache on the same NFS mount, so replacing an
+      # original is a rename, not a second full copy over the network.
+      media:
+        existingClaim: media
+        globalMounts:
+          - path: /media
+      logs:
+        type: emptyDir
+        globalMounts:
+          - path: /app/logs
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
