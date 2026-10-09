@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/cronjob_v1.json
+---
+# Tautulli's notifiers live in its DB with no config-file equivalent, so this
+# job upserts the Discord notifier through the API (idempotent, hourly):
+# recently added media, and Plex server down/up.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tautulli-notifiers
+spec:
+  schedule: "17 * * * *"
+  timeZone: Asia/Dubai
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: tautulli
+          containers:
+            - name: apply
+              image: ghcr.io/home-operations/tautulli:2.18.2@sha256:5d55eb06f2b77eb09001b2f884b0b3a9ed3adf8416c6209c563796e18eaa43a4
+              command:
+                - python3
+                - -c
+                - |
+                  import json, os, urllib.parse, urllib.request
+                  base = "http://tautulli.default.svc.cluster.local:8181/api/v2"
+                  key = os.environ["TAUTULLI_API_KEY"]
+                  def call(cmd, **params):
+                      data = urllib.parse.urlencode({"apikey": key, "cmd": cmd, **params}).encode()
+                      resp = json.load(urllib.request.urlopen(base, data, timeout=30))["response"]
+                      if resp["result"] != "success":
+                          raise SystemExit(f"{cmd}: {resp}")
+                      return resp["data"]
+                  name = "discord-gitops"
+                  ids = [n["id"] for n in call("get_notifiers") if n["agent_id"] == 20 and n["friendly_name"] == name]
+                  nid = ids[0] if ids else call("add_notifier_config", agent_id=20)["notifier_id"]
+                  call("set_notifier_config", notifier_id=nid, friendly_name=name,
+                       discord_hook=os.environ["DISCORD_WEBHOOK"], discord_username="Tautulli",
+                       discord_incl_card=1, discord_incl_subject=0,
+                       on_created=1, on_intdown=1, on_intup=1, on_extdown=0, on_extup=0)
+                  print(f"notifier {nid} ({name}) applied")
+              envFrom:
+                - secretRef:
+                    name: tautulli-secret
+                - secretRef:
+                    name: tautulli-generated
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi

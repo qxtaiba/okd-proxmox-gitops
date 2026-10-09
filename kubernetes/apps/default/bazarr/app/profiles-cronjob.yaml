@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/cronjob_v1.json
+---
+# Bazarr keeps enabled languages and language profiles in its DB, settable
+# only through POST /api/system/settings. Posting them re-runs a full
+# missing-subtitles scan, and any profile left out of the list is deleted, so
+# this job compares first and posts only on drift.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: bazarr-profiles
+spec:
+  schedule: "27 * * * *"
+  timeZone: Asia/Dubai
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: bazarr
+          containers:
+            - name: apply
+              image: ghcr.io/home-operations/bazarr:1.6.2@sha256:17dc1cff22e99694ffbfb06555526cb47a66b362b4d6c982f06b557f7caae2bb
+              command:
+                - python3
+                - -c
+                - |
+                  import json, os, urllib.parse, urllib.request
+                  base = "http://bazarr.default.svc.cluster.local:6767/api"
+                  hdr = {"X-API-KEY": os.environ["BAZARR_API_KEY"]}
+                  def get(path):
+                      return json.load(urllib.request.urlopen(urllib.request.Request(base + path, headers=hdr), timeout=30))
+                  # One English profile; hi "False" = normal or hearing-impaired
+                  # accepted, forced "False" = full subtitles, not forced-only.
+                  want = [{"profileId": 1, "name": "English", "cutoff": None,
+                           "items": [{"id": 1, "language": "en", "hi": "False", "forced": "False",
+                                      "audioExclude": "False", "audioOnlyInclude": "False"}],
+                           "mustContain": [], "mustNotContain": [], "originalFormat": False, "tag": None}]
+                  def shape(ps):
+                      return sorted([(p["profileId"], p["name"], p.get("cutoff"),
+                                      tuple((i["language"], str(i["hi"]), str(i["forced"])) for i in p["items"]))
+                                     for p in ps])
+                  enabled = sorted(l["code2"] for l in get("/system/languages") if l.get("enabled"))
+                  have = get("/system/languages/profiles")
+                  if enabled == ["en"] and shape(have) == shape(want):
+                      print("bazarr: languages and profiles already as declared"); raise SystemExit(0)
+                  body = urllib.parse.urlencode({"languages-enabled": "en",
+                                                 "languages-profiles": json.dumps(want)}).encode()
+                  urllib.request.urlopen(urllib.request.Request(base + "/system/settings", body, hdr, method="POST"), timeout=60)
+                  print(f"bazarr: applied (was enabled={enabled}, profiles={shape(have)})")
+              envFrom:
+                - secretRef:
+                    name: bazarr-generated
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi

@@ -1,0 +1,151 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+---
+# Bazarr: English subtitles for everything Sonarr/Radarr manage.
+#
+# Settings are declared as DYNACONF_<SECTION>__<KEY> env vars: Bazarr loads
+# config with Dynaconf, env overrides config.yaml on every start, and a UI
+# edit only lasts until the next restart. The language profile lives in
+# Bazarr's DB instead and is applied by profiles-cronjob.yaml.
+#
+# Policy (TRaSH Bazarr guide scores):
+# - Embedded *text* subtitles (official WEB-DL tracks, perfectly timed) count
+#   as present, so those files are left alone.
+# - Embedded *image* subtitles (PGS/VobSub) count as missing: Plex has to burn
+#   them into the video by transcoding, so a text .srt is fetched instead.
+# - Downloaded subs are re-timed with ffsubsync when their score is below the
+#   threshold, and upgraded for 7 days if a better match appears.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: bazarr
+spec:
+  interval: 10m
+  chartRef:
+    kind: OCIRepository
+    name: bazarr
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      bazarr:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: bazarr
+        containers:
+          app:
+            image:
+              repository: ghcr.io/home-operations/bazarr
+              tag: 1.6.2@sha256:17dc1cff22e99694ffbfb06555526cb47a66b362b4d6c982f06b557f7caae2bb
+            env:
+              TZ: Asia/Dubai
+              BAZARR__PORT: "6767"
+              # --- Sonarr / Radarr (same /media paths, no path mapping) ---
+              DYNACONF_GENERAL__USE_SONARR: "true"
+              DYNACONF_SONARR__IP: sonarr.default.svc.cluster.local
+              DYNACONF_SONARR__PORT: "8989"
+              DYNACONF_SONARR__BASE_URL: /
+              DYNACONF_SONARR__SSL: "false"
+              DYNACONF_GENERAL__USE_RADARR: "true"
+              DYNACONF_RADARR__IP: radarr.default.svc.cluster.local
+              DYNACONF_RADARR__PORT: "7878"
+              DYNACONF_RADARR__BASE_URL: /
+              DYNACONF_RADARR__SSL: "false"
+              # --- Providers that need no account (2026: Podnapisi is gone) ---
+              # Add opensubtitlescom/subdl/subsource here once their
+              # credentials are in 1Password (see bazarr ExternalSecret).
+              DYNACONF_GENERAL__ENABLED_PROVIDERS: '["embeddedsubtitles","gestdown","yifysubtitles","tvsubtitles"]'
+              # --- Scoring and searching ---
+              DYNACONF_GENERAL__MINIMUM_SCORE: "90"
+              DYNACONF_GENERAL__MINIMUM_SCORE_MOVIE: "80"
+              DYNACONF_GENERAL__ADAPTIVE_SEARCHING: "true"
+              DYNACONF_GENERAL__UPGRADE_SUBS: "true"
+              DYNACONF_GENERAL__DAYS_TO_UPGRADE_SUBS: "7"
+              DYNACONF_GENERAL__UPGRADE_MANUAL: "false"
+              # --- Embedded subtitles: text counts, image-based doesn't ---
+              DYNACONF_GENERAL__USE_EMBEDDED_SUBS: "true"
+              DYNACONF_GENERAL__IGNORE_PGS_SUBS: "true"
+              DYNACONF_GENERAL__IGNORE_VOBSUB_SUBS: "true"
+              DYNACONF_EMBEDDEDSUBTITLES__INCLUDED_CODECS: '["subrip","ass","webvtt","mov_text"]'
+              DYNACONF_EMBEDDEDSUBTITLES__HI_FALLBACK: "true"
+              # --- Timing sync (ffsubsync) for lower-scoring matches ---
+              DYNACONF_SUBSYNC__USE_SUBSYNC: "true"
+              DYNACONF_SUBSYNC__USE_SUBSYNC_THRESHOLD: "true"
+              DYNACONF_SUBSYNC__SUBSYNC_THRESHOLD: "96"
+              DYNACONF_SUBSYNC__USE_SUBSYNC_MOVIE_THRESHOLD: "true"
+              DYNACONF_SUBSYNC__SUBSYNC_MOVIE_THRESHOLD: "86"
+              DYNACONF_GENERAL__USE_POSTPROCESSING: "false"
+              # --- Every series/movie gets the English profile (id 1) ---
+              DYNACONF_GENERAL__SERIE_DEFAULT_ENABLED: "true"
+              DYNACONF_GENERAL__SERIE_DEFAULT_PROFILE: "1"
+              DYNACONF_GENERAL__MOVIE_DEFAULT_ENABLED: "true"
+              DYNACONF_GENERAL__MOVIE_DEFAULT_PROFILE: "1"
+            envFrom:
+              - secretRef:
+                  name: bazarr-secret
+              - secretRef:
+                  name: bazarr-generated
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/system/ping
+                    port: 6767
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 3
+              readiness: *probe
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/system/ping
+                    port: 6767
+                  periodSeconds: 10
+                  failureThreshold: 30
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 256Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seLinuxOptions:
+          level: "s0"
+    service:
+      app:
+        controller: bazarr
+        ports:
+          http:
+            port: 6767
+    persistence:
+      config:
+        existingClaim: bazarr-config
+        globalMounts:
+          - path: /config
+      # Writes <video>.en.srt next to the media.
+      media:
+        existingClaim: media
+        globalMounts:
+          - path: /media
+      tmp:
+        type: emptyDir
