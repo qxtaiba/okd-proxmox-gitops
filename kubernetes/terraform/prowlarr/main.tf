@@ -5,7 +5,7 @@ resource "prowlarr_indexer" "nzbgeek" {
   implementation  = "Newznab"
   config_contract = "NewznabSettings"
   protocol        = "usenet"
-  app_profile_id  = 1
+  app_profile_id  = prowlarr_sync_profile.standard.id
   priority        = 10
   redirect        = true
 
