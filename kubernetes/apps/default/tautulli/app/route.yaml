@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/route.openshift.io/route_v1.json
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: tautulli
+  labels:
+    ingress: grappleberry
+  annotations:
+    # Kept for documentation only: external-dns ignores this for OpenShift
+    # Routes and publishes the Route's routerCanonicalHostname instead. The
+    # tunnel is reached because router-grappleberry.grappleberry.xyz now
+    # CNAMEs to it (see cloudflared/dnsendpoint.yaml).
+    external-dns.alpha.kubernetes.io/target: external.grappleberry.xyz
+spec:
+  host: tautulli.grappleberry.xyz
+  port:
+    targetPort: 8181
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: tautulli
+    weight: 100
+  wildcardPolicy: None

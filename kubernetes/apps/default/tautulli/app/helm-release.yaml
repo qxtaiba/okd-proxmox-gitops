@@ -1,0 +1,146 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+---
+# Tautulli: Plex activity history, stats and notifications.
+# Configured entirely through env: every config.ini key can be set as
+# TAUTULLI_<KEY>, env always wins, and UI edits to those keys are refused.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: tautulli
+spec:
+  interval: 10m
+  chartRef:
+    kind: OCIRepository
+    name: tautulli
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      tautulli:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: tautulli
+        initContainers:
+          # Login is only enforced once http_password holds a hash, and env
+          # can't carry one generated at runtime. Seed it into config.ini once
+          # from the generated secret; you then sign in with Plex
+          # (HTTP_PLEX_ADMIN, on by default) and never need this password.
+          seed-login:
+            image: &image
+              repository: ghcr.io/home-operations/tautulli
+              tag: 2.18.2@sha256:5d55eb06f2b77eb09001b2f884b0b3a9ed3adf8416c6209c563796e18eaa43a4
+            command:
+              - python3
+              - -c
+              - |
+                import os, re, sys
+                sys.path.insert(0, "/app/lib")
+                from hashing_passwords import make_hash
+                path = "/config/config.ini"
+                text = open(path).read() if os.path.exists(path) else ""
+                m = re.search(r'^http_password = (.*)$', text, re.M)
+                if m and m.group(1).strip('" ') and "$" in m.group(1):
+                    print("http_password already set"); sys.exit(0)
+                h = make_hash(open("/login/password").read().strip())
+                line = 'http_password = "%s"' % h
+                if m:
+                    text = text[:m.start()] + line + text[m.end():]
+                elif "[General]" in text:
+                    text = text.replace("[General]", "[General]\n" + line, 1)
+                else:
+                    text = "[General]\n" + line + "\n" + text
+                if not re.search(r'^http_username = ', text, re.M):
+                    text = text.replace("[General]", '[General]\nhttp_username = "admin"', 1)
+                open(path, "w").write(text)
+                print("seeded http_password")
+            securityContext: &securityContext
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+        containers:
+          app:
+            image: *image
+            env:
+              TZ: Asia/Dubai
+              TAUTULLI_FIRST_RUN_COMPLETE: "1"
+              TAUTULLI_PMS_IP: plex.default.svc.cluster.local
+              TAUTULLI_PMS_PORT: "32400"
+              TAUTULLI_PMS_SSL: "0"
+              TAUTULLI_PMS_IS_REMOTE: "0"
+              TAUTULLI_PMS_URL: http://plex.default.svc.cluster.local:32400
+              # Plex's machineIdentifier (GET /identity); fixed for the life
+              # of the Plex install.
+              TAUTULLI_PMS_IDENTIFIER: 00d8e4a8f78e5786b01cf8b76cfa05f4c858735e
+              # External URL used in notification links (not a path prefix).
+              TAUTULLI_HTTP_BASE_URL: https://tautulli.grappleberry.xyz
+              TAUTULLI_CHECK_GITHUB: "0"
+            envFrom:
+              - secretRef:
+                  name: tautulli-secret
+              - secretRef:
+                  name: tautulli-generated
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /status
+                    port: 8181
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 3
+              readiness: *probe
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /status
+                    port: 8181
+                  periodSeconds: 10
+                  failureThreshold: 30
+            securityContext: *securityContext
+            resources:
+              requests:
+                cpu: 10m
+                memory: 192Mi
+              limits:
+                cpu: 500m
+                memory: 1Gi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seLinuxOptions:
+          level: "s0"
+    service:
+      app:
+        controller: tautulli
+        ports:
+          http:
+            port: 8181
+    persistence:
+      config:
+        existingClaim: tautulli-config
+        globalMounts:
+          - path: /config
+      login:
+        type: secret
+        name: tautulli-login
+        advancedMounts:
+          tautulli:
+            seed-login:
+              - path: /login
+                readOnly: true
+      tmp:
+        type: emptyDir
