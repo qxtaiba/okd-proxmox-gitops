@@ -85,7 +85,7 @@ resource "radarr_media_management" "media_management" {
   chown_group                                 = ""
   skip_free_space_check_when_importing        = false
   minimum_free_space_when_importing           = 100
-  copy_using_hardlinks                        = false
+  copy_using_hardlinks                        = true
   import_extra_files                          = true
   extra_file_extensions                       = "srt,nfo"
   enable_media_info                           = true

@@ -1,0 +1,110 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/cronjob_v1.json
+---
+# Declarative settings for the download clients. Neither SABnzbd nor
+# qBittorrent has a Terraform provider, and their images only template a
+# handful of keys from env, so this CronJob pushes the desired state through
+# each app's own API (idempotent; re-run hourly to correct UI drift).
+# Credentials come from the same devopsarr-secrets the Terraform stack uses.
+#
+# Run on demand: oc -n default create job --from=cronjob/download-client-config dcc-manual
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: download-client-config
+spec:
+  schedule: "7 * * * *"
+  timeZone: Asia/Dubai
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: apply
+              image: quay.io/curl/curl:8.22.0
+              env:
+                - name: SAB_URL
+                  value: http://sabnzbd.default.svc.cluster.local:8080
+                - name: QBT_URL
+                  value: http://qbittorrent.default.svc.cluster.local:8080
+                - name: SAB_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: devopsarr-secrets
+                      key: sabnzbd_api_key
+                - name: QBT_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: devopsarr-secrets
+                      key: qbittorrent_username
+                - name: QBT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: devopsarr-secrets
+                      key: qbittorrent_password
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+
+                  # --- SABnzbd ---
+                  # Downloads sit on the NAS media share so imports are hardlinks.
+                  sab() {
+                    out=$(curl -fsS -G "${SAB_URL}/api" --data-urlencode "apikey=${SAB_API_KEY}" \
+                      -d output=json -d mode=set_config "$@")
+                    case "${out}" in *'"config"'*) echo "sabnzbd: ok $*" ;; *) echo "sabnzbd: ${out}"; exit 1 ;; esac
+                  }
+                  sab -d section=misc -d keyword=download_dir --data-urlencode value=/media/downloads/usenet/incomplete
+                  sab -d section=misc -d keyword=complete_dir --data-urlencode value=/media/downloads/usenet/complete
+                  for cat in sonarr radarr prowlarr; do
+                    sab -d section=categories -d "name=${cat}" --data-urlencode dir=/media/downloads/usenet/complete
+                  done
+
+                  # --- qBittorrent ---
+                  jar=/tmp/qbt.cookies
+                  login=$(curl -fsS -c "${jar}" --data-urlencode "username=${QBT_USERNAME}" \
+                    --data-urlencode "password=${QBT_PASSWORD}" "${QBT_URL}/api/v2/auth/login")
+                  [ "${login}" = "Ok." ] || { echo "qbittorrent: login failed: ${login}"; exit 1; }
+                  # Public trackers: pull the curated ngosang list into every
+                  # torrent and announce to all of them, re-announcing whenever
+                  # gluetun's forwarded port/address changes.
+                  curl -fsS -b "${jar}" "${QBT_URL}/api/v2/app/setPreferences" --data-urlencode 'json={
+                    "save_path": "/media/downloads/torrents",
+                    "temp_path_enabled": false,
+                    "temp_path": "/media/downloads/torrents/incomplete",
+                    "auto_tmm_enabled": false,
+                    "add_trackers_from_url_enabled": true,
+                    "add_trackers_url": "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt",
+                    "announce_to_all_trackers": true,
+                    "announce_to_all_tiers": true,
+                    "reannounce_when_address_changed": true,
+                    "merge_trackers": true,
+                    "max_connec": 600,
+                    "max_connec_per_torrent": 150
+                  }'
+                  echo "qbittorrent: ok"
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                capabilities:
+                  drop: ["ALL"]
+                seccompProfile:
+                  type: RuntimeDefault
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 16Mi
+                limits:
+                  memory: 64Mi
+          volumes:
+            - name: tmp
+              emptyDir: {}
