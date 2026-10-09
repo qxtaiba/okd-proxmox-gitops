@@ -54,7 +54,7 @@ spec:
                   echo "kometa: no MDBList key; universe/rotten/metacritic extras stay off"
                   sed -i '/# mdblist:start/,/# mdblist:end/d' /config/config.yml
                 else
-                  sed -i 's/: false  # mdblist$/: true/' /config/config.yml
+                  sed -i 's/: false # mdblist$/: true/' /config/config.yml
                 fi
                 exec python3 /kometa.py --config /config/config.yml --run
             env:
