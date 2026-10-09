@@ -52,7 +52,7 @@ spec:
                 cp /config-template/config.yml /config/config.yml
                 if [ -z "${KOMETA_MDBLISTKEY:-}" ]; then
                   echo "kometa: no MDBList key; universe/rotten/metacritic extras stay off"
-                  sed -i '/# mdblist:start/,/# mdblist:end/d' /config/config.yml
+                  sed -i '/^# mdblist:start$/,/^# mdblist:end$/d' /config/config.yml
                 else
                   sed -i 's/: false # mdblist$/: true/' /config/config.yml
                 fi
