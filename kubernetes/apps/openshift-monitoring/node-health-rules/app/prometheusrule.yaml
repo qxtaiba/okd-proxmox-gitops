@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: node-health-rules
+spec:
+  groups:
+    - name: node-memory.rules
+      rules:
+        # 2026-10-09: master0 accumulated ~18 GB of file pages on the active
+        # LRU that belonged to no page cache (Active(file) far above Cached),
+        # charged to deleted pod cgroups after heavy CephFS/NFS download I/O.
+        # The kernel scanned them endlessly (2.5e9 direct-reclaim scans, load
+        # 55), starving everything on the node and capping NFS writes. Normal
+        # nodes sit below zero here; master1 briefly touched 8 GB and recovered,
+        # hence the 1h hold. Fix: drain and reboot the node.
+        - alert: NodeOrphanedFilePages
+          expr: |-
+            (node_memory_Active_file_bytes - node_memory_Cached_bytes) > 8e9
+          for: 1h
+          annotations:
+            summary: >-
+              {{ $labels.instance }} holds {{ $value | humanize1024 }}B of file pages outside the page cache (kernel memory leak pattern)
+            description: >-
+              Active(file) exceeds Cached by this much for over an hour: pages the kernel keeps scanning but cannot reclaim. Expect rising load, direct reclaim and slow NFS/Ceph I/O on this node. Fix: oc adm drain the node and reboot it (pause SABnzbd first so its queue file is not cut mid-write).
+          labels:
+            severity: warning
+        - alert: NodeOrphanedFilePagesCritical
+          expr: |-
+            (node_memory_Active_file_bytes - node_memory_Cached_bytes) > 12e9
+          for: 15m
+          annotations:
+            summary: >-
+              {{ $labels.instance }} holds {{ $value | humanize1024 }}B of unreclaimable file pages -- drain and reboot it
+          labels:
+            severity: critical

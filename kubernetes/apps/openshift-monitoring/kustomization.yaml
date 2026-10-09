@@ -6,4 +6,5 @@ resources:
   # No namespace.yaml - openshift-monitoring is pre-created by OKD
   - ./alertmanager-config
   - ./cluster-monitoring-config
+  - ./node-health-rules
   - ./user-workload-config
