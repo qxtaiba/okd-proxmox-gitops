@@ -76,7 +76,7 @@ resource "sonarr_naming" "naming" {
 # --- Media Management ---
 resource "sonarr_media_management" "media_management" {
   unmonitor_previous_episodes = true
-  hardlinks_copy              = false
+  hardlinks_copy              = true
   create_empty_folders        = false
   delete_empty_folders        = true
   enable_media_info           = true

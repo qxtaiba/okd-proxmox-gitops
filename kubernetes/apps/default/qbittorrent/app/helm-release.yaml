@@ -30,7 +30,7 @@ spec:
             command:
               - sh
               - -c
-              - mkdir -p /downloads/torrents/complete /downloads/torrents/incomplete
+              - mkdir -p /media/downloads/torrents/complete /media/downloads/torrents/incomplete
             securityContext:
               runAsUser: 1000
               runAsGroup: 1000
@@ -285,8 +285,9 @@ spec:
         existingClaim: media
         advancedMounts:
           qbittorrent:
-            app:
+            init-dirs: &media-mount
               - path: /media
+            app: *media-mount
       tmp:
         type: emptyDir
         advancedMounts:
