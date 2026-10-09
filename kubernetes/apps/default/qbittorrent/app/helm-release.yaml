@@ -240,6 +240,19 @@ spec:
                 cpu: 2000m
                 memory: 4Gi
     defaultPodOptions:
+      # The pod resolves through gluetun's DNS (127.0.0.1) but inherits the
+      # Kubernetes search list with ndots:5, so every external name was first
+      # tried under 4 cluster suffixes. gluetun forwards those "local" zones
+      # to the pod's local resolver -- itself -- which fails only after a 2s
+      # timeout: ~8s added to every hostname lookup through the VPN. That
+      # broke Byparr's 12.5s egress-IP check and Prowlarr's Cloudflare
+      # round-trips, slowed tracker announces, and timed out gluetun's own
+      # public-IP lookup. ndots:1 tries dotted names as-is first; nothing in
+      # this pod resolves cluster names via the search list.
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
