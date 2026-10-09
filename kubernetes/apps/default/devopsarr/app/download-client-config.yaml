@@ -64,15 +64,22 @@ spec:
                   sab_set() { # <section> <name|keyword> <field> <value>
                     if [ "$1" = categories ]; then
                       out=$(sab_api -d mode=set_config -d section=categories -d "name=$2" --data-urlencode "$3=$4")
+                    elif [ "$1" = servers ]; then
+                      out=$(sab_api -d mode=set_config -d section=servers -d "keyword=$2" --data-urlencode "$3=$4")
                     else
                       out=$(sab_api -d mode=set_config -d "section=$1" -d "keyword=$2" --data-urlencode "value=$4")
                     fi
                     case "${out}" in
-                      *"\"$3\":\"$4\""*) echo "sabnzbd: $1/$2 $3=$4" ;;
+                      *"\"$3\":\"$4\""*|*"\"$3\":$4,"*|*"\"$3\":$4}"*) echo "sabnzbd: $1/$2 $3=$4" ;;
                       *) echo "sabnzbd: $1/$2 $3 not applied: ${out}"; return 1 ;;
                     esac
                   }
                   sab_set misc complete_dir complete_dir /media/downloads/usenet/complete
+                  # Old posts come from the provider's archive tier, slow per
+                  # connection; 30 connections ran at 11-33 MB/s while 60 hit
+                  # the 87.5 MB/s cap (measured 2026-10-09). Newshosting
+                  # allows up to 100.
+                  sab_set servers news.newshosting.com connections 60
                   for cat in sonarr radarr prowlarr; do
                     sab_set categories "${cat}" dir /media/downloads/usenet/complete
                   done
