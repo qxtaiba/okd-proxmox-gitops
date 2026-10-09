@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./oci-repository.yaml
+  - ./external-secret.yaml
+  - ./pvc.yaml
+  - ./rbac.yaml
+  - ./helm-release.yaml
+  - ./volsync.yaml
+configMapGenerator:
+  - name: kometa-config
+    files:
+      - config.yml=./config/config.yml
+generatorOptions:
+  disableNameSuffixHash: true
+components:
+  - ../../../../components/volsync-restic-defaults

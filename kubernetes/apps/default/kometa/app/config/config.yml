@@ -1,0 +1,124 @@
+# Kometa: Plex collections and poster overlays, rebuilt daily from Kometa's
+# maintained "default" files. Secrets come from env (<<name>> = KOMETA_NAME).
+#
+# Lines between "# mdblist:start" and "# mdblist:end" are removed by the job
+# while the 1Password kometa/mdblist_api_key field is empty; the
+# "use_<x>: false  # mdblist" toggles flip to true once it is set.
+plex:
+  url: http://plex.default.svc.cluster.local:32400
+  token: <<plextoken>>
+  timeout: 60
+  clean_bundles: false
+  empty_trash: false
+  optimize: false
+tmdb:
+  apikey: <<tmdbkey>>
+  language: en
+  region: US
+  cache_expiration: 60
+# mdblist:start
+mdblist:
+  apikey: <<mdblistkey>>
+  cache_expiration: 60
+# mdblist:end
+settings:
+  # All four are required: a missing entry makes Kometa rewrite config.yml,
+  # which fails on purpose (KOMETA_READ_ONLY_CONFIG).
+  run_order: [operations, metadata, collections, overlays]
+  cache: true
+  cache_expiration: 60
+  asset_directory: [config/assets]
+  asset_folders: true
+  sync_mode: sync
+  minimum_items: 2
+  delete_below_minimum: true
+  default_collection_order: release
+  show_missing: false
+  show_unmanaged: false
+  overlay_artwork_filetype: webp_lossy
+  save_report: false
+libraries:
+  Movies:
+    template_variables:
+      use_separator: false
+    collection_files:
+      - default: basic          # newly released
+      - default: tmdb           # popular, top rated, trending
+      - default: imdb           # IMDb popular, Top 250
+      - default: franchise      # TMDb collections in release order
+      - default: universe       # MCU, Star Wars, Middle-earth...
+        template_variables:
+          use_marvel: false  # mdblist
+          use_dceu: false  # mdblist
+          use_dca: false  # mdblist
+          use_middle: false  # mdblist
+          use_wizard: false  # mdblist
+          use_rocky: false  # mdblist
+          use_mummy: false  # mdblist
+          use_askew: false  # mdblist
+      - default: studio
+      - default: decade
+      - default: genre
+      - default: oscars
+    overlay_files:
+      - default: resolution     # 4K / 1080p, HDR / Dolby Vision
+      - default: audio_codec    # Atmos, TrueHD, DTS:X...
+      - default: ribbon         # IMDb Top 250, awards
+        template_variables:
+          use_rotten: false  # mdblist
+          use_rottenverified: false  # mdblist
+          use_metacritic: false  # mdblist
+          use_common: false  # mdblist
+      - default: ratings
+        template_variables:
+          rating1: imdb
+          rating1_image: imdb
+          rating2: tmdb
+          rating2_image: tmdb
+          horizontal_position: right
+  TV Shows:
+    template_variables:
+      use_separator: false
+    collection_files:
+      - default: basic
+      - default: tmdb
+      - default: network
+      - default: franchise
+      - default: decade
+      - default: genre
+    overlay_files:
+      - default: resolution
+      - default: audio_codec
+      - default: status         # airing / returning / ended
+      - default: ratings
+        template_variables:
+          rating1: imdb
+          rating1_image: imdb
+          rating2: tmdb
+          rating2_image: tmdb
+          horizontal_position: right
+  Kids Movies:
+    template_variables:
+      use_separator: false
+    collection_files:
+      - default: franchise
+      - default: studio
+      - default: universe
+        template_variables:
+          use_marvel: false  # mdblist
+          use_dceu: false  # mdblist
+          use_dca: false  # mdblist
+          use_middle: false  # mdblist
+          use_wizard: false  # mdblist
+          use_rocky: false  # mdblist
+          use_mummy: false  # mdblist
+          use_askew: false  # mdblist
+    overlay_files:
+      - default: resolution
+  Kids TV Shows:
+    template_variables:
+      use_separator: false
+    collection_files:
+      - default: network
+    overlay_files:
+      - default: resolution
