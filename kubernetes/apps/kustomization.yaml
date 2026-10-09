@@ -9,6 +9,7 @@ resources:
   - ./default
   - ./etcd-backup
   - ./openshift-apiserver
+  - ./openshift-etcd
   - ./openshift-machineconfig
   - ./openshift-samples
   - ./openshift-monitoring

@@ -1,0 +1,21 @@
+---
+# etcd shares a single DRAM-less QLC NVMe with Ceph and every VM disk, so
+# fsync latency spikes under sustained I/O (444ms p99 seen) and the default
+# 100ms heartbeat / 1000ms election timeout turns those spikes into leader
+# elections (18 in 7 days as of 2026-10-09), each of which ripples into
+# apiserver and kube-controller-manager restarts.
+#
+# `Slower` raises the heartbeat to 500ms and the election timeout to 2500ms,
+# the profile Red Hat documents for control planes on slow storage. The cost
+# is a slower failover when a member really dies, which on a 3-VM single-host
+# cluster is a non-issue. The etcd operator applies it with a one-member-at-a-
+# time rollout.
+#
+# Applied via Flux SSA onto the pre-existing cluster-singleton `cluster` Etcd CR.
+# Reference: https://www.redhat.com/en/blog/introducing-selectable-profiles-for-etcd
+apiVersion: operator.openshift.io/v1
+kind: Etcd
+metadata:
+  name: cluster
+spec:
+  controlPlaneHardwareSpeed: Slower
