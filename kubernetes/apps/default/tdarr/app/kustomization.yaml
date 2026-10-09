@@ -10,5 +10,12 @@ resources:
   - ./helm-release.yaml
   - ./route.yaml
   - ./volsync.yaml
+  - ./config-cronjob.yaml
+configMapGenerator:
+  - name: tdarr-config
+    files:
+      - sync.js=./config/sync.js
+generatorOptions:
+  disableNameSuffixHash: true
 components:
   - ../../../../components/volsync-restic-defaults
