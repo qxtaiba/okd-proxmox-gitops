@@ -39,6 +39,7 @@ jobs:
           kubeconform -summary -strict \
             -ignore-filename-pattern '.*/(kustomization|secret)\.yaml' \
             -ignore-filename-pattern '.*/homepage/app/resources/.*' \
+            -ignore-filename-pattern '.*/app/config/.*' \
             -schema-location default \
             -schema-location 'https://kubernetes-schemas.pages.dev/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
             -skip CustomResourceDefinition,MachineConfig,MachineConfiguration,KubeletConfig,Terraform,FluxInstance,Route,SecurityContextConstraints,APIServer,Etcd,Config,DNS,IngressController,IPAddressPool,L2Advertisement \

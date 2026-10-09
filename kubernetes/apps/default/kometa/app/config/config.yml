@@ -1,9 +1,10 @@
+---
 # Kometa: Plex collections and poster overlays, rebuilt daily from Kometa's
 # maintained "default" files. Secrets come from env (<<name>> = KOMETA_NAME).
 #
 # Lines between "# mdblist:start" and "# mdblist:end" are removed by the job
 # while the 1Password kometa/mdblist_api_key field is empty; the
-# "use_<x>: false  # mdblist" toggles flip to true once it is set.
+# "use_<x>: false # mdblist" toggles flip to true once it is set.
 plex:
   url: http://plex.default.svc.cluster.local:32400
   token: <<plextoken>>
@@ -42,33 +43,33 @@ libraries:
     template_variables:
       use_separator: false
     collection_files:
-      - default: basic          # newly released
-      - default: tmdb           # popular, top rated, trending
-      - default: imdb           # IMDb popular, Top 250
-      - default: franchise      # TMDb collections in release order
-      - default: universe       # MCU, Star Wars, Middle-earth...
+      - default: basic # newly released
+      - default: tmdb # popular, top rated, trending
+      - default: imdb # IMDb popular, Top 250
+      - default: franchise # TMDb collections in release order
+      - default: universe # MCU, Star Wars, Middle-earth...
         template_variables:
-          use_marvel: false  # mdblist
-          use_dceu: false  # mdblist
-          use_dca: false  # mdblist
-          use_middle: false  # mdblist
-          use_wizard: false  # mdblist
-          use_rocky: false  # mdblist
-          use_mummy: false  # mdblist
-          use_askew: false  # mdblist
+          use_marvel: false # mdblist
+          use_dceu: false # mdblist
+          use_dca: false # mdblist
+          use_middle: false # mdblist
+          use_wizard: false # mdblist
+          use_rocky: false # mdblist
+          use_mummy: false # mdblist
+          use_askew: false # mdblist
       - default: studio
       - default: decade
       - default: genre
       - default: oscars
     overlay_files:
-      - default: resolution     # 4K / 1080p, HDR / Dolby Vision
-      - default: audio_codec    # Atmos, TrueHD, DTS:X...
-      - default: ribbon         # IMDb Top 250, awards
+      - default: resolution # 4K / 1080p, HDR / Dolby Vision
+      - default: audio_codec # Atmos, TrueHD, DTS:X...
+      - default: ribbon # IMDb Top 250, awards
         template_variables:
-          use_rotten: false  # mdblist
-          use_rottenverified: false  # mdblist
-          use_metacritic: false  # mdblist
-          use_common: false  # mdblist
+          use_rotten: false # mdblist
+          use_rottenverified: false # mdblist
+          use_metacritic: false # mdblist
+          use_common: false # mdblist
       - default: ratings
         template_variables:
           rating1: imdb
@@ -89,7 +90,7 @@ libraries:
     overlay_files:
       - default: resolution
       - default: audio_codec
-      - default: status         # airing / returning / ended
+      - default: status # airing / returning / ended
       - default: ratings
         template_variables:
           rating1: imdb
@@ -105,14 +106,14 @@ libraries:
       - default: studio
       - default: universe
         template_variables:
-          use_marvel: false  # mdblist
-          use_dceu: false  # mdblist
-          use_dca: false  # mdblist
-          use_middle: false  # mdblist
-          use_wizard: false  # mdblist
-          use_rocky: false  # mdblist
-          use_mummy: false  # mdblist
-          use_askew: false  # mdblist
+          use_marvel: false # mdblist
+          use_dceu: false # mdblist
+          use_dca: false # mdblist
+          use_middle: false # mdblist
+          use_wizard: false # mdblist
+          use_rocky: false # mdblist
+          use_mummy: false # mdblist
+          use_askew: false # mdblist
     overlay_files:
       - default: resolution
   Kids TV Shows:
