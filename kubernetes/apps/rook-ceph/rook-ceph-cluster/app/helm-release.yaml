@@ -91,8 +91,25 @@ spec:
           # The cephfs scratch data pool below is deliberately size 1;
           # without this Ceph pins HEALTH_WARN (POOL_NO_REDUNDANCY) forever.
           mon_warn_on_pool_no_redundancy: "false"
+          # Daemons already log to stderr, which CRI-O and Loki keep. File
+          # logging wrote every line a second time to the same NVMe that
+          # backs etcd. Paired with logCollector.enabled: false below.
+          log_to_file: "false"
+        osd:
+          # The OSDs sit on QEMU virtual disks that report rotational=1, so
+          # BlueStore applies its HDD defaults: every write <= 64K is first
+          # journalled into RocksDB and later rewritten in place, i.e.
+          # written twice. The real device is an NVMe, where the SSD
+          # default (0, no deferral) is correct. This is the setting that
+          # matters; the device class itself stays `hdd` (pinned by
+          # osd_class_update_on_start above) so CRUSH rules are unaffected.
+          bluestore_prefer_deferred_size_hdd: "0"
       crashCollector:
         disable: false
+      # The log collector exists to rotate on-disk daemon logs, which are
+      # off (log_to_file above).
+      logCollector:
+        enabled: false
       csi:
         readAffinity:
           enabled: true
