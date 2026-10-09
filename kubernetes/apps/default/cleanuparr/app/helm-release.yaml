@@ -1,0 +1,95 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+---
+# Cleanuparr watches qBittorrent/SABnzbd queues through Sonarr/Radarr and
+# removes what the *arrs never will: torrents stalled or stuck on metadata,
+# slow public-tracker grabs and known-malware releases. Each gets strikes, then
+# is removed, blocklisted and re-searched. Its rules live in its own SQLite DB
+# under /config (UI-only, no declarative config), backed up by VolSync.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cleanuparr
+spec:
+  interval: 10m
+  chartRef:
+    kind: OCIRepository
+    name: cleanuparr
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      cleanuparr:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        serviceAccount:
+          name: cleanuparr
+        containers:
+          app:
+            image:
+              repository: ghcr.io/cleanuparr/cleanuparr
+              tag: 2.10.9
+            env:
+              TZ: Asia/Dubai
+              PORT: "11011"
+              UMASK: "022"
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 11011
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 3
+              readiness: *probe
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 11011
+                  periodSeconds: 10
+                  failureThreshold: 30
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+    defaultPodOptions:
+      # The image's entrypoint skips its PUID/PGID user setup when started
+      # non-root and runs directly as this UID.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seLinuxOptions:
+          level: "s0"
+    service:
+      app:
+        controller: cleanuparr
+        ports:
+          http:
+            port: 11011
+    persistence:
+      config:
+        existingClaim: cleanuparr-config
+        globalMounts:
+          - path: /config
+      tmp:
+        type: emptyDir

@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./shared-storage
   - ./byparr
+  - ./cleanuparr
   - ./homepage
   - ./overseerr
   - ./plex
