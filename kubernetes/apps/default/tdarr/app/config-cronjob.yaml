@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/cronjob_v1.json
+---
+# Applies config/sync.js (flows, libraries, settings, original-language
+# list) through Tdarr's API every 30 minutes. Idempotent; reverts UI edits
+# to managed objects.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tdarr-config
+spec:
+  schedule: "*/30 * * * *"
+  timeZone: Asia/Dubai
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: tdarr
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seLinuxOptions:
+              level: "s0"
+          containers:
+            - name: sync
+              # Same image as the server: it ships Node.js, all the script needs.
+              image: ghcr.io/haveagitgat/tdarr:2.95.01@sha256:6b4dcd9a20dc80a26d06b50378bdfa6955f2d37e413bf4c52d93a4bb37e74afc
+              command: ["node", "/config/sync.js"]
+              env:
+                - name: TZ
+                  value: Asia/Dubai
+                - name: TDARR_URL
+                  value: http://tdarr.default.svc.cluster.local:8265
+                - name: TDARR_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: tdarr-api-key
+                      key: TDARR_API_KEY
+                - name: RADARR_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: devopsarr-secrets
+                      key: radarr_api_key
+                - name: SONARR_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: devopsarr-secrets
+                      key: sonarr_api_key
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+                  readOnly: true
+                - name: media
+                  mountPath: /media
+          volumes:
+            - name: config
+              configMap:
+                name: tdarr-config
+            - name: media
+              persistentVolumeClaim:
+                claimName: media
