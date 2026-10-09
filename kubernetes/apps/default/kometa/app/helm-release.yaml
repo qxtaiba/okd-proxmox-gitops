@@ -46,7 +46,7 @@ spec:
               - |
                 set -eu
                 if [ -z "${KOMETA_TMDBKEY:-}" ]; then
-                  echo "kometa: waiting for the TMDb key in 1Password (kometa/tmdb_api_key); skipping run"
+                  echo "kometa: waiting for the TMDb key in 1Password (tmdb/api_key); skipping run"
                   exit 0
                 fi
                 cp /config-template/config.yml /config/config.yml
