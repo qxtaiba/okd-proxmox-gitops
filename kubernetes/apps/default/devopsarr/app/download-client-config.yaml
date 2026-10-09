@@ -76,10 +76,12 @@ spec:
                   }
                   sab_set misc complete_dir complete_dir /media/downloads/usenet/complete
                   # Old posts come from the provider's archive tier, slow per
-                  # connection; 30 connections ran at 11-33 MB/s while 60 hit
-                  # the 87.5 MB/s cap (measured 2026-10-09). Newshosting
-                  # allows up to 100.
-                  sab_set servers news.newshosting.com connections 60
+                  # connection, so throughput scales with connections while
+                  # every one stays busy and the article cache stays near
+                  # empty (measured 2026-10-09: 30 -> 11-33 MB/s, 60 -> 24-43,
+                  # 90 -> 40-87 against the 87.5 cap). Newshosting allows 100;
+                  # 90 keeps headroom so reconnects never hit the limit.
+                  sab_set servers news.newshosting.com connections 90
                   for cat in sonarr radarr prowlarr; do
                     sab_set categories "${cat}" dir /media/downloads/usenet/complete
                   done
