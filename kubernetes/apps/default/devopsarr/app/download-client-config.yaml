@@ -57,22 +57,41 @@ spec:
 
                   # --- SABnzbd ---
                   # Downloads sit on the NAS media share so imports are hardlinks.
-                  sab() {
-                    out=$(curl -fsS -G "${SAB_URL}/api" --data-urlencode "apikey=${SAB_API_KEY}" \
-                      -d output=json -d mode=set_config "$@")
-                    case "${out}" in *'"config"'*) echo "sabnzbd: ok $*" ;; *) echo "sabnzbd: ${out}"; exit 1 ;; esac
+                  # set_config echoes the stored value, so check it actually took.
+                  sab_api() {
+                    curl -fsS -G "${SAB_URL}/api" --data-urlencode "apikey=${SAB_API_KEY}" -d output=json "$@"
                   }
-                  sab -d section=misc -d keyword=download_dir --data-urlencode value=/media/downloads/usenet/incomplete
-                  sab -d section=misc -d keyword=complete_dir --data-urlencode value=/media/downloads/usenet/complete
+                  sab_set() { # <section> <name|keyword> <field> <value>
+                    if [ "$1" = categories ]; then
+                      out=$(sab_api -d mode=set_config -d section=categories -d "name=$2" --data-urlencode "$3=$4")
+                    else
+                      out=$(sab_api -d mode=set_config -d "section=$1" -d "keyword=$2" --data-urlencode "value=$4")
+                    fi
+                    case "${out}" in
+                      *"\"$3\":\"$4\""*) echo "sabnzbd: $1/$2 $3=$4" ;;
+                      *) echo "sabnzbd: $1/$2 $3 not applied: ${out}"; return 1 ;;
+                    esac
+                  }
+                  sab_set misc complete_dir complete_dir /media/downloads/usenet/complete
                   for cat in sonarr radarr prowlarr; do
-                    sab -d section=categories -d "name=${cat}" --data-urlencode dir=/media/downloads/usenet/complete
+                    sab_set categories "${cat}" dir /media/downloads/usenet/complete
                   done
+                  # SABnzbd refuses to move the incomplete folder while jobs are
+                  # queued; retry on a later run once the queue has drained.
+                  queued=$(sab_api -d mode=queue -d limit=1 | sed -n 's/.*"noofslots_total": *\([0-9]*\).*/\1/p')
+                  if [ "${queued:-1}" -eq 0 ]; then
+                    sab_set misc download_dir download_dir /media/downloads/usenet/incomplete
+                  else
+                    echo "sabnzbd: misc/download_dir deferred (${queued:-?} jobs queued)"
+                  fi
 
                   # --- qBittorrent ---
+                  # Login answers 200 "Ok." (older) or 204 (5.2+); the SID cookie
+                  # is the reliable signal either way.
                   jar=/tmp/qbt.cookies
-                  login=$(curl -fsS -c "${jar}" --data-urlencode "username=${QBT_USERNAME}" \
-                    --data-urlencode "password=${QBT_PASSWORD}" "${QBT_URL}/api/v2/auth/login")
-                  [ "${login}" = "Ok." ] || { echo "qbittorrent: login failed: ${login}"; exit 1; }
+                  curl -fsS -o /dev/null -c "${jar}" --data-urlencode "username=${QBT_USERNAME}" \
+                    --data-urlencode "password=${QBT_PASSWORD}" "${QBT_URL}/api/v2/auth/login"
+                  grep -q SID "${jar}" || { echo "qbittorrent: login failed"; exit 1; }
                   # Public trackers: pull the curated ngosang list into every
                   # torrent and announce to all of them, re-announcing whenever
                   # gluetun's forwarded port/address changes.
@@ -90,7 +109,10 @@ spec:
                     "max_connec": 600,
                     "max_connec_per_torrent": 150
                   }'
-                  echo "qbittorrent: ok"
+                  curl -fsS -b "${jar}" "${QBT_URL}/api/v2/app/preferences" \
+                    | grep -q '"save_path":"/media/downloads/torrents"' \
+                    || { echo "qbittorrent: preferences not applied"; exit 1; }
+                  echo "qbittorrent: preferences applied"
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
