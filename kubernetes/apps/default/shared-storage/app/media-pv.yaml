@@ -16,6 +16,12 @@ spec:
     - hard
     - timeo=300
     - retrans=2
+    # 4 TCP connections instead of 1: measured +15-20% single-stream write
+    # on a healthy node (90->110, 100->116 MB/s, 2026-10-09) and parallel
+    # writers (SABnzbd, qBittorrent, Tdarr) stop queueing behind one socket.
+    # Linux shares one NFS client per server per node and the first mount
+    # sets its transport, so this takes effect on each node's next reboot.
+    - nconnect=4
   nfs:
     server: nas.grappleberry.xyz
     path: /volume1/media
