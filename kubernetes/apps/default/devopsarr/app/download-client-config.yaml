@@ -23,6 +23,9 @@ spec:
       template:
         spec:
           restartPolicy: Never
+          # The curl image's USER is a name (curl_user), which kubelet cannot
+          # verify against runAsNonRoot; pin a UID via the nonroot-v2 SA.
+          serviceAccountName: tf-runner
           containers:
             - name: apply
               image: quay.io/curl/curl:8.22.0
@@ -92,6 +95,8 @@ spec:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
                 runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
                 capabilities:
                   drop: ["ALL"]
                 seccompProfile:
