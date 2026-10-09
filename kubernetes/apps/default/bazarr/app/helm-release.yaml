@@ -55,10 +55,12 @@ spec:
               DYNACONF_RADARR__PORT: "7878"
               DYNACONF_RADARR__BASE_URL: /
               DYNACONF_RADARR__SSL: "false"
-              # --- Providers that need no account (2026: Podnapisi is gone) ---
-              # Add opensubtitlescom/subdl/subsource here once their
-              # credentials are in 1Password (see bazarr ExternalSecret).
-              DYNACONF_GENERAL__ENABLED_PROVIDERS: '["embeddedsubtitles","gestdown","yifysubtitles","tvsubtitles"]'
+              # --- Providers: the enabled list lives in the bazarr
+              # ExternalSecret, which adds SubDL/SubSource once their keys
+              # exist in 1Password. (Podnapisi is gone as of 2026.) ---
+              DYNACONF_OPENSUBTITLESCOM__USE_HASH: "true"
+              DYNACONF_OPENSUBTITLESCOM__INCLUDE_AI_TRANSLATED: "false"
+              DYNACONF_OPENSUBTITLESCOM__INCLUDE_MACHINE_TRANSLATED: "false"
               # --- Scoring and searching ---
               DYNACONF_GENERAL__MINIMUM_SCORE: "90"
               DYNACONF_GENERAL__MINIMUM_SCORE_MOVIE: "80"
