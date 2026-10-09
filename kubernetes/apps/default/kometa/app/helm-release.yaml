@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+---
+# Kometa runs once a day as a CronJob: builds collections and stamps
+# overlays onto Plex posters. /config is a real PVC (VolSync-backed) because
+# it holds the original-poster backups that remove_overlays restores from.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kometa
+spec:
+  interval: 10m
+  chartRef:
+    kind: OCIRepository
+    name: kometa
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      kometa:
+        type: cronjob
+        annotations:
+          reloader.stakater.com/auto: "true"
+        cronjob:
+          schedule: "0 5 * * *"
+          timeZone: Asia/Dubai
+          concurrencyPolicy: Forbid
+          successfulJobsHistory: 1
+          failedJobsHistory: 2
+          backoffLimit: 0
+        serviceAccount:
+          name: kometa
+        containers:
+          app:
+            image:
+              # Kometa publishes only to Docker Hub; one pull a day is far
+              # inside anonymous limits.
+              repository: docker.io/kometateam/kometa
+              tag: v2.5.2@sha256:06e498cded70c9815522c6b2d8708b31759c1e37714746d1eeb56f1e40a8fd95
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -eu
+                if [ -z "${KOMETA_TMDBKEY:-}" ]; then
+                  echo "kometa: waiting for the TMDb key in 1Password (kometa/tmdb_api_key); skipping run"
+                  exit 0
+                fi
+                cp /config-template/config.yml /config/config.yml
+                if [ -z "${KOMETA_MDBLISTKEY:-}" ]; then
+                  echo "kometa: no MDBList key; universe/rotten/metacritic extras stay off"
+                  sed -i '/# mdblist:start/,/# mdblist:end/d' /config/config.yml
+                else
+                  sed -i 's/: false  # mdblist$/: true/' /config/config.yml
+                fi
+                exec python3 /kometa.py --config /config/config.yml --run
+            env:
+              TZ: Asia/Dubai
+              KOMETA_READ_ONLY_CONFIG: "true"
+              KOMETA_NO_COUNTDOWN: "true"
+            envFrom:
+              - secretRef:
+                  name: kometa-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                cpu: 250m
+                memory: 512Mi
+              limits:
+                cpu: 1000m
+                memory: 2Gi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seLinuxOptions:
+          level: "s0"
+    persistence:
+      config:
+        existingClaim: kometa-config
+        globalMounts:
+          - path: /config
+      config-template:
+        type: configMap
+        name: kometa-config
+        globalMounts:
+          - path: /config-template
+            readOnly: true
+      tmp:
+        type: emptyDir
