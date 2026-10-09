@@ -203,9 +203,11 @@ function library(id, name, folder, flowId, priority, allHours, enabled) {
   }
 }
 
-// The real libraries stay disabled until the flow has been checked on copies
-// in the test library; flip LIBRARIES_ENABLED to start processing them.
-const LIBRARIES_ENABLED = false
+// Checked on real copies in the test library on 2026-10-09: a 4K Dolby
+// Vision episode lost 36 foreign subtitles and kept video, English audio,
+// both English subtitles and the untagged one, with DV profile 8 metadata
+// and duration intact; a file with an unreadable subtitle codec was skipped.
+const LIBRARIES_ENABLED = true
 const LIBRARIES = [
   library("grappleberryMovies", "Movies", "/media/main/movies", "grappleberryLosslessMovies", 1, false, LIBRARIES_ENABLED),
   library("grappleberryTv", "TV Shows", "/media/main/tv", "grappleberryLosslessTv", 2, false, LIBRARIES_ENABLED),
@@ -235,8 +237,9 @@ async function syncDocs(collection, desired, keys) {
       await db(collection, "insert", { docID: want._id, obj: Object.assign({ createdAt: Date.now() }, want) })
       log(collection + " " + want._id + ": created")
     } else if (!same(pick(have), pick(want))) {
+      const changed = keys(want).filter((k) => !same(have[k], want[k]))
       await db(collection, "update", { docID: want._id, obj: want })
-      log(collection + " " + want._id + ": updated")
+      log(collection + " " + want._id + ": updated (" + changed.join(", ") + ")")
     } else log(collection + " " + want._id + ": unchanged")
   }
 }
