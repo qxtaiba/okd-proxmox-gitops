@@ -2,9 +2,9 @@
 # Kometa: Plex collections and poster overlays, rebuilt daily from Kometa's
 # maintained "default" files. Secrets come from env (<<name>> = KOMETA_NAME).
 #
-# Lines between "# mdblist:start" and "# mdblist:end" are removed by the job
-# while the 1Password mdblist/api_key field is empty; the
-# "use_<x>: false # mdblist" toggles flip to true once it is set.
+# The mdblist block below is fenced by two marker comment lines; the job
+# deletes it while the 1Password mdblist/api_key field is empty, and flips
+# the toggles commented "mdblist" to true once it is set.
 plex:
   url: http://plex.default.svc.cluster.local:32400
   token: <<plextoken>>
