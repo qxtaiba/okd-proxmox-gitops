@@ -17,6 +17,15 @@
       "description": "let releases age before automerging",
       "matchUpdateTypes": ["minor", "patch"],
       "minimumReleaseAge": "3 days"
+    },
+    {
+      // Chart OCIRepositories pinned by `ref.digest` reconcile fine in Flux,
+      // but flux-local (CI validate-flux) passes the digest to
+      // `helm template --version`, which rejects it ("improper constraint").
+      // Container images keep digest pins; charts stay on tags.
+      "description": "no digest pins for flux chart sources",
+      "matchManagers": ["flux"],
+      "pinDigests": false
     }
   ]
 }
