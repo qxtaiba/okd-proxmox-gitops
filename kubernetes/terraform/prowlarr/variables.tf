@@ -22,3 +22,8 @@ variable "nzbgeek_api_key" {
   type      = string
   sensitive = true
 }
+
+variable "prowlarr_password" {
+  type      = string
+  sensitive = true
+}

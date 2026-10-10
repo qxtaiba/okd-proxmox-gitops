@@ -22,3 +22,8 @@ variable "plex_token" {
   type      = string
   sensitive = true
 }
+
+variable "radarr_password" {
+  type      = string
+  sensitive = true
+}
