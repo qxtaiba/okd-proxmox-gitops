@@ -176,10 +176,16 @@ spec:
           # NVMe, so a third copy protects against losing one VM's disk image,
           # not the drive, while costing a third more physical writes on the
           # device etcd shares. VolSync restic copies on the NAS are the real
-          # backup. min_size stays 1 (Ceph's default for size 2).
+          # backup.
           replicated:
             size: 2
             requireSafeReplicaSize: true
+          # Shrinking 3 -> 2 left min_size at 2, so stopping any OSD (every
+          # node reboot or OSD roll) made a third of the PGs inactive and froze
+          # all block I/O, and `ceph osd ok-to-stop` was false for every OSD.
+          # min_size 1 keeps PGs writable on the surviving copy.
+          parameters:
+            min_size: "1"
         storageClass:
           enabled: true
           name: ceph-block
