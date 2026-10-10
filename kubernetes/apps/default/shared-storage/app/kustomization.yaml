@@ -5,4 +5,3 @@ kind: Kustomization
 resources:
   - ./media-pv.yaml
   - ./media-pvc.yaml
-  - ./downloads-pvc.yaml
