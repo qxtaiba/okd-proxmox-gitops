@@ -21,3 +21,22 @@ spec:
       cpu: 500m
       memory: 2Gi
       ephemeral-storage: 1Gi
+    # Kubelet's default hard eviction is memory.available<100Mi -- on a node
+    # whose kernel is leaking orphaned file pages (NodeOrphanedFilePages),
+    # that is reached only after reclaim has already been thrashing. Evict
+    # gracefully at 1.5Gi (2m sustained), forcibly at 768Mi.
+    #
+    # Setting evictionHard replaces the whole map: any signal not listed
+    # here loses its default and is never enforced, so every default is
+    # restated (nodefs 10%, imagefs 15%, inodes 5%).
+    evictionSoft:
+      memory.available: 1.5Gi
+    evictionSoftGracePeriod:
+      memory.available: 2m
+    evictionHard:
+      memory.available: 768Mi
+      nodefs.available: 10%
+      nodefs.inodesFree: 5%
+      imagefs.available: 15%
+      imagefs.inodesFree: 5%
+    evictionPressureTransitionPeriod: 5m
