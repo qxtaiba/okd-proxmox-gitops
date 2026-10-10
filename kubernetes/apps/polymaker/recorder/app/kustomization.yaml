@@ -4,6 +4,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ./oci-repository.yaml
+  - ./image-build.yaml
   - ./pvc.yaml
   - ./external-secret.yaml
   - ./scc.yaml
