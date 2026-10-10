@@ -3,10 +3,20 @@
     {
       "description": "automerge non-major updates",
       "matchManagers": ["*"],
-      "matchUpdateTypes": ["minor", "patch", "digest", "pin"],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pin", "pinDigest"],
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "rebase"
+    },
+    {
+      // Broken releases are usually yanked or patched within a day or two of
+      // publishing. Automerge used to land them the moment they appeared;
+      // hold version bumps until they have survived 3 days in the wild.
+      // Digest updates carry no release timestamp, so they are excluded
+      // rather than held forever.
+      "description": "let releases age before automerging",
+      "matchUpdateTypes": ["minor", "patch"],
+      "minimumReleaseAge": "3 days"
     }
   ]
 }
