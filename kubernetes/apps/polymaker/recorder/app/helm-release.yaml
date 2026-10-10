@@ -96,7 +96,7 @@ spec:
             image:
               # built in-cluster from the private repo (see image-build.yaml); no pull secret needed
               repository: image-registry.openshift-image-registry.svc:5000/polymaker/poly-maker
-              tag: 1ac0cbe
+              tag: e1f728a
             args: ["record", "--root", "/data/recordings", "--port", "9108"]
             env:
               TZ: UTC
