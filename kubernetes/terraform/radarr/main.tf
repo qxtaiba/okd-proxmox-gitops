@@ -71,7 +71,7 @@ resource "radarr_naming" "naming" {
 # --- Media Management ---
 resource "radarr_media_management" "media_management" {
   auto_unmonitor_previously_downloaded_movies = true
-  recycle_bin                                 = ""
+  recycle_bin                                 = "/media/.recycle/movies"
   recycle_bin_cleanup_days                    = 7
   download_propers_and_repacks                = "doNotPrefer"
   create_empty_movie_folders                  = false

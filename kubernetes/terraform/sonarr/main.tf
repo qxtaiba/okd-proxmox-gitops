@@ -91,6 +91,6 @@ resource "sonarr_media_management" "media_management" {
   episode_title_required      = "always"
   extra_file_extensions       = "srt,nfo"
   file_date                   = "none"
-  recycle_bin_path            = ""
+  recycle_bin_path            = "/media/.recycle/tv"
   rescan_after_refresh        = "always"
 }
