@@ -89,6 +89,15 @@ spec:
                   # 90 -> 40-87 against the 87.5 cap). Newshosting allows 100;
                   # 90 keeps headroom so reconnects never hit the limit.
                   sab_set servers news.newshosting.com connections 90
+                  # Ask for 2 articles per round trip on each connection, so
+                  # a connection isn't idle for a full RTT between articles.
+                  # Same total connections, more of each one's time spent
+                  # transferring -- what archive-tier latency rewards.
+                  sab_set misc pipelining_requests pipelining_requests 2
+                  # The article cache was 4G inside a 4Gi container limit:
+                  # filling it meant an OOM kill mid-write. 1G is plenty when
+                  # the NAS keeps up (measured: the cache stays near empty).
+                  sab_set misc cache_limit cache_limit 1G
                   for cat in sonarr radarr prowlarr; do
                     sab_set categories "${cat}" dir /media/downloads/usenet/complete
                   done
