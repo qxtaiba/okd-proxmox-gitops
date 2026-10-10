@@ -6,12 +6,6 @@ metadata:
   name: bazarr
   labels:
     ingress: grappleberry
-  annotations:
-    # Kept for documentation only: external-dns ignores this for OpenShift
-    # Routes and publishes the Route's routerCanonicalHostname instead. The
-    # tunnel is reached because router-grappleberry.grappleberry.xyz now
-    # CNAMEs to it (see cloudflared/dnsendpoint.yaml).
-    external-dns.alpha.kubernetes.io/target: external.grappleberry.xyz
 spec:
   host: bazarr.grappleberry.xyz
   port:
