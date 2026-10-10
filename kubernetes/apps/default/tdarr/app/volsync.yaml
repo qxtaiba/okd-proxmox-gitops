@@ -7,7 +7,7 @@ metadata:
 spec:
   sourcePVC: tdarr-config
   trigger:
-    schedule: "0 3 * * *"
+    schedule: "54 2 * * *"
   restic:
     repository: volsync-restic-tdarr
     volumeSnapshotClassName: csi-ceph-blockpool

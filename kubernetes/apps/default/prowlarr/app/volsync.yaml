@@ -7,7 +7,7 @@ metadata:
 spec:
   sourcePVC: prowlarr-config
   trigger:
-    schedule: "0 3 * * *"
+    schedule: "18 2 * * *"
   restic:
     repository: volsync-restic-prowlarr
     volumeSnapshotClassName: csi-ceph-blockpool
