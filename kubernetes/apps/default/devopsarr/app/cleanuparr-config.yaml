@@ -25,8 +25,10 @@ spec:
               image: public.ecr.aws/docker/library/python:3.13-alpine
               command: ["python3", "/config/cleanuparr-config.py"]
               env:
+                # Live since 2026-10-10. Dry run showed no actions to review:
+                # qBittorrent was idle and every job ran clean on schedule.
                 - name: DRY_RUN
-                  value: "true"
+                  value: "false"
                 - {name: CLEANUPARR_PASSWORD, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: cleanuparr_password}}}
                 - {name: QBITTORRENT_USERNAME, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: qbittorrent_username}}}
                 - {name: QBITTORRENT_PASSWORD, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: qbittorrent_password}}}
