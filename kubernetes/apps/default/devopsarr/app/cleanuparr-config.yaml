@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/cronjob_v1.json
+---
+# Applies config/cleanuparr-config.py (Cleanuparr's clients, arrs, queue
+# cleaner, malware blocker and download cleaner) through its API. Hourly,
+# idempotent. DRY_RUN=true makes Cleanuparr log actions instead of taking them.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cleanuparr-config
+spec:
+  schedule: "47 * * * *"
+  timeZone: Asia/Dubai
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: tf-runner
+          containers:
+            - name: apply
+              image: public.ecr.aws/docker/library/python:3.13-alpine
+              command: ["python3", "/config/cleanuparr-config.py"]
+              env:
+                - name: DRY_RUN
+                  value: "true"
+                - {name: CLEANUPARR_PASSWORD, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: cleanuparr_password}}}
+                - {name: QBITTORRENT_USERNAME, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: qbittorrent_username}}}
+                - {name: QBITTORRENT_PASSWORD, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: qbittorrent_password}}}
+                - {name: SONARR_API_KEY, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: sonarr_api_key}}}
+                - {name: RADARR_API_KEY, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: radarr_api_key}}}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+                  readOnly: true
+          volumes:
+            - name: config
+              configMap:
+                name: cleanuparr-config

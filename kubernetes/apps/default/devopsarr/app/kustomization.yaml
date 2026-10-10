@@ -9,6 +9,7 @@ resources:
   - ./tofu-state-backup-cronjob.yaml
   - ./download-client-config.yaml
   - ./app-logins.yaml
+  - ./cleanuparr-config.yaml
   - ./terraform-prowlarr.yaml
   - ./terraform-sonarr.yaml
   - ./terraform-radarr.yaml
@@ -16,5 +17,8 @@ configMapGenerator:
   - name: app-logins
     files:
       - app-logins.py=./config/app-logins.py
+  - name: cleanuparr-config
+    files:
+      - cleanuparr-config.py=./config/cleanuparr-config.py
 generatorOptions:
   disableNameSuffixHash: true
