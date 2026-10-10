@@ -19,3 +19,4 @@ resources:
   - ./tautulli
   - ./tdarr
   - ./devopsarr
+  - ./network-policies
