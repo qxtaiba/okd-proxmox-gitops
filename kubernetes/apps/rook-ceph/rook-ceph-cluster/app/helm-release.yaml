@@ -51,7 +51,7 @@ spec:
     # 4.22 upgrade was done.
     cephImage:
       repository: quay.io/ceph/ceph
-      tag: v20.2.4
+      tag: v20.2.4@sha256:6bb1c8a42fbc0bf87938946990b65174466997bc11c31eb5a323225a779fd8f9
     cephClusterSpec:
       # CVE-2025-30156: Ceph 20.2.4 flags the legacy AES-128 cephx keys every
       # daemon was created with (AUTH_INSECURE_*, two at ERR level). Rook
