@@ -27,3 +27,16 @@ volumes:
   - persistentVolumeClaim
   - projected
   - secret
+---
+# OpenShift only pre-creates system:openshift:scc:<name> ClusterRoles for its
+# built-in SCCs; a custom SCC needs its own `use` role or the RoleBinding in
+# rbac.yaml points at nothing and admission falls back to restricted-v2.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:openshift:scc:polymaker-gluetun
+rules:
+  - apiGroups: [security.openshift.io]
+    resources: [securitycontextconstraints]
+    resourceNames: [polymaker-gluetun]
+    verbs: [use]
