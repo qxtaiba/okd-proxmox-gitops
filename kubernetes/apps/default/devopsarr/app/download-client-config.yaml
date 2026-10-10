@@ -75,6 +75,13 @@ spec:
                     esac
                   }
                   sab_set misc complete_dir complete_dir /media/downloads/usenet/complete
+                  # Malware: fail any job containing executable/script files
+                  # (TRaSH's list). Releases for TV/movies never need them.
+                  ext="ade,adp,app,asp,bas,bat,cer,chm,cmd,com,cpl,crt,csh,der,exe,fxp,gadget,hlp,hta,inf,ins,isp,its,jar,js,jse,ksh,lnk,mad,maf,mag,mam,maq,mar,mas,mat,mau,mav,maw,mda,mdb,mde,mdt,mdw,mdz,msc,msh,msh1,msh2,mshxml,msh1xml,msh2xml,msi,msp,mst,ops,pcd,pif,plg,prf,prg,ps1,ps1xml,ps2,ps2xml,psc1,psc2,pst,reg,scf,scr,sct,shb,shs,tmp,url,vb,vbe,vbs,vsmacros,vsw,ws,wsc,wsf,wsh,xnk"
+                  out=$(sab_api -d mode=set_config -d section=misc -d keyword=unwanted_extensions --data-urlencode "value=${ext}")
+                  case "${out}" in *'"lnk"'*|*lnk*) echo "sabnzbd: misc/unwanted_extensions set" ;; *) echo "sabnzbd: unwanted_extensions not applied: ${out}"; exit 1 ;; esac
+                  # 2 = abort/fail the job (0 off, 1 pause)
+                  sab_set misc action_on_unwanted_extensions action_on_unwanted_extensions 2
                   # Old posts come from the provider's archive tier, slow per
                   # connection, so throughput scales with connections while
                   # every one stays busy and the article cache stays near
