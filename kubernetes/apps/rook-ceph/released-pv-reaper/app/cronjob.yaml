@@ -44,7 +44,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: reaper
-              image: quay.io/openshift/origin-cli:5.1
+              image: quay.io/openshift/origin-cli:4.22@sha256:64ecbe0b472c5a311ce0a5f1606fdac1842aeaf1523c69e02ff7d15cf43cb5b9
               imagePullPolicy: IfNotPresent
               env:
                 - name: MAX_PER_RUN
