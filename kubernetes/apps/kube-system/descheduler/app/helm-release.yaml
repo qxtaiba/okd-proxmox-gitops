@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+---
+# Rebalances memory between the three masters by ACTUAL usage (metrics
+# server), not requests: the scheduler places pods by requests, so a node
+# can end up holding the hungry pods (or a node's kernel can be leaking
+# file pages) while requests look even.
+#
+# Only media and observability workloads are candidates; platform,
+# rook-ceph and flux pods are never touched. Download clients, Plex and
+# Tdarr are excluded: evicting them mid-download / mid-stream / mid-encode
+# costs more than the imbalance (SAB's queue file has been truncated by a
+# drain before).
+#
+# Deviation thresholds: a node is overutilized when its memory use is more
+# than 10 points above the three-node mean, underutilized when more than
+# 10 below. Both must exist or nothing happens. At most 2 evictions a run.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: descheduler
+spec:
+  interval: 10m
+  chartRef:
+    kind: OCIRepository
+    name: descheduler
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    kind: CronJob
+    schedule: "*/30 * * * *"
+    resources:
+      requests:
+        cpu: 20m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+    # The chart pins uid 1000; restricted-v2 assigns the namespace's range.
+    securityContext:
+      runAsUser: null
+    deschedulerPolicy:
+      maxNoOfPodsToEvictPerNode: 1
+      maxNoOfPodsToEvictTotal: 2
+      metricsProviders:
+        - source: KubernetesMetrics
+      profiles:
+        - name: grappleberry
+          pluginConfig:
+            - name: DefaultEvictor
+              args:
+                # Only evict a pod if it fits on another node.
+                nodeFit: true
+                podProtections:
+                  # emptyDir scratch is fine to lose; RWO RBD PVCs reattach.
+                  defaultDisabled: [PodsWithLocalStorage]
+                namespaceLabelSelector:
+                  matchExpressions:
+                    - key: kubernetes.io/metadata.name
+                      operator: In
+                      values: [default, observability]
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: NotIn
+                      values: [sabnzbd, qbittorrent, plex, tdarr]
+            - name: LowNodeUtilization
+              args:
+                useDeviationThresholds: true
+                thresholds:
+                  memory: 10
+                targetThresholds:
+                  memory: 10
+                metricsUtilization:
+                  source: KubernetesMetrics
+          plugins:
+            balance:
+              enabled:
+                - LowNodeUtilization
