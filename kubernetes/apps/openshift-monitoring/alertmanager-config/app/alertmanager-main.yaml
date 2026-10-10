@@ -130,10 +130,13 @@ stringData:
         # without a deliberate config change: InsightsDisabled (switched off on
         # purpose), KubeCPUOvercommit and SystemMemoryExceedsReservation
         # (unavoidable on a 3-node compacted control plane at ~75% CPU
-        # requests). Dropped rather than sent to Info, because an alert that
+        # requests), and KubeMemoryOvercommit (same N-1 arithmetic for memory;
+        # crossed again on 2026-10-09 when Bazarr/Tautulli/Tdarr/Cleanuparr
+        # were added -- every node is also control plane, so the budget can't
+        # hold). Dropped rather than sent to Info, because an alert that
         # can never clear teaches you to ignore the channel it lands in.
         - matchers:
-            - alertname =~ InsightsDisabled|KubeCPUOvercommit|SystemMemoryExceedsReservation
+            - alertname =~ InsightsDisabled|KubeCPUOvercommit|KubeMemoryOvercommit|SystemMemoryExceedsReservation
           receiver: Drop
 
         # Everything else at info severity -- notably UpdateAvailable, which is
