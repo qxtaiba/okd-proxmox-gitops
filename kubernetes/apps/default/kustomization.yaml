@@ -8,7 +8,6 @@ resources:
   - ./byparr
   - ./cleanuparr
   - ./homepage
-  - ./kometa
   - ./overseerr
   - ./plex
   - ./prowlarr
