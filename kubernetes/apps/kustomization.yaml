@@ -11,6 +11,7 @@ resources:
   - ./openshift-apiserver
   - ./openshift-etcd
   - ./openshift-machineconfig
+  - ./openshift-marketplace
   - ./openshift-samples
   - ./openshift-monitoring
   - ./openshift-image-registry
