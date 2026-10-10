@@ -103,7 +103,10 @@ spec:
             - kubernetes.io/hostname
       dashboard:
         enabled: true
-        ssl: true
+        # TLS terminates at the router (edge Route). With ssl: true the mgr
+        # served a self-signed cert on 8443 while the Route targeted 7000,
+        # so the dashboard was a permanent 503.
+        ssl: false
       mgr:
         modules:
           # diskprediction_local disabled: virtual disks (QEMU virtio-scsi)
