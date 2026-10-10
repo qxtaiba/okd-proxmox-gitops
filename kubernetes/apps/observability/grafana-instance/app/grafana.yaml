@@ -44,11 +44,17 @@ spec:
           containers:
             - name: grafana
               env:
-                # Overrides the operator's generated "admin". Grafana only
-                # reads this when creating the first admin, so the existing
-                # user was renamed through the API on 2026-10-10.
+                # Overrides the operator's generated "admin". Must be a
+                # secretKeyRef: the operator merges this into its own entry
+                # (which uses valueFrom), and a plain value leaves both set,
+                # which the API server rejects. Grafana only reads this when
+                # creating the first admin, so the existing user is renamed
+                # through the API once this rolls out.
                 - name: GF_SECURITY_ADMIN_USER
-                  value: svc-grappleberry-grafana
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-admin
+                      key: GF_SECURITY_ADMIN_USER
                 - name: GF_SECURITY_ADMIN_PASSWORD
                   valueFrom:
                     secretKeyRef:
