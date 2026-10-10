@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/networking.k8s.io/networkpolicy_v1.json
+---
+# Plex is served to the LAN on a LoadBalancer IP with
+# externalTrafficPolicy: Local, so client source addresses are preserved and
+# arrive from outside every pod/namespace selector. Its port is open to all.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: plex
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: plex
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - port: 32400
+          protocol: TCP

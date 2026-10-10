@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/networking.k8s.io/networkpolicy_v1.json
+---
+# Ingress baseline for the media namespace: nothing outside `default` may
+# open a connection to its pods except the routers, monitoring, host-network
+# traffic (kubelet probes) and tofu-controller. Egress is not restricted
+# here -- the apps legitimately reach indexers, usenet, trackers, the NAS
+# and metadata APIs; see seerr.yaml for the one app that gets egress rules.
+#
+# NetworkPolicies are additive. A pod with an app-specific policy (plex,
+# qbittorrent) gets the union of that policy and these.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Apps call each other freely inside the namespace (arr -> download clients,
+# prowlarr -> arr, seerr -> arr, homepage -> everything). qbittorrent is
+# excluded as a destination: its own policy deliberately limits the gluetun
+# proxy (8888) to prowlarr and byparr, and a namespace-wide allow would
+# re-open it to every pod.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-same-namespace
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: NotIn
+        values: [qbittorrent]
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+---
+# Routes. Both IngressControllers (default, grappleberry) run their router
+# pods in openshift-ingress, which carries this policy-group label.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-routers
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              policy-group.network.openshift.io/ingress: ""
+---
+# Prometheus (platform and user-workload) scraping.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: monitoring
+---
+# Kubelet probes and other node-originated traffic. OVN-Kubernetes maps
+# host-network sources to the openshift-host-network namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-host-network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              policy-group.network.openshift.io/host-network: ""
+---
+# tofu-controller drives each Terraform's runner pod (which runs here, as
+# tf-runner) over gRPC on 30000.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-tofu-controller
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: tofu-controller
+      ports:
+        - port: 30000
+          protocol: TCP

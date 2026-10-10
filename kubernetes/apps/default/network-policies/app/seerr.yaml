@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/networking.k8s.io/networkpolicy_v1.json
+---
+# Seerr is the only app reachable from the internet (via cloudflared), so it
+# is the likeliest foothold. Limit what a compromised Seerr can reach to
+# exactly what it uses: cluster DNS, Radarr, Sonarr and Plex (by in-cluster
+# service), and the public internet (TMDb, plex.tv). Everything private --
+# the LAN, the NAS, Proxmox, the bastion, and every other pod -- is denied.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: seerr-egress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: overseerr
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-dns
+      ports:
+        # dns-default listens on 5353 behind its :53 Service.
+        - port: 5353
+          protocol: UDP
+        - port: 5353
+          protocol: TCP
+    - to:
+        - podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values: [radarr, sonarr, plex]
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 100.64.0.0/10
+              - 169.254.0.0/16
