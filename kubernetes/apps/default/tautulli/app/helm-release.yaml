@@ -54,8 +54,6 @@ spec:
                     text = text.replace("[General]", "[General]\n" + line, 1)
                 else:
                     text = "[General]\n" + line + "\n" + text
-                if not re.search(r'^http_username = ', text, re.M):
-                    text = text.replace("[General]", '[General]\nhttp_username = "admin"', 1)
                 open(path, "w").write(text)
                 print("seeded http_password")
             securityContext: &securityContext
@@ -80,6 +78,8 @@ spec:
               # External URL used in notification links (not a path prefix).
               TAUTULLI_HTTP_BASE_URL: https://tautulli.grappleberry.xyz
               TAUTULLI_CHECK_GITHUB: "0"
+              # Fallback login (Sign in with Plex is the normal way in).
+              TAUTULLI_HTTP_USERNAME: svc-grappleberry-tautulli
             envFrom:
               - secretRef:
                   name: tautulli-secret
