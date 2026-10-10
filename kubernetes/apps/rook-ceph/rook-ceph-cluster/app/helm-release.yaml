@@ -90,6 +90,20 @@ spec:
           # matters; the device class itself stays `hdd` (pinned by
           # osd_class_update_on_start above) so CRUSH rules are unaffected.
           bluestore_prefer_deferred_size_hdd: "0"
+          # mClock budgets each OSD by its measured IOPS capacity. The
+          # startup benchmark runs against a virtual disk on a shared NVMe,
+          # so it measured anything from 251 to 363 depending on what else
+          # was writing, and left per-OSD overrides behind (including one
+          # for a long-gone osd.1). One deliberate value for every OSD
+          # instead. It is the hdd default, and it doubles as a ceiling that
+          # keeps Ceph from saturating the drive etcd fsyncs to -- revisit
+          # once etcd has its own disk.
+          osd_mclock_skip_benchmark: "true"
+          osd_mclock_max_capacity_iops_hdd: "315"
+          # Scrubs read every object; confine them to the night (22:00-05:00
+          # wraps midnight) so they don't compete with daytime I/O.
+          osd_scrub_begin_hour: "22"
+          osd_scrub_end_hour: "5"
       crashCollector:
         disable: false
       # The log collector exists to rotate on-disk daemon logs, which are
