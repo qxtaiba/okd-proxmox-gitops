@@ -92,8 +92,9 @@ spec:
                   # Ask for 2 articles per round trip on each connection, so
                   # a connection isn't idle for a full RTT between articles.
                   # Same total connections, more of each one's time spent
-                  # transferring -- what archive-tier latency rewards.
-                  sab_set misc pipelining_requests pipelining_requests 2
+                  # transferring -- what archive-tier latency rewards. A
+                  # per-server setting, not misc.
+                  sab_set servers news.newshosting.com pipelining_requests 2
                   # The article cache was 4G inside a 4Gi container limit:
                   # filling it meant an OOM kill mid-write. 1G is plenty when
                   # the NAS keeps up (measured: the cache stays near empty).
