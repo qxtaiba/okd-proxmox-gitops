@@ -22,7 +22,7 @@ spec:
           serviceAccountName: tf-runner
           containers:
             - name: apply
-              image: public.ecr.aws/docker/library/python:3.13-alpine
+              image: public.ecr.aws/docker/library/python:3.14-alpine
               command: ["python3", "/config/cleanuparr-config.py"]
               env:
                 # Live since 2026-10-10. Dry run showed no actions to review:
