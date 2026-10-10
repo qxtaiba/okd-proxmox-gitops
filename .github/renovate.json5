@@ -66,13 +66,18 @@
       "allowedVersions": "/^v\\d+\\.2\\.\\d+$/"
     },
     {
-      // origin-keepalived-ipfailover is tagged by OKD release stream, not by
-      // keepalived version: 5.x is the next OKD major, rebuilt on a different
-      // base, and not what this 4.x cluster ships. It serves the API VIP, so a
-      // broken bump takes the whole control plane off 192.168.227.10. Track
-      // the cluster's own 4.x stream only; lift this with the OKD 5 upgrade.
+      // origin-* images are tagged by OKD release stream, not by their own
+      // version: 5.x is the next OKD major, rebuilt on a different base, and
+      // not what this 4.x cluster ships. keepalived-ipfailover serves the API
+      // VIP, so a broken bump takes the whole control plane off
+      // 192.168.227.10; origin-cli runs the etcd backup, whose etcdctl and
+      // cluster-backup.sh must match the cluster. Track the cluster's own 4.x
+      // stream only; lift this with the OKD 5 upgrade.
       "matchDatasources": ["docker"],
-      "matchPackageNames": ["quay.io/openshift/origin-keepalived-ipfailover"],
+      "matchPackageNames": [
+        "quay.io/openshift/origin-keepalived-ipfailover",
+        "quay.io/openshift/origin-cli"
+      ],
       "allowedVersions": "<5"
     }
   ]
