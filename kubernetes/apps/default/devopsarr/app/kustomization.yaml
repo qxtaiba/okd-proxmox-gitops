@@ -8,6 +8,13 @@ resources:
   - ./tofu-state-obc.yaml
   - ./tofu-state-backup-cronjob.yaml
   - ./download-client-config.yaml
+  - ./app-logins.yaml
   - ./terraform-prowlarr.yaml
   - ./terraform-sonarr.yaml
   - ./terraform-radarr.yaml
+configMapGenerator:
+  - name: app-logins
+    files:
+      - app-logins.py=./config/app-logins.py
+generatorOptions:
+  disableNameSuffixHash: true

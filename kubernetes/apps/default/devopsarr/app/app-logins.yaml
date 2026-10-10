@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/cronjob_v1.json
+---
+# Keeps web-UI logins on the svc-grappleberry-<app> convention for apps
+# whose login Terraform can't manage (see config/app-logins.py). Hourly,
+# idempotent.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: app-logins
+spec:
+  schedule: "37 * * * *"
+  timeZone: Asia/Dubai
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: tf-runner
+          containers:
+            - name: reconcile
+              image: public.ecr.aws/docker/library/python:3.13-alpine
+              command: ["python3", "/config/app-logins.py"]
+              env:
+                - {name: SONARR_API_KEY, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: sonarr_api_key}}}
+                - {name: RADARR_API_KEY, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: radarr_api_key}}}
+                - {name: PROWLARR_API_KEY, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: prowlarr_api_key}}}
+                - {name: SABNZBD_API_KEY, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: sabnzbd_api_key}}}
+                - {name: SONARR_PASSWORD, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: sonarr_password}}}
+                - {name: RADARR_PASSWORD, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: radarr_password}}}
+                - {name: PROWLARR_PASSWORD, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: prowlarr_password}}}
+                - {name: BAZARR_PASSWORD, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: bazarr_password}}}
+                - {name: BAZARR_API_KEY, valueFrom: {secretKeyRef: {name: bazarr-generated, key: BAZARR_API_KEY}}}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+                  readOnly: true
+          volumes:
+            - name: config
+              configMap:
+                name: app-logins
