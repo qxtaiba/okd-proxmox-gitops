@@ -1,0 +1,37 @@
+---
+# Caps page-cache write-back on the masters. The kernel default is a ratio
+# of RAM: dirty_ratio 30 / dirty_background_ratio 10 on a 30 GiB VM lets
+# ~9 GiB of dirty pages build up and then flush in one burst onto the single
+# QLC NVMe that etcd fsyncs to -- the pattern behind etcd's fsync spikes.
+# Fixed byte limits start write-back at 64 MiB and throttle writers at
+# 256 MiB, so the drive sees a steady trickle instead.
+#
+# min_free_kbytes 256 MiB (default ~66 MiB) keeps headroom for atomic
+# allocations while reclaim catches up with the orphaned-file-page leak
+# (see NodeOrphanedFilePages).
+#
+# Selected with `match` on the node label, not machineConfigLabels: a
+# sysctl-only profile is applied live by the tuned daemon and never renders
+# a MachineConfig, so this never reboots the pool.
+apiVersion: tuned.openshift.io/v1
+kind: Tuned
+metadata:
+  name: grappleberry-writeback
+  namespace: openshift-cluster-node-tuning-operator
+spec:
+  profile:
+    - name: grappleberry-writeback
+      data: |
+        [main]
+        summary=Bounded dirty page write-back for a shared QLC NVMe
+        include=openshift-control-plane
+
+        [sysctl]
+        vm.dirty_bytes=268435456
+        vm.dirty_background_bytes=67108864
+        vm.min_free_kbytes=262144
+  recommend:
+    - match:
+        - label: node-role.kubernetes.io/master
+      priority: 20
+      profile: grappleberry-writeback
