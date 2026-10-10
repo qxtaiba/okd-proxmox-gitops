@@ -112,12 +112,6 @@ spec:
     persistence:
       config:
         existingClaim: sabnzbd-config
-      # Legacy CephFS scratch volume: jobs queued before the move to the
-      # NAS still reference it. Remove once its usenet tree is empty.
-      downloads:
-        existingClaim: downloads
-        globalMounts:
-          - path: /downloads
       # Downloads live on the NAS next to the library so Sonarr/Radarr
       # import with hardlinks instead of copying, and download I/O stays
       # off the single NVMe that backs etcd and Ceph.

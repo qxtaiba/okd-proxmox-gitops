@@ -287,13 +287,6 @@ spec:
               - path: /config
             clean-lockfile: *config-mount
             app: *config-mount
-      downloads:
-        existingClaim: downloads
-        advancedMounts:
-          qbittorrent:
-            init-dirs: &downloads-mount
-              - path: /downloads
-            app: *downloads-mount
       media:
         existingClaim: media
         advancedMounts:

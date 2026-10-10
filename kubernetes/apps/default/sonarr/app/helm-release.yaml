@@ -95,10 +95,6 @@ spec:
     persistence:
       config:
         existingClaim: sonarr-config
-      downloads:
-        existingClaim: downloads
-        globalMounts:
-          - path: /downloads
       media:
         existingClaim: media
         globalMounts:
