@@ -7,6 +7,12 @@ kind: Component
 # sourcePVC, trigger.schedule, restic.repository,
 # restic.volumeSnapshotClassName, restic.cacheCapacity. Per-app bootstrap
 # ReplicationDestinations add capacity, storageClassName and accessModes.
+#
+# Schedules are staggered 6 minutes apart from 02:00 (plex first, it is the
+# largest). Every source snapshots an RBD image on the same QLC NVMe that
+# etcd fsyncs to; firing them all at once stacks the snapshot + restic read
+# bursts. Pick the next free slot for a new app; 03:15/03:30 belong to the
+# tofu-state and etcd backups.
 patches:
   - path: ./patch.yaml
     target:
