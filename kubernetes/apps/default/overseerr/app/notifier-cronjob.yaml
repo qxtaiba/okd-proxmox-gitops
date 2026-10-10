@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/cronjob_v1.json
+---
+# Seerr keeps notification agents in settings.json, written only through its
+# API, so this job upserts the Discord agent (idempotent, hourly).
+#
+# Event types are a bitmask. Only request lifecycle events are sent:
+#   2 pending (someone else's request awaits approval), 16 failed,
+#   128 auto-approved (a request you made), 4096 auto-requested (Plex
+#   watchlist sync picked something up).
+# "Available" (8) is left off: Tautulli's notifier already posts every new
+# arrival to the same channel.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: seerr-notifiers
+spec:
+  schedule: "23 * * * *"
+  timeZone: Asia/Dubai
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: overseerr
+          containers:
+            - name: apply
+              image: public.ecr.aws/docker/library/python:3.14-alpine
+              command:
+                - python3
+                - -c
+                - |
+                  import json, os, urllib.request
+                  url = "http://overseerr.default.svc.cluster.local:5055/api/v1/settings/notifications/discord"
+                  hdr = {"X-Api-Key": os.environ["SEERR_API_KEY"], "Content-Type": "application/json"}
+                  def call(method, body=None):
+                      data = json.dumps(body).encode() if body is not None else None
+                      req = urllib.request.Request(url, data=data, headers=hdr, method=method)
+                      return json.load(urllib.request.urlopen(req, timeout=30))
+                  cur = call("GET")
+                  want = {
+                      "enabled": True,
+                      "embedPoster": True,
+                      "types": 2 | 16 | 128 | 4096,
+                      "options": {**cur.get("options", {}),
+                                  "webhookUrl": os.environ["DISCORD_WEBHOOK"],
+                                  "botUsername": "Seerr",
+                                  "enableMentions": False},
+                  }
+                  if all(cur.get(k) == v for k, v in want.items()):
+                      print("discord agent already up to date")
+                  else:
+                      got = call("POST", {**cur, **want})
+                      assert got.get("enabled") and got.get("types") == want["types"], got
+                      print(f"discord agent applied (types={want['types']})")
+              envFrom:
+                - secretRef:
+                    name: overseerr-secret
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi

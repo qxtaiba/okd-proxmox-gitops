@@ -9,5 +9,7 @@ resources:
   - ./helm-release.yaml
   - ./route.yaml
   - ./volsync.yaml
+  - ./external-secret.yaml
+  - ./notifier-cronjob.yaml
 components:
   - ../../../../components/volsync-restic-defaults
