@@ -1,0 +1,29 @@
+# The poly-maker repo is private, so the image is built in the cluster's own
+# registry instead of pulled from GHCR. Build a commit from a checkout with:
+#   git archive --format=tar.gz -o /tmp/src.tgz HEAD
+#   oc start-build poly-maker -n polymaker --from-archive=/tmp/src.tgz --wait
+#   oc tag polymaker/poly-maker:latest polymaker/poly-maker:$(git rev-parse --short HEAD)
+# then pin that tag in helm-release.yaml.
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: poly-maker
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: poly-maker
+spec:
+  source:
+    type: Binary
+    binary: {}
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Containerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: poly-maker:latest
+  runPolicy: Serial

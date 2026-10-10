@@ -94,8 +94,9 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/qxtaiba/poly-maker
-              tag: 59d26a29fbb005b3f2c371606d362c3fb63af8aa
+              # built in-cluster from the private repo (see image-build.yaml); no pull secret needed
+              repository: image-registry.openshift-image-registry.svc:5000/polymaker/poly-maker
+              tag: 1ac0cbe
             args: ["record", "--root", "/data/recordings", "--port", "9108"]
             env:
               TZ: UTC
