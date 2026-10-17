@@ -68,8 +68,14 @@ spec:
               VPN_SERVICE_PROVIDER: protonvpn
               VPN_TYPE: wireguard
               VPN_INTERFACE: wg0
-              SERVER_COUNTRIES: Netherlands
-              SERVER_CITIES: Amsterdam
+              # Port forwarding is the fragile part: each Proton server runs its
+              # own NAT-PMP gateway, and when one stops answering the liveness
+              # probe restarts gluetun until a reconnect lands on a working one.
+              # Pinned to Amsterdam alone that meant the SAME few servers every
+              # time (102 restarts in a week, 30 in one day). Three P2P-friendly
+              # countries give the reconnect a real choice. Germany is avoided on
+              # purpose (copyright-letter enforcement).
+              SERVER_COUNTRIES: Netherlands,Switzerland,Sweden
               PORT_FORWARD_ONLY: "on"
               WIREGUARD_MTU: "1340"
               # 8888: gluetun's HTTP proxy (below), reachable in-cluster only
