@@ -186,7 +186,10 @@ import {
   id = 12
 }
 resource "prowlarr_indexer" "eztv" {
-  # Byparr only: EZTV answers from the home IP once the challenge is solved.
+  # Cloudflare-protected, same as ExtraTorrent below. It used to accept the
+  # home IP once Byparr had solved the challenge, but since 2026-10 it binds
+  # cf_clearance to the solving IP (the VPN) and failed with "blocked by
+  # CloudFlare Protection" until Prowlarr's requests also left via the VPN.
   enable          = true
   name            = "EZTV"
   implementation  = "Cardigann"
@@ -195,7 +198,7 @@ resource "prowlarr_indexer" "eztv" {
   app_profile_id  = prowlarr_sync_profile.standard.id
   priority        = 30
   redirect        = false
-  tags            = [prowlarr_tag.byparr.id]
+  tags            = [prowlarr_tag.byparr.id, prowlarr_tag.vpn.id]
 
   fields = [
     { name = "definitionFile", text_value = "eztv" },
