@@ -9,10 +9,12 @@ import {
   id = 13
 }
 resource "prowlarr_indexer" "x1337" {
-  # Disabled 2026-10-09: 1337x's Cloudflare rules return "Access denied" (403)
-  # to both the home IP and the Proton exit, so no proxy combination reaches it.
-  # Knaben aggregates 1337x results. Re-enable to retry.
-  enable          = false
+  # Disabled 2026-10-09 when Cloudflare returned "Access denied" to both the
+  # home IP and the Amsterdam Proton exit. Re-enabled 2026-10-18 after both
+  # IPs changed (ISP reassignment; VPN widened to NL/CH/SE): Byparr now clears
+  # the challenge through the VPN in ~40s. Cloudflare-protected, so byparr +
+  # vpn like ExtraTorrent. The home IP can't reach it at all (ISP block).
+  enable          = true
   name            = "1337x"
   implementation  = "Cardigann"
   config_contract = "CardigannSettings"
@@ -20,11 +22,11 @@ resource "prowlarr_indexer" "x1337" {
   app_profile_id  = prowlarr_sync_profile.standard.id
   priority        = 15
   redirect        = false
-  tags            = [prowlarr_tag.byparr.id]
+  tags            = [prowlarr_tag.byparr.id, prowlarr_tag.vpn.id]
 
   fields = [
     { name = "definitionFile", text_value = "1337x" },
-    { name = "baseUrl", text_value = "https://1337x.st/" },
+    { name = "baseUrl", text_value = "https://1337x.to/" },
     { name = "baseSettings.limitsUnit", number_value = 0 },
     { name = "torrentBaseSettings.preferMagnetUrl", bool_value = false },
     { name = "uploader", text_value = "" },
