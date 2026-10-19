@@ -25,7 +25,7 @@ spec:
           # Upstream publishes no semver tags (only commit SHAs + latest), so
           # this tracks latest pinned by digest — Renovate's kubernetes
           # manager rolls the digest, which a bare SHA tag can't get.
-          image: ghcr.io/squat/generic-device-plugin:latest@sha256:dc192e164c69b03f156765793a1be62ca437709ae477b27ca7d8f3dcf5021576
+          image: ghcr.io/squat/generic-device-plugin:latest@sha256:5c48f7a16cfb37c4e07731bfa384b9dba6e12d2b0fb4350d8a321d49f12ac494
           args:
             # Newer builds renamed the default resource domain squat.ai ->
             # devic.es, which silently unpublished squat.ai/tun and left
