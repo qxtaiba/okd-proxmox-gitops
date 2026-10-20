@@ -111,6 +111,13 @@ spec:
                 cpu: 1500m
                 memory: 2Gi
     defaultPodOptions:
+      # Both binaries run as their container's PID 1 (no s6, see top). Tdarr
+      # runs exiftool through a short-lived helper, so each finished exiftool
+      # is orphaned onto PID 1 -- and Tdarr_Node never reaps it. 4,035 zombies
+      # in 10 days filled the pod's ~4096 PID limit, after which nothing in the
+      # pod could fork ("Cannot fork") and no file got processed. With a shared
+      # process namespace the pod's pause process is PID 1 and reaps orphans.
+      shareProcessNamespace: true
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
