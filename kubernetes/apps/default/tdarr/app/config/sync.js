@@ -23,8 +23,12 @@ const ARR = {
   radarr: { url: "http://radarr.default.svc.cluster.local:7878", key: process.env.RADARR_API_KEY },
   sonarr: { url: "http://sonarr.default.svc.cluster.local:8989", key: process.env.SONARR_API_KEY },
 }
-// Processing window, local time (TZ=Asia/Dubai): 01:00-07:00 every day.
-const WINDOW_HOURS = [1, 2, 3, 4, 5, 6]
+// Processing window, local time (TZ=Asia/Dubai). Was 01:00-07:00 to keep
+// remux I/O off the NAS's single HDD while people watch; now every hour so new
+// files are cleaned up within ~a day of import (the flow still waits until a
+// file is 24h old and no longer hardlinked/seeding). One worker keeps the
+// contention small; if playback ever stutters during a remux, narrow this.
+const WINDOW_HOURS = Array.from({ length: 24 }, (_, h) => h)
 
 const log = (m) => console.log(new Date().toISOString() + " " + m)
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
