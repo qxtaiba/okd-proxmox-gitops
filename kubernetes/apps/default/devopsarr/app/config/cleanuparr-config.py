@@ -8,7 +8,12 @@ torrents:
     failed imports (3). Struck downloads are removed via Sonarr/Radarr with
     blocklist, then Cleanuparr re-searches.
   - Malware Blocker (every 5 min): Cleanuparr's maintained blocklist of
-    known-malicious file names/extensions.
+    unwanted file names/extensions. Matching files are set to "do not
+    download"; a torrent is removed only when EVERY file in it is blocked
+    (i.e. it is nothing but executables/scripts). The list also covers
+    harmless junk -- *.txt, *sample.mkv, Trailer.* -- so removing a torrent
+    when ANY file matched threw away good releases that ship a promo .txt
+    (WAR S01E01/E02, FLUX/RAWR, 2026-10-22).
   - Download Cleaner (hourly): delete torrents of the sonarr/radarr
     categories once imported (qBittorrent stops them at ratio 0; the library
     copy is a hardlink, so deleting the torrent frees nothing but clutter).
@@ -132,7 +137,7 @@ upsert_named("/queue-rules/slow", call("/queue-rules/slow") or [], "/queue-rules
 bl = {"enabled": True, "blocklistType": "Blacklist", "blocklistPath": "https://cleanuparr.pages.dev/static/blacklist"}
 upsert_singleton("/configuration/malware_blocker", {
     "enabled": True, "cronExpression": "0 0/5 * * * ?", "useAdvancedScheduling": True, "ignorePrivate": True,
-    "deletePrivate": False, "processNoContentId": False, "deleteIfAnyFileBlocked": True, "ignoredDownloads": [],
+    "deletePrivate": False, "processNoContentId": False, "deleteIfAnyFileBlocked": False, "ignoredDownloads": [],
     "sonarr": bl, "radarr": bl})
 
 # --- download cleaner -----------------------------------------------------------
