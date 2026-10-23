@@ -6,4 +6,3 @@ resources:
   - ./observability.yaml
   - ./external-secrets.yaml
   - ./network.yaml
-  - ./polymaker.yaml

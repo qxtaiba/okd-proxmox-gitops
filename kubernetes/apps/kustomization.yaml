@@ -16,4 +16,3 @@ resources:
   - ./openshift-samples
   - ./openshift-monitoring
   - ./openshift-image-registry
-  - ./polymaker
