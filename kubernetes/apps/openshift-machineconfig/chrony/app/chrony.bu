@@ -3,22 +3,16 @@
 #   { echo "---"; butane --strict chrony.bu; } > machineconfig.yaml
 #
 # Ceph mons raise CephMonClockSkew when their clocks disagree by more than
-# 50ms, so all three masters must follow the SAME, trustworthy sources.
+# 50ms. Stock SCOS config gives each master `pool 2.centos.pool.ntp.org`, so
+# the three nodes each chased a DIFFERENT set of public servers -- fine
+# against UTC, but they only agree with each other by coincidence, and any
+# VM stall let them drift apart independently. What Ceph needs is agreement,
+# so all three now prefer the same LAN source: the gateway (192.168.227.1),
+# measured at 64us offset. The public pool stays as fallback so a gateway
+# outage degrades to the old behaviour instead of freewheeling.
 #
-# History: stock `pool 2.centos.pool.ntp.org` let each node chase different
-# servers; that was replaced by preferring the gateway (192.168.227.1). But
-# the Firewalla intercepts ALL outbound NTP (8.8.8.8, 9.9.9.9 -- which serve
-# no NTP -- "answer" in 0.5ms with its own refid), so the "pool" fallback was
-# the Firewalla too. And the Firewalla's own clock misbehaves nightly
-# (~21:00-01:00 UTC): over 30 days each master logged ~90 corrections >1s,
-# e.g. Oct 18 -14.3s then +14.3s fourteen minutes later -- each node stepping
-# at a different moment, i.e. multi-second mon skew.
-#
-# NTS (authenticated NTP) cannot be answered by an interceptor, and it gets
-# through: these four agreed with each other within ~8ms (2026-10-24). The
-# gateway stays as a fifth, non-preferred source so chrony's majority vote
-# outvotes it when it jumps, while still giving a LAN source if the internet
-# drops. minsources 2: never follow a lone source.
+# /etc/chrony.conf has a nodeDisruptionPolicy (Restart chronyd) in
+# ../node-disruption-policy, so edits here do not reboot the masters.
 variant: openshift
 version: 4.18.0
 metadata:
@@ -32,12 +26,8 @@ storage:
       overwrite: true
       contents:
         inline: |
-          server time.cloudflare.com iburst nts
-          server nts.netnod.se iburst nts
-          server ptbtime1.ptb.de iburst nts
-          server ptbtime2.ptb.de iburst nts
-          server 192.168.227.1 iburst
-          minsources 2
+          server 192.168.227.1 iburst prefer
+          pool 2.centos.pool.ntp.org iburst maxsources 2
           sourcedir /run/chrony-dhcp
           driftfile /var/lib/chrony/drift
           makestep 1.0 3
