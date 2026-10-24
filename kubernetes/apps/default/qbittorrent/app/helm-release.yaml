@@ -101,6 +101,13 @@ spec:
               # -- a self-sustaining loop that held the tunnel down for 9h.
               # Both certs carry an IP SAN, so the TLS check stays meaningful.
               HEALTH_TARGET_ADDRESSES: "1.1.1.1:443,8.8.8.8:443"
+              # gluetun resolves everything (incl. the HTTP proxy Prowlarr and
+              # Byparr use) over DNS-over-TLS through the tunnel. Cloudflare
+              # alone was a single point of failure: some Proton exits can't
+              # reach 1.1.1.1 at all (2026-10-24, exit 31.13.191.68), which
+              # left the proxy unable to resolve any hostname while gluetun
+              # still reported healthy. Fall back to Google and Quad9.
+              DNS_UPSTREAM_RESOLVERS: cloudflare,google,quad9
               UPDATER_VPN_SERVICE_PROVIDERS: protonvpn
               VPN_PORT_FORWARDING: "on"
               VPN_PORT_FORWARDING_UP_COMMAND: >-
