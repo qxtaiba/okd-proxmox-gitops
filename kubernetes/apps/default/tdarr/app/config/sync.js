@@ -10,8 +10,13 @@
 //   - only when an English track of that type exists
 // Safety: skip hardlinked files (still seeding), non-MKV files (a container
 // change would make Radarr/Sonarr see a new file), and files modified in the
-// last 24h; replace only if duration is within 1%, size shrank, and the
-// source is unchanged since the job started. Errors leave the original.
+// last 24h; replace only if duration is within 1%, the result is no more
+// than 1% larger, and the source is unchanged since the job started. Any
+// failed check fails the job (original untouched) -- never "requireReview":
+// review verdicts stay in staging with their work folder kept, and once 100
+// accumulated (Oct 2026) staging was full and Tdarr stopped for 17 days with
+// 621 GB of abandoned remuxes in the cache. Removing a few KB of subtitles
+// can make the remux a hair BIGGER (container overhead), hence +1% not <100%.
 "use strict"
 const fs = require("fs")
 
@@ -142,8 +147,7 @@ function buildFlow(id, name, arrKind) {
   node("cont", "ffmpegCommandSetContainer", "MKV", { container: "mkv", forceConform: "false" }, 400, 400)
   node("exec", "ffmpegCommandExecute", "Run ffmpeg (copy only)", {}, 400, 500)
   node("dur", "compareFileDurationRatio", "Duration within 1%", { greaterThan: "99", lessThan: "101" }, 400, 600)
-  node("size", "compareFileSizeRatio", "Smaller than original", { greaterThan: "20", lessThan: "100" }, 400, 700)
-  node("review", "requireReview", "Needs review: original untouched", {}, 800, 650)
+  node("size", "compareFileSizeRatio", "At most 1% larger than original", { greaterThan: "20", lessThan: "101" }, 400, 700)
   node("unchanged", "customFunction", "Source unchanged since start?", { code: UNCHANGED }, 400, 800)
   node("replace", "replaceOriginalFile", "Replace original", {}, 400, 900)
   if (arrKind)
@@ -161,13 +165,13 @@ function buildFlow(id, name, arrKind) {
   edge("cont", "exec")
   edge("exec", "dur")
   edge("dur", "size", "1")
-  edge("dur", "review", "2")
-  edge("dur", "review", "3")
+  edge("dur", "fail", "2")
+  edge("dur", "fail", "3")
   edge("size", "unchanged", "1")
-  edge("size", "review", "2")
-  edge("size", "review", "3")
+  edge("size", "fail", "2")
+  edge("size", "fail", "3")
   edge("unchanged", "replace", "1")
-  edge("unchanged", "review", "2")
+  edge("unchanged", "fail", "2")
   if (arrKind) edge("replace", "notify")
   edge("onerr", "fail")
   return { _id: id, name, description: "Lossless: drop non-English audio/subtitles (stream copy, never re-encodes). Managed by tdarr-config.",
@@ -266,6 +270,24 @@ async function syncForeignOriginals() {
   } else log("foreign-originals: unchanged (" + foreign.length + " titles)")
 }
 
+// Safety net: Tdarr keeps a job's work folder whenever it doesn't finish
+// cleanly, and nothing else ever deletes it. Remove work folders older than
+// 48h, but only while no worker is running (a live job's folder is recent
+// anyway; the check just avoids racing one).
+async function sweepCache() {
+  const nodes = await api("get-nodes")
+  const busy = Object.values(nodes || {}).some((n) => Object.keys(n.workers || {}).length > 0)
+  if (busy) { log("cache sweep: workers active, skipped"); return }
+  const cutoff = Date.now() - 48 * 3600 * 1000
+  let n = 0
+  for (const d of fs.readdirSync(CACHE)) {
+    if (!d.startsWith("tdarr-workDir")) continue
+    const p = CACHE + "/" + d
+    if (fs.statSync(p).mtimeMs < cutoff) { fs.rmSync(p, { recursive: true, force: true }); n += 1 }
+  }
+  log("cache sweep: removed " + n + " stale work folder(s)")
+}
+
 async function main() {
   for (let i = 0; ; i += 1) {
     try { await api("get-nodes"); break } catch (e) {
@@ -276,6 +298,7 @@ async function main() {
   fs.mkdirSync(CACHE, { recursive: true })
   fs.mkdirSync("/media/.tdarr-test", { recursive: true })
   await syncForeignOriginals()
+  await sweepCache()
   await syncSettings()
   await syncDocs("FlowsJSONDB", FLOWS, () => ["name", "description", "flowPlugins", "flowEdges"])
   await syncDocs("LibrarySettingsJSONDB", LIBRARIES, (w) => Object.keys(w).filter((k) => k !== "_id"))
