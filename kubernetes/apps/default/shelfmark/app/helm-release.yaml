@@ -143,3 +143,9 @@ spec:
           shelfmark:
             app:
               - path: /tmp
+      home:
+        type: emptyDir
+        advancedMounts:
+          shelfmark:
+            app:
+              - path: /home/shelfmark
