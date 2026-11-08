@@ -25,7 +25,7 @@ CWA_SETTINGS = {
     "auto_convert_target_format": "pdf",
     "auto_convert_retained_formats": "epub",
     "auto_metadata_fetch_enabled": 1,
-    "metadata_provider_hierarchy": json.dumps(["hardcover", "google", "ibdb", "dnb"]),
+    "metadata_provider_hierarchy": json.dumps(["hardcover", "kobo", "amazon", "google", "ibdb", "dnb"]),
     "hardcover_auto_fetch_enabled": 1,
     "duplicate_format_priority": json.dumps(FORMAT_PRIORITY),
 }
