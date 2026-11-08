@@ -6,24 +6,6 @@ resource "prowlarr_sync_profile" "books" {
   minimum_seeders           = 1
 }
 
-resource "prowlarr_indexer" "ebookbay" {
-  enable          = true
-  name            = "EBookBay"
-  implementation  = "Cardigann"
-  config_contract = "CardigannSettings"
-  protocol        = "torrent"
-  app_profile_id  = prowlarr_sync_profile.books.id
-  priority        = 20
-  redirect        = false
-  tags            = []
-
-  fields = [
-    { name = "definitionFile", text_value = "ebookbay" },
-    { name = "baseSettings.limitsUnit", number_value = 0 },
-    { name = "torrentBaseSettings.preferMagnetUrl", bool_value = false },
-  ]
-}
-
 resource "prowlarr_indexer" "internet_archive" {
   enable          = true
   name            = "Internet Archive"
