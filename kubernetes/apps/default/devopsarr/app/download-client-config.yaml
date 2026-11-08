@@ -99,7 +99,7 @@ spec:
                   # filling it meant an OOM kill mid-write. 1G is plenty when
                   # the NAS keeps up (measured: the cache stays near empty).
                   sab_set misc cache_limit cache_limit 1G
-                  for cat in sonarr radarr prowlarr; do
+                  for cat in sonarr radarr prowlarr books; do
                     sab_set categories "${cat}" dir /media/downloads/usenet/complete
                   done
                   # SABnzbd refuses to move the incomplete folder while jobs are
