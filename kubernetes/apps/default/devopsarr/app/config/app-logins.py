@@ -9,6 +9,7 @@ untouched. Passwords come from the apps' 1Password items.
 import json
 import os
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -89,9 +90,31 @@ def bazarr():
     return "form login enabled as " + want
 
 
+def shelfmark():
+    base = "http://shelfmark.default.svc.cluster.local:8084/api"
+    h = {"X-Api-Key": os.environ["SHELFMARK_API_KEY"]}
+    want = "svc-grappleberry-shelfmark"
+    pw = os.environ["SHELFMARK_PASSWORD"]
+    try:
+        call(base + "/auth/login", method="POST", body={"username": want, "password": pw})
+        return "login already " + want
+    except urllib.error.HTTPError as e:
+        if e.code != 401:
+            raise
+    users = {u["username"]: u for u in call(base + "/admin/users", headers=h)}
+    if want not in users:
+        call(base + "/admin/users", method="POST", headers=h,
+             body={"username": want, "password": pw, "role": "admin"})
+        return "admin " + want + " created"
+    call(base + "/admin/users/%d" % users[want]["id"], method="PUT", headers=h,
+         body={"password": pw, "role": "admin"})
+    return "password reset for " + want
+
+
 step("sonarr", arr("sonarr", 8989, "v3"))
 step("radarr", arr("radarr", 7878, "v3"))
 step("prowlarr", arr("prowlarr", 9696, "v1"))
 step("sabnzbd", sabnzbd)
 step("bazarr", bazarr)
+step("shelfmark", shelfmark)
 sys.exit(1 if failed else 0)

@@ -34,6 +34,8 @@ spec:
                 - {name: PROWLARR_PASSWORD, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: prowlarr_password}}}
                 - {name: BAZARR_PASSWORD, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: bazarr_password}}}
                 - {name: BAZARR_API_KEY, valueFrom: {secretKeyRef: {name: bazarr-generated, key: BAZARR_API_KEY}}}
+                - {name: SHELFMARK_API_KEY, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: shelfmark_api_key}}}
+                - {name: SHELFMARK_PASSWORD, valueFrom: {secretKeyRef: {name: devopsarr-secrets, key: shelfmark_password}}}
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true

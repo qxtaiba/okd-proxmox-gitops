@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/route.openshift.io/route_v1.json
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: calibre-web-automated
+  labels:
+    ingress: grappleberry
+spec:
+  host: books.grappleberry.xyz
+  port:
+    targetPort: 8083
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: calibre-web-automated
+    weight: 100
+  wildcardPolicy: None
