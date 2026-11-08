@@ -11,9 +11,9 @@ resources:
   - ./route.yaml
   - ./volsync.yaml
 configMapGenerator:
-  - name: calibre-web-automated-set-login
+  - name: calibre-web-automated-configure
     files:
-      - set-login.py=./config/set-login.py
+      - configure.py=./config/configure.py
 generatorOptions:
   disableNameSuffixHash: true
 components:

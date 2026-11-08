@@ -43,11 +43,11 @@ spec:
               readOnlyRootFilesystem: true
               capabilities:
                 drop: ["ALL"]
-          set-login:
+          configure:
             image:
               repository: docker.io/crocodilestick/calibre-web-automated
               tag: v4.0.8
-            command: ["/lsiopy/bin/python3", "/scripts/set-login.py"]
+            command: ["/lsiopy/bin/python3", "/scripts/configure.py"]
             envFrom:
               - secretRef:
                   name: calibre-web-automated-secret
@@ -123,16 +123,16 @@ spec:
         existingClaim: calibre-web-automated-config
         advancedMounts:
           calibre-web-automated:
-            set-login:
+            configure:
               - path: /config
             app:
               - path: /config
-      set-login:
+      configure:
         type: configMap
-        name: calibre-web-automated-set-login
+        name: calibre-web-automated-configure
         advancedMounts:
           calibre-web-automated:
-            set-login:
+            configure:
               - path: /scripts
                 readOnly: true
       media:
