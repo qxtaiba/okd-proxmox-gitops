@@ -6,6 +6,10 @@ metadata:
   name: shelfmark
   labels:
     ingress: grappleberry
+  annotations:
+    # Release searches fan out to every Prowlarr indexer and routinely run
+    # past the router's 30s default, which surfaced as a 504 in the UI.
+    haproxy.router.openshift.io/timeout: 5m
 spec:
   host: shelfmark.grappleberry.xyz
   port:
