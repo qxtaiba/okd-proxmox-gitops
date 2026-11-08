@@ -1,12 +1,3 @@
-# Book indexers for Shelfmark. Shelfmark calls Prowlarr's search API directly
-# and only queries indexers whose capabilities include Books (7000-7999) or
-# Audio/Audiobook (3030), so these never need to sync to an *arr app.
-
-# Prowlarr pushes every indexer whose categories overlap an app's sync
-# categories. Internet Archive maps "movies" to Movies and TV, so on the
-# Standard profile it would land in Sonarr and Radarr. With every search
-# flag off it syncs there disabled. Prowlarr's own /api/v1/search ignores
-# app profiles, so Shelfmark still searches it.
 resource "prowlarr_sync_profile" "books" {
   name                      = "Books"
   enable_rss                = false
@@ -15,10 +6,6 @@ resource "prowlarr_sync_profile" "books" {
   minimum_seeders           = 1
 }
 
-# The only public ebook-specific tracker in Prowlarr's catalogue (sister site
-# of AudioBook Bay). Its TLS chain doesn't verify against the system CAs; the
-# definition pins the certificate, so no proxy is needed. The home IP reaches
-# it directly; it isn't on the ISP's SNI blocklist (checked 2026-11-08).
 resource "prowlarr_indexer" "ebookbay" {
   enable          = true
   name            = "EBookBay"
@@ -37,10 +24,6 @@ resource "prowlarr_indexer" "ebookbay" {
   ]
 }
 
-# Public-domain and out-of-copyright texts plus LibriVox audiobooks (IA's
-# "audio" maps to category 3000, which Shelfmark treats as audiobook). The
-# torrents carry archive.org web seeds, so they download with zero peers.
-# Its results are noisy, so it gets the lowest priority.
 resource "prowlarr_indexer" "internet_archive" {
   enable          = true
   name            = "Internet Archive"
