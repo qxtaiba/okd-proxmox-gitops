@@ -69,6 +69,7 @@ spec:
               METADATA_PROVIDER: hardcover
               HARDCOVER_ENABLED: "true"
               OPENLIBRARY_ENABLED: "true"
+              GOOGLEBOOKS_ENABLED: "true"
               PROWLARR_ENABLED: "true"
               PROWLARR_URL: http://prowlarr.default.svc:9696
               # Download clients see /media at the same path as this pod, so
