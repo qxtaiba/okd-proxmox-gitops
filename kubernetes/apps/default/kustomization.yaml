@@ -6,7 +6,6 @@ resources:
   - ./shared-storage
   - ./bazarr
   - ./byparr
-  - ./calibre-web-automated
   - ./cleanuparr
   - ./homepage
   - ./overseerr
@@ -16,7 +15,6 @@ resources:
   - ./radarr
   - ./recyclarr
   - ./sabnzbd
-  - ./shelfmark
   - ./sonarr
   - ./tautulli
   - ./tdarr

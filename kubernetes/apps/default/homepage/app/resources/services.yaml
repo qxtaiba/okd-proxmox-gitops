@@ -64,17 +64,6 @@
           url: http://prowlarr.default.svc:9696
           key: "{{HOMEPAGE_VAR_PROWLARR_API_KEY}}"
           fields: ["enableIndexers", "numberOfGrabs", "numberOfQueries"]
-- Books:
-    - Shelfmark:
-        icon: https://raw.githubusercontent.com/calibrain/shelfmark/v1.6.1/src/frontend/public/logo.png
-        href: https://shelfmark.grappleberry.xyz
-        description: Book search & grab
-        siteMonitor: http://shelfmark.default.svc:8084/api/health
-    - Calibre-Web:
-        icon: calibre-web.png
-        href: https://books.grappleberry.xyz
-        description: Library & PDF downloads
-        siteMonitor: http://calibre-web-automated.default.svc:8083
 - Requests:
     - Overseerr:
         icon: overseerr.png
