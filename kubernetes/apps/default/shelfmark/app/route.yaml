@@ -6,6 +6,11 @@ metadata:
   name: shelfmark
   labels:
     ingress: grappleberry
+  annotations:
+    # Release searches fan out to every Prowlarr indexer in parallel and wait up
+    # to PROWLARR_INDEXER_TIMEOUT (90s) for Cloudflare ones solved via Byparr.
+    # The router's 30s default cut them off with a 504 while the backend kept going.
+    haproxy.router.openshift.io/timeout: 180s
 spec:
   host: shelfmark.grappleberry.xyz
   port:
