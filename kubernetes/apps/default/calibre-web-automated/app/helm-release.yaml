@@ -72,6 +72,11 @@ spec:
               # the recursive chown, and polls the ingest folder, since inotify
               # never sees files Shelfmark writes from another pod.
               NETWORK_SHARE_MODE: "true"
+              HARDCOVER_TOKEN:
+                valueFrom:
+                  secretKeyRef:
+                    name: calibre-web-automated-secret
+                    key: HARDCOVER_TOKEN
             probes:
               liveness: &probe
                 enabled: true

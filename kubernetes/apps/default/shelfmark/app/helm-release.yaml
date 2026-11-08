@@ -64,6 +64,10 @@ spec:
               INGEST_DIR: /media/books/ingest
               # Notability takes PDF only; EPUB is kept so CWA can convert it.
               SUPPORTED_FORMATS: pdf,epub
+              # Hardcover tracks editions; Open Library kept surfacing first and
+              # third editions over the current one.
+              METADATA_PROVIDER: hardcover
+              HARDCOVER_ENABLED: "true"
               OPENLIBRARY_ENABLED: "true"
               PROWLARR_ENABLED: "true"
               PROWLARR_URL: http://prowlarr.default.svc:9696

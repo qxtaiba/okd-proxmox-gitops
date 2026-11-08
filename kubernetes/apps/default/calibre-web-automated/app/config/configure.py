@@ -3,8 +3,8 @@
 - Login: CWA seeds admin/admin123 and has no setting for it, so the admin
   row in app.db is rewritten to the 1Password svc-grappleberry credentials.
 - Ingest (cwa.db): convert to PDF for Notability keeping the EPUB, fetch
-  metadata on import so files aren't named after the release, and rank PDF
-  first when duplicates are compared.
+  metadata on import (Hardcover first) so files aren't named after the
+  release, and rank PDF first when duplicates are compared.
 """
 import json
 import os
@@ -25,6 +25,7 @@ CWA_SETTINGS = {
     "auto_convert_target_format": "pdf",
     "auto_convert_retained_formats": "epub",
     "auto_metadata_fetch_enabled": 1,
+    "metadata_provider_hierarchy": json.dumps(["hardcover", "google", "ibdb", "dnb"]),
     "duplicate_format_priority": json.dumps(FORMAT_PRIORITY),
 }
 
