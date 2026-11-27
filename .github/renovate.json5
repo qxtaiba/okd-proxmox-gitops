@@ -59,5 +59,12 @@
       ],
       allowedVersions: '<5',
     },
+    {
+      matchPackageNames: [
+        'quay.io/openshift/origin-keepalived-ipfailover',
+        'ghcr.io/controlplaneio-fluxcd/flux-operator-manifests',
+      ],
+      pinDigests: false,
+    },
   ],
 }
