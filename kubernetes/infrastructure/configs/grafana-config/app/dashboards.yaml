@@ -120,7 +120,7 @@ spec:
   datasources:
     - datasourceName: Prometheus
       inputName: DS_MIMIR
-  url: https://grafana.com/api/dashboards/20162/revisions/1/download
+  url: https://grafana.com/api/dashboards/20162/revisions/6/download
 ---
 # Observability
 apiVersion: grafana.integreatly.org/v1beta1
