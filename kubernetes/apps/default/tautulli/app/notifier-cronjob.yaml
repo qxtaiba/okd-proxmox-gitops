@@ -22,7 +22,7 @@ spec:
           serviceAccountName: tautulli
           containers:
             - name: apply
-              image: ghcr.io/home-operations/tautulli:2.18.2@sha256:d7ea1a79cf8cc2603890287d7c0e5bc277e4909c1df93f48f000833d2771eca0
+              image: ghcr.io/home-operations/tautulli:2.19.1@sha256:602dc59bbc24f3127e086c1b702860b02abb846e7669e2ed53157bc7572c5c9b
               command:
                 - python3
                 - -c
