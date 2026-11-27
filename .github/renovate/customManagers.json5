@@ -49,6 +49,7 @@
       "matchStrings": [
         "url: https://grafana\\.com/api/dashboards/(?<depName>\\d+)/revisions/(?<currentValue>\\d+)/download"
       ],
+      "autoReplaceStringTemplate": "url: https://grafana.com/api/dashboards/{{{depName}}}/revisions/{{{newValue}}}/download",
       "datasourceTemplate": "custom.grafana-dashboards",
       // Revisions are plain integers; every one is a "major" so dashboard
       // bumps get a PR to eyeball instead of automerging.
