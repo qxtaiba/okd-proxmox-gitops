@@ -28,7 +28,7 @@ spec:
           serviceAccountName: tf-runner
           containers:
             - name: apply
-              image: quay.io/curl/curl:8.22.0
+              image: quay.io/curl/curl:8.23.0@sha256:3fb7e13e5d179a845c97d78204f3f1064d1907037f26a3ebf91710571151fd93
               env:
                 - name: SAB_URL
                   value: http://sabnzbd.default.svc.cluster.local:8080
