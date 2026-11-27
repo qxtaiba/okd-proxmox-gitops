@@ -1,84 +1,63 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    "docker:enableMajor",
-    "docker:pinDigests",
-    "helpers:pinGitHubActionDigests",
-    ":dependencyDashboard",
-    ":semanticCommits",
-    ":disableRateLimiting",
-    "github>qxtaiba/okd-proxmox-gitops//.github/renovate/autoMerge.json5",
-    "github>qxtaiba/okd-proxmox-gitops//.github/renovate/labels.json5",
-    "github>qxtaiba/okd-proxmox-gitops//.github/renovate/groups.json5",
-    "github>qxtaiba/okd-proxmox-gitops//.github/renovate/semanticCommits.json5",
-    "github>qxtaiba/okd-proxmox-gitops//.github/renovate/customManagers.json5"
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:recommended',
+    'docker:enableMajor',
+    'docker:pinDigests',
+    'helpers:pinGitHubActionDigests',
+    ':dependencyDashboard',
+    ':semanticCommits',
+    ':disableRateLimiting',
+    'github>qxtaiba/okd-proxmox-gitops//.github/renovate/autoMerge.json5',
+    'github>qxtaiba/okd-proxmox-gitops//.github/renovate/labels.json5',
+    'github>qxtaiba/okd-proxmox-gitops//.github/renovate/groups.json5',
+    'github>qxtaiba/okd-proxmox-gitops//.github/renovate/semanticCommits.json5',
+    'github>qxtaiba/okd-proxmox-gitops//.github/renovate/customManagers.json5',
   ],
-  "dependencyDashboardTitle": "Renovate Dashboard 🤖",
-  "rebaseWhen": "auto",
-  "commitMessageLowerCase": "auto",
-  "timezone": "UTC",
-  "suppressNotifications": [
-    "prEditedNotification",
-    "prIgnoreNotification"
+  dependencyDashboard: {
+    title: 'Renovate Dashboard 🤖',
+  },
+  rebaseWhen: 'auto',
+  commitMessageLowerCase: 'auto',
+  timezone: 'UTC',
+  suppressNotifications: [
+    'prEditedNotification',
+    'prIgnoreNotification',
   ],
-  "flux": {
-    "managerFilePatterns": [
-      "/kubernetes/.+\\.ya?ml$/"
-    ]
+  flux: {
+    managerFilePatterns: [
+      '/kubernetes/.+\\.ya?ml$/',
+    ],
   },
-  "helm-values": {
-    "managerFilePatterns": [
-      "/kubernetes/.+\\.ya?ml$/"
-    ]
+  'helm-values': {
+    managerFilePatterns: [
+      '/kubernetes/.+\\.ya?ml$/',
+    ],
   },
-  "kubernetes": {
-    "managerFilePatterns": [
-      "/kubernetes/.+\\.ya?ml$/"
-    ]
+  kubernetes: {
+    managerFilePatterns: [
+      '/kubernetes/.+\\.ya?ml$/',
+    ],
   },
-  "packageRules": [
+  packageRules: [
     {
-      // Ceph encodes stability in the version number itself, and renovate
-      // cannot infer it: x.0.z are development builds, x.1.z are release
-      // CANDIDATES ("for test clusters" per Ceph's own release policy), and
-      // only x.2.z are stable releases intended for users.
-      //
-      // Nothing marks an RC as pre-release in the tag -- "v21.1.0" is
-      // well-formed semver, so ignoreUnstable sees a normal stable bump. On
-      // 2026-09-24 renovate proposed v20.2.4 -> v21.1.0, it was merged in a
-      // batch, and rook refused it outright:
-      //
-      //   failed the ceph version check: allowUnsupported must be set to true
-      //   to run with this version "21.1.0-0 umbrella"
-      //
-      // The daemons never left v20.2.4, but the CephCluster sat in Progressing
-      // with the object and file controllers refusing to reconcile, and the
-      // toolbox lost cluster access (a v21 client cannot parse the v20-era
-      // keyring) -- the primary debugging tool breaks first. Renovate then
-      // re-opened the same bump twice within the hour, so reverting alone does
-      // not hold.
-      //
-      // Pinning to x.2.z encodes Ceph's own policy rather than blanket-blocking
-      // majors: a genuine v21.2.0 GA is still offered, an RC never is.
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["quay.io/ceph/ceph"],
-      "allowedVersions": "/^v\\d+\\.2\\.\\d+$/"
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        'quay.io/ceph/ceph',
+      ],
+      allowedVersions: '/^v\\d+\\.2\\.\\d+$/',
     },
     {
-      // origin-* images are tagged by OKD release stream, not by their own
-      // version: 5.x is the next OKD major, rebuilt on a different base, and
-      // not what this 4.x cluster ships. keepalived-ipfailover serves the API
-      // VIP, so a broken bump takes the whole control plane off
-      // 192.168.227.10; origin-cli runs the etcd backup, whose etcdctl and
-      // cluster-backup.sh must match the cluster. Track the cluster's own 4.x
-      // stream only; lift this with the OKD 5 upgrade.
-      "matchDatasources": ["docker"],
-      "matchPackageNames": [
-        "quay.io/openshift/origin-keepalived-ipfailover",
-        "quay.io/openshift/origin-cli"
+      matchDatasources: [
+        'docker',
       ],
-      "allowedVersions": "<5"
-    }
-  ]
+      matchPackageNames: [
+        'quay.io/openshift/origin-keepalived-ipfailover',
+        'quay.io/openshift/origin-cli',
+      ],
+      allowedVersions: '<5',
+    },
+  ],
 }
