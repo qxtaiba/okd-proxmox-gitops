@@ -228,7 +228,7 @@ spec:
   datasources:
     - datasourceName: Prometheus
       inputName: DS_PROMETHEUS
-  url: https://grafana.com/api/dashboards/22184/revisions/1/download
+  url: https://grafana.com/api/dashboards/22184/revisions/3/download
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
