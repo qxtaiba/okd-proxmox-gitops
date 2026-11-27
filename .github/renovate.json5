@@ -16,7 +16,7 @@
   ],
   "dependencyDashboardTitle": "Renovate Dashboard 🤖",
   "rebaseWhen": "auto",
-  "commitMessageLowerCase": "always",
+  "commitMessageLowerCase": "auto",
   "timezone": "UTC",
   "suppressNotifications": [
     "prEditedNotification",
