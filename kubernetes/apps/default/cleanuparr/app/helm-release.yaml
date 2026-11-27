@@ -31,7 +31,7 @@ spec:
           app:
             image:
               repository: ghcr.io/cleanuparr/cleanuparr
-              tag: 2.10.9
+              tag: 2.11.2@sha256:4093c0eb48c1926ef375e672f05ea804aacbe7d0900d203cc8716880ccf5a1df
             env:
               TZ: Asia/Dubai
               PORT: "11011"
