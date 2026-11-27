@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: fluxcd/flux2/action@9ee143f8deb516daf98ef329fa4b16229aa84791 # main
+      - uses: fluxcd/flux2/action@bbaaff69c53a0c3422eef80a7612e8e9486ba3df # main
       - run: pip install flux-local
       - run: flux-local test --path kubernetes/clusters/production --enable-helm --all-namespaces
   # Every *.bu must render byte-identically to its committed machineconfig.yaml,
