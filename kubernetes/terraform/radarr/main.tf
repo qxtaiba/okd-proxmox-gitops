@@ -89,4 +89,6 @@ resource "radarr_media_management" "media_management" {
   import_extra_files                          = true
   extra_file_extensions                       = "srt,nfo"
   enable_media_info                           = true
+  use_script_import                           = false
+  script_import_path                          = ""
 }
