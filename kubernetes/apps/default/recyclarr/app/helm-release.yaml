@@ -35,11 +35,15 @@ spec:
             image:
               repository: ghcr.io/recyclarr/recyclarr
               tag: 9.0.0@sha256:4973d11b18b5ef09fb226f4161eecb16434ff7e6b43c56d50fceb52fb22c66c7
+            # v9's image runs a persistent server and rejects CLI args. With
+            # RECYCLARR_SERVER_URL cleared, `recyclarr sync` starts a temporary
+            # in-process server for the one run, so this stays a CronJob.
+            command: ["recyclarr", "sync"]
+            env:
+              RECYCLARR_SERVER_URL: ""
             envFrom:
               - secretRef:
                   name: recyclarr-secrets
-            args:
-              - sync
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
@@ -50,8 +54,8 @@ spec:
                 cpu: 10m
                 memory: 64Mi
               limits:
-                cpu: 200m
-                memory: 128Mi
+                cpu: 500m
+                memory: 512Mi
         pod:
           restartPolicy: Never
     defaultPodOptions:
